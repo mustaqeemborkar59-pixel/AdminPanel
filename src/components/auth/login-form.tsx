@@ -8,27 +8,24 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
 import { LogIn } from 'lucide-react';
 import { updateRTDBUserProfileOnLogin } from '@/app/auth/actions';
+// useToast import removed as we are switching to alert()
 
 export function LoginForm() {
   const router = useRouter();
-  const { toast } = useToast();
+  // const { toast } = useToast(); // Removed useToast
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  // Removed client-side error state, as alert will be used directly.
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
     if (!email || !password) {
-      toast({
-        variant: "destructive",
-        title: "Login Failed",
-        description: "Email and password are required.",
-      });
+      alert("Email and password are required."); // Switched to alert
       setIsLoading(false);
       return;
     }
@@ -46,43 +43,22 @@ export function LoginForm() {
         });
 
         if (!profileUpdateResult.success) {
-          toast({
-            variant: "destructive",
-            title: "Profile Update Failed",
-            description: profileUpdateResult.message || "Could not update your profile in the database.",
-          });
-          // Depending on app requirements, you might consider this a partial success or handle it differently.
-          // For now, login is considered successful if Firebase auth passed, and user is notified of DB issue.
+          // For DB errors, we can still use alert or keep toast if preferred for non-auth errors
+          alert(profileUpdateResult.message || "Could not update your profile in the database.");
         }
       }
       // onAuthStateChanged in AppContentWrapper will handle redirect to dashboard
       // No explicit router.push('/') here to allow onAuthStateChanged to be the source of truth for redirection.
+      // Successful login will be handled by onAuthStateChanged, which should redirect.
     } catch (error: any) {
       console.error("Login failed (Firebase Auth Error):", error);
-      let message = "An unknown error occurred during sign in.";
       const firebaseError = error as AuthError;
-      if (firebaseError.code) {
-        switch (firebaseError.code) {
-          case 'auth/invalid-credential':
-            message = 'Invalid email or password. Please try again.';
-            break;
-          case 'auth/user-disabled':
-            message = 'This user account has been disabled.';
-            break;
-          case 'auth/invalid-email':
-            message = 'The email address is not valid.';
-            break;
-          default:
-            message = firebaseError.message || `Sign in failed. (Code: ${firebaseError.code})`;
-        }
-      } else if (error.message) {
-         message = error.message;
+      if (firebaseError.code === 'auth/invalid-credential') {
+        alert('Invalid email or password. Please try again.');
+      } else {
+        alert('An error occurred during sign in. Please try again later.');
+        // console.error(error); // console.error is already done above
       }
-      toast({
-        variant: "destructive",
-        title: "Login Failed",
-        description: message,
-      });
     } finally {
       setIsLoading(false);
     }

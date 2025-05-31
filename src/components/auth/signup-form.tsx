@@ -8,13 +8,13 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
 import { UserPlus } from 'lucide-react';
 import { createRTDBUserProfileOnSignup } from '@/app/auth/actions';
+// useToast import removed as we are switching to alert()
 
 export function SignupForm() {
   const router = useRouter();
-  const { toast } = useToast();
+  // const { toast } = useToast(); // Removed useToast
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -25,29 +25,17 @@ export function SignupForm() {
     setIsLoading(true);
 
     if (!email || !password || !confirmPassword) {
-      toast({
-        variant: "destructive",
-        title: "Signup Failed",
-        description: "All fields are required.",
-      });
+      alert("All fields are required."); // Switched to alert
       setIsLoading(false);
       return;
     }
     if (password.length < 6) {
-      toast({
-        variant: "destructive",
-        title: "Signup Failed",
-        description: "Password must be at least 6 characters long.",
-      });
+      alert("Password must be at least 6 characters long."); // Switched to alert
       setIsLoading(false);
       return;
     }
     if (password !== confirmPassword) {
-      toast({
-        variant: "destructive",
-        title: "Signup Failed",
-        description: "Passwords do not match.",
-      });
+      alert("Passwords do not match."); // Switched to alert
       setIsLoading(false);
       return;
     }
@@ -65,16 +53,7 @@ export function SignupForm() {
         });
 
         if (!profileCreationResult.success) {
-          toast({
-            variant: "destructive",
-            title: "Profile Creation Failed",
-            description: profileCreationResult.message || "Could not create your profile in the database. Please contact support if this persists.",
-          });
-          // This is a more critical failure during signup. You might want to:
-          // 1. Attempt to delete the Firebase Auth user: await userCredential.user.delete();
-          //    (Requires careful error handling for the delete operation itself)
-          // 2. Or, guide the user to try signing up again or contact support.
-          // For now, we'll show the error and stop. The user is in Auth but not DB.
+          alert(profileCreationResult.message || "Could not create your profile in the database. Please contact support if this persists."); // Switched to alert
           setIsLoading(false);
           return; 
         }
@@ -82,30 +61,19 @@ export function SignupForm() {
       // onAuthStateChanged in AppContentWrapper will handle redirect to dashboard
     } catch (error: any) {
       console.error("Signup failed (Firebase Auth Error):", error);
-      let message = "An unknown error occurred during sign up.";
       const firebaseError = error as AuthError;
-      if (firebaseError.code) {
-        switch (firebaseError.code) {
-          case 'auth/email-already-in-use':
-            message = 'This email is already in use. Please try a different email or log in.';
-            break;
-          case 'auth/weak-password':
-            message = 'The password is too weak. Please choose a stronger password.';
-            break;
-          case 'auth/invalid-email':
-            message = 'The email address is not valid.';
-            break;
-          default:
-            message = firebaseError.message || `Sign up failed. (Code: ${firebaseError.code})`;
-        }
-      } else if (error.message) {
-        message = error.message;
+
+      // Simplified error handling as per suggestion for signup
+      if (firebaseError.code === 'auth/email-already-in-use') {
+        alert('This email is already in use. Please try a different email or log in.');
+      } else if (firebaseError.code === 'auth/weak-password') {
+        alert('The password is too weak. Please choose a stronger password.');
+      } else if (firebaseError.code === 'auth/invalid-email') {
+        alert('The email address is not valid.');
       }
-      toast({
-        variant: "destructive",
-        title: "Signup Failed",
-        description: message,
-      });
+      else {
+        alert('An error occurred during sign up. Please try again later.');
+      }
     } finally {
       setIsLoading(false);
     }
