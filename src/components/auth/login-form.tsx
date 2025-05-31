@@ -41,7 +41,7 @@ export function LoginForm() {
 
         if (!profileUpdateResult.success) {
           alert(profileUpdateResult.message || "Could not update your profile in the database.");
-          // Optionally, don't redirect if DB update fails, or handle differently
+          // Decide if you want to stop redirect on DB failure
         }
       }
       // onAuthStateChanged in AppContentWrapper will handle redirect to dashboard
@@ -49,7 +49,7 @@ export function LoginForm() {
       // but can provide a more immediate UX.
       router.push('/'); 
     } catch (error: any) {
-      // Removed console.error to prevent Next.js dev overlay for handled errors
+      setIsLoading(false); // Set loading to false immediately upon catching an error.
       const firebaseError = error as AuthError;
       if (firebaseError.code === 'auth/invalid-credential') {
         alert('Invalid email or password. Please try again.');
@@ -62,7 +62,9 @@ export function LoginForm() {
         alert('An error occurred during sign in. Please try again later.');
       }
     } finally {
-      setIsLoading(false);
+      // Ensuring isLoading is false, though it should be set in the catch block too.
+      // If successful login leads to unmount, this might not run for that instance.
+      if (isLoading) setIsLoading(false);
     }
   };
 

@@ -52,14 +52,13 @@ export function SignupForm() {
 
         if (!profileCreationResult.success) {
           alert(profileCreationResult.message || "Could not create your profile in the database. Please contact support if this persists.");
-          // Optionally, don't redirect or attempt to delete the Firebase Auth user if DB fails
-          // For simplicity, we'll let the redirect happen for now.
+          // Decide if you want to stop redirect on DB failure
         }
       }
       // onAuthStateChanged in AppContentWrapper will handle redirect to dashboard
       router.push('/');
     } catch (error: any) {
-      // Removed console.error to prevent Next.js dev overlay for handled errors
+      setIsLoading(false); // Set loading to false immediately upon catching an error.
       const firebaseError = error as AuthError;
 
       if (firebaseError.code === 'auth/email-already-in-use') {
@@ -73,7 +72,9 @@ export function SignupForm() {
         alert('An error occurred during sign up. Please try again later.');
       }
     } finally {
-      setIsLoading(false);
+      // Ensuring isLoading is false, though it should be set in the catch block too.
+      // If successful signup leads to unmount, this might not run for that instance.
+      if (isLoading) setIsLoading(false);
     }
   };
 
