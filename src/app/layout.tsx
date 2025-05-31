@@ -1,10 +1,8 @@
 
 import type { Metadata } from 'next';
 import './globals.css';
-import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
-import { AppSidebarNav } from '@/components/layout/app-sidebar-nav';
-import { Toaster } from '@/components/ui/toaster';
-import { Header } from '@/components/layout/header';
+import { AppContentWrapper } from '@/components/layout/app-content-wrapper'; // This is the key
+import { Toaster } from '@/components/ui/toaster'; // Global Toaster
 import { ThemeProvider } from "@/components/theme-provider";
 
 
@@ -32,18 +30,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <SidebarProvider defaultOpen>
-            <Sidebar>
-              <AppSidebarNav />
-            </Sidebar>
-            <SidebarInset className="flex flex-col">
-              <Header />
-              <main className="flex-1 overflow-y-auto bg-background">
-                {children}
-              </main>
-              <Toaster />
-            </SidebarInset>
-          </SidebarProvider>
+          <AppContentWrapper>
+            {children}
+          </AppContentWrapper>
+          <Toaster /> {/* Global Toaster */}
         </ThemeProvider>
       </body>
     </html>
