@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
-  LayoutGrid, Soup, SaladIcon, Grape, Fish, Sandwich, Coffee, Cake, Search, PlusCircle, Settings, ListFilter, Eye, EyeOff, Edit3
-} from 'lucide-react'; // Assuming some icons
+  LayoutGrid, Soup, SaladIcon, Grape, Fish, Sandwich, Coffee, Cake, Search, PlusCircle, Settings, ListFilter, Eye, EyeOff, Edit3, ShoppingCart
+} from 'lucide-react';
 import type { MenuItem, OrderItem, OrderType } from '@/types';
 import { MenuItemCard } from '@/components/menu/menu-item-card';
 import { AddMenuItemDialog } from '@/components/menu/add-menu-item-dialog';
@@ -18,7 +18,9 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 const iconMap: { [key: string]: React.ElementType } = {
-  LayoutGrid, Soup, SaladIcon, Grape, Fish, Sandwich, Coffee, Cake, Settings
+  LayoutGrid, Soup, SaladIcon, Grape, Fish, Sandwich, Coffee, Cake, Settings,
+  'Salad': SaladIcon, // Explicit mapping for SaladIcon if key is 'Salad'
+  'LeafyGreen': SaladIcon, // Assuming LeafyGreen maps to SaladIcon or similar
 };
 
 export default function MenuPage() {
@@ -27,7 +29,7 @@ export default function MenuPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [isMounted, setIsMounted] = useState(false);
-  const [isAdminMode, setIsAdminMode] = useState(false); // Toggle for admin controls
+  const [isAdminMode, setIsAdminMode] = useState(false);
 
   const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
   const [isOrderSheetOpen, setIsOrderSheetOpen] = useState(false);
@@ -60,14 +62,14 @@ export default function MenuPage() {
   }, [selectedCategory, searchTerm, menuItems]);
 
   const handleSaveMenuItem = (itemData: Omit<MenuItem, 'id'> | MenuItem) => {
-    if ('id' in itemData) { // Editing existing item
+    if ('id' in itemData) { 
       setMenuItems(prevItems => prevItems.map(item => item.id === itemData.id ? itemData : item));
       toast({ title: "Item Updated", description: `${itemData.name} has been updated.` });
-    } else { // Adding new item
+    } else { 
       const newItem: MenuItem = {
         ...itemData,
         id: `MENU${Date.now()}${Math.random().toString(36).substring(2, 5)}`,
-        imageHint: itemData.name.toLowerCase().split(" ").slice(0,2).join(" "), // basic hint
+        imageHint: itemData.name.toLowerCase().split(" ").slice(0,2).join(" "),
       };
       setMenuItems(prevItems => [newItem, ...prevItems]);
       toast({ title: "Item Added", description: `${newItem.name} has been added to the menu.` });
@@ -112,10 +114,10 @@ export default function MenuPage() {
         );
       } else {
         const displayPrice = item.discount ? item.price * (1 - item.discount / 100) : item.price;
-        return [...prevOrderItems, { itemId: item.id, name: item.name, qty: 1, price: displayPrice, imageUrl: item.imageUrl }];
+        return [...prevOrderItems, { itemId: item.id, name: item.name, qty: 1, price: displayPrice, imageUrl: item.imageUrl, imageHint: item.imageHint }];
       }
     });
-    if(!isOrderSheetOpen) setIsOrderSheetOpen(true); // Open sheet if not already open
+    if(!isOrderSheetOpen) setIsOrderSheetOpen(true);
     toast({ title: "Item Added", description: `${item.name} added to order.` });
   };
 
@@ -134,9 +136,8 @@ export default function MenuPage() {
   };
 
   const handlePlaceOrder = (details: { customerName: string; deliveryAddress?: string; orderType: OrderType; paymentMethod: 'cash' | 'card' | 'qr' }) => {
-    // In a real app, this would send data to a backend
     const subTotal = currentOrderItems.reduce((sum, item) => sum + item.price * item.qty, 0);
-    const taxAmount = subTotal * 0.05; // Assuming 5% tax
+    const taxAmount = subTotal * 0.05; 
     const totalAmount = subTotal + taxAmount;
 
     const newOrder = {
@@ -171,16 +172,19 @@ export default function MenuPage() {
   }, [menuItems]);
   
   if (!isMounted) {
-    return <div className="flex items-center justify-center h-screen"><PlusCircle className="h-10 w-10 animate-spin text-primary" /></div>; // Or a loading spinner
+    return <div className="flex items-center justify-center h-screen"><PlusCircle className="h-10 w-10 animate-spin text-primary" /></div>;
   }
 
   return (
     <div className="flex flex-col h-full">
       <PageHeader
-        title="Menu"
-        description="Browse items and manage your restaurant's menu."
+        title="Menu & Order"
+        description="Browse items, manage the menu, and create customer orders."
         actions={
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setIsOrderSheetOpen(true)} disabled={currentOrderItems.length === 0}>
+                <ShoppingCart className="mr-2 h-4 w-4" /> View Order ({currentOrderItems.reduce((sum, item) => sum + item.qty, 0)})
+            </Button>
             <Button variant={isAdminMode ? "default" : "outline"} size="sm" onClick={() => setIsAdminMode(!isAdminMode)}>
               <Settings className="mr-2 h-4 w-4" /> {isAdminMode ? "Exit Admin" : "Admin Mode"}
             </Button>
@@ -195,17 +199,15 @@ export default function MenuPage() {
       
       {isAddEditDialogOpen && (
         <AddMenuItemDialog
-            isOpen={isAddEditDialogOpen} // Control externally
-            onOpenChange={setIsAddEditDialogOpen} // Control externally
+            isOpen={isAddEditDialogOpen}
+            onOpenChange={setIsAddEditDialogOpen}
             onSaveItem={handleSaveMenuItem}
             existingItem={itemToEdit}
-            trigger={<></>} // No default trigger, managed by state
+            trigger={null} // No default trigger from dialog itself, managed by state
         />
        )}
 
-
       <div className="flex-1 grid grid-cols-1 md:grid-cols-[1fr_auto] overflow-hidden">
-        {/* Left Panel: Menu Items */}
         <div className="flex flex-col overflow-hidden p-4 md:p-6">
             <div className="mb-4 flex flex-col sm:flex-row gap-4 items-center">
                 <div className="relative flex-grow w-full sm:w-auto">
@@ -218,9 +220,6 @@ export default function MenuPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <Button variant="outline" size="icon" className="h-10 w-10 shrink-0">
-                    <ListFilter className="h-4 w-4" />
-                </Button>
             </div>
 
             <ScrollArea className="mb-4 -mx-4 sm:mx-0">
@@ -250,7 +249,7 @@ export default function MenuPage() {
             </ScrollArea>
 
             <ScrollArea className="flex-1 -mx-4 sm:mx-0">
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4 px-4 sm:px-0 pb-6">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3 px-4 sm:px-0 pb-6">
                 {filteredItems.map(item => (
                     <MenuItemCard
                     key={item.id}
@@ -270,8 +269,6 @@ export default function MenuPage() {
                 </div>
             </ScrollArea>
         </div>
-
-        {/* Right Panel: Order Sheet - shown via Sheet component */}
       </div>
       <CurrentOrderSheet
         isOpen={isOrderSheetOpen}
@@ -288,7 +285,6 @@ export default function MenuPage() {
         onCustomerNameChange={setOrderCustomerName}
         deliveryAddress={orderDeliveryAddress}
         onDeliveryAddressChange={setOrderDeliveryAddress}
-        // You can pass tableInfo here if needed
       />
     </div>
   );

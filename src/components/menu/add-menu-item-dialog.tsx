@@ -18,19 +18,26 @@ import { Textarea } from "@/components/ui/textarea";
 import { PlusCircle, Edit3 } from "lucide-react";
 import { type MenuItem } from '@/types';
 import { Checkbox } from '@/components/ui/checkbox';
-import { initialMenuItems, categories as allCategories } from '@/lib/menu-item-data'; // For categories list
+import { categories as allCategories } from '@/lib/menu-item-data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
 interface AddMenuItemDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
   onSaveItem: (item: Omit<MenuItem, 'id'> | MenuItem) => void;
   existingItem?: MenuItem;
-  trigger?: ReactNode;
+  /**
+   * Optional trigger element. If not provided, a default button is used.
+   * If explicitly set to `null`, no trigger is rendered by this component,
+   * assuming the dialog is controlled entirely externally.
+   */
+  trigger?: ReactNode | null;
 }
 
 const defaultState: Omit<MenuItem, 'id' | 'imageHint'> = {
   name: '',
-  category: allCategories[1]?.name || 'Appetizers', // Default to first actual category
+  category: allCategories.find(c => c.name !== 'All')?.name || 'Appetizers',
   price: 0,
   imageUrl: '',
   availability: true,
@@ -39,14 +46,12 @@ const defaultState: Omit<MenuItem, 'id' | 'imageHint'> = {
   discount: 0,
 };
 
-export function AddMenuItemDialog({ onSaveItem, existingItem, trigger }: AddMenuItemDialogProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function AddMenuItemDialog({ isOpen, onOpenChange, onSaveItem, existingItem, trigger }: AddMenuItemDialogProps) {
   const [formData, setFormData] = useState<Omit<MenuItem, 'id' | 'imageHint'>>(defaultState);
 
   useEffect(() => {
     if (isOpen) {
       if (existingItem) {
-        // Don't include id or imageHint if they are not part of the form directly
         const { id, imageHint, ...editableData } = existingItem;
         setFormData(editableData);
       } else {
@@ -78,21 +83,23 @@ export function AddMenuItemDialog({ onSaveItem, existingItem, trigger }: AddMenu
     } else {
       onSaveItem(formData);
     }
-    setIsOpen(false);
+    onOpenChange(false); // Close dialog via prop
   };
   
   const uniqueCategories = Array.from(new Set(allCategories.filter(c => c.name !== 'All').map(c => c.name)));
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button >
-            {existingItem ? <Edit3 className="mr-2 h-4 w-4" /> : <PlusCircle className="mr-2 h-4 w-4" />}
-            {existingItem ? 'Edit Item' : 'Add New Item'}
-          </Button>
-        )}
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      {trigger !== null && ( // Only render DialogTrigger if trigger is not explicitly null
+        <DialogTrigger asChild>
+          {trigger || ( // Default trigger button if `trigger` is undefined (but not null)
+            <Button>
+              {existingItem ? <Edit3 className="mr-2 h-4 w-4" /> : <PlusCircle className="mr-2 h-4 w-4" />}
+              {existingItem ? 'Edit Item' : 'Add New Item'}
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-lg bg-card">
         <DialogHeader>
           <DialogTitle className="font-headline">{existingItem ? 'Edit' : 'Add New'} Menu Item</DialogTitle>
@@ -149,7 +156,7 @@ export function AddMenuItemDialog({ onSaveItem, existingItem, trigger }: AddMenu
             </div>
           </div>
           <DialogFooter className="mt-4">
-            <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button type="submit">{existingItem ? 'Save Changes' : 'Add Item'}</Button>
           </DialogFooter>
         </form>
