@@ -9,8 +9,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 
 export const metadata: Metadata = {
-  title: 'GastroFlow POS',
-  description: 'Restaurant Management & POS System by Firebase Studio',
+  title: 'SW Software Solutions POS',
+  description: 'Restaurant Management & POS System by SW Software Solutions',
 };
 
 export default function RootLayout({
