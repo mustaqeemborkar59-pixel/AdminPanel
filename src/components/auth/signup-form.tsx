@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect } from 'react';
-import { useActionState } from 'react'; // Updated import
+import { useActionState } from 'react';
 import { signUpWithEmailPassword, type AuthFormState } from '@/app/auth/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,21 +16,18 @@ const initialState: AuthFormState = {
 };
 
 export function SignupForm() {
-  const [state, formAction] = useActionState(signUpWithEmailPassword, initialState); // Updated hook
+  const [state, formAction] = useActionState(signUpWithEmailPassword, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (state.message) {
-      if (!state.success) {
-        toast({
-          variant: "destructive",
-          title: "Signup Failed",
-          description: state.message,
-        });
-      }
-      // Successful signup is handled by server-side redirect in the action
-      // No client-side redirect needed here if server action handles it
+    if (state.message && !state.success) {
+      toast({
+        variant: "destructive",
+        title: "Signup Failed",
+        description: state.message,
+      });
     }
+    // Successful signup is handled by server-side redirect in the action
   }, [state, toast]);
 
   return (

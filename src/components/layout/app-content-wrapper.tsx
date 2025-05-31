@@ -8,7 +8,6 @@ import { app } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebarNav } from '@/components/layout/app-sidebar-nav';
-// Toaster is now global in RootLayout
 import { Header } from '@/components/layout/header';
 
 interface AppContentWrapperProps {
@@ -50,46 +49,44 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     );
   }
 
-  // Scenario 1: On an auth page, and user is NOT authenticated -> Show auth page content directly
-  if (isAuthPage && !user) {
+  // Scenario 1: On an auth page (login/signup)
+  if (isAuthPage) {
+    if (user) {
+      // User is authenticated but on an auth page, useEffect above will redirect to '/'
+      // Show loader during this brief period.
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-background">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      );
+    }
+    // User is not authenticated and on an auth page, show the auth page content directly
     return <>{children}</>;
   }
 
-  // Scenario 2: On a protected page, and user IS authenticated -> Show app with sidebar/header
-  if (!isAuthPage && user) {
+  // Scenario 2: On a protected page (any page that is not an auth page)
+  if (!user) {
+    // User is not authenticated and on a protected page, useEffect above will redirect to '/login'
+    // Show loader during this brief period.
     return (
-      <SidebarProvider defaultOpen>
-        <Sidebar>
-          <AppSidebarNav user={user} authLoading={loading} />
-        </Sidebar>
-        <SidebarInset className="flex flex-col">
-          <Header />
-          <main className="flex-1 overflow-y-auto bg-background">
-            {children}
-          </main>
-          {/* Toaster removed from here, it's now global in RootLayout */}
-        </SidebarInset>
-      </SidebarProvider>
-    );
-  }
-  
-  // Fallback: Handles redirection period or unexpected states
-  // e.g. user is on auth page but IS authenticated (useEffect will redirect to '/')
-  // OR user is on protected page but IS NOT authenticated (useEffect will redirect to '/login')
-  // During this redirection, show a loader.
-  if ((isAuthPage && user) || (!isAuthPage && !user)) {
-     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
       </div>
     );
   }
   
-  // This case should ideally not be reached if the logic above is exhaustive.
-  // Shows a loader as a default fallback.
+  // User is authenticated and on a protected page, show the app with sidebar/header
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <Loader2 className="h-10 w-10 animate-spin text-primary" />
-    </div>
+    <SidebarProvider defaultOpen>
+      <Sidebar>
+        <AppSidebarNav user={user} authLoading={loading} />
+      </Sidebar>
+      <SidebarInset className="flex flex-col">
+        <Header />
+        <main className="flex-1 overflow-y-auto bg-background">
+          {children}
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

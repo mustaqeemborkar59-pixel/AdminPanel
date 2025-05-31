@@ -2,16 +2,13 @@
 "use client";
 
 import React, { useEffect } from 'react';
-import { useFormState } from 'react-dom'; // For React 18.3 server actions
+import { useActionState } from 'react';
 import { signInWithEmailPassword, type AuthFormState } from '@/app/auth/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { LogIn } from 'lucide-react';
-// Alert components can be used if specific non-toast error display is needed below fields
-// import { AlertCircle } from 'lucide-react';
-// import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const initialState: AuthFormState = {
   success: false,
@@ -19,11 +16,11 @@ const initialState: AuthFormState = {
 };
 
 export function LoginForm() {
-  const [state, formAction] = useFormState(signInWithEmailPassword, initialState);
+  const [state, formAction] = useActionState(signInWithEmailPassword, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (state.message && !state.success) { // Only show toast for errors
+    if (state.message && !state.success) { 
       toast({
         variant: "destructive",
         title: "Login Failed",

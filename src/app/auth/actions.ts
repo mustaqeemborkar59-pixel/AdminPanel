@@ -1,4 +1,4 @@
-// src/app/auth/actions.ts
+
 "use server";
 
 import { redirect } from 'next/navigation';
@@ -6,10 +6,9 @@ import { auth, rtdb } from '@/lib/firebase'; // Import rtdb
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword,
-  type UserCredential,
   type User
 } from 'firebase/auth';
-import { ref as rtdbRef, set as rtdbSet, serverTimestamp as rtdbServerTimestamp } from 'firebase/database'; // RTDB functions
+import { ref as rtdbRef, set as rtdbSet, update as rtdbUpdate, serverTimestamp as rtdbServerTimestamp, get as rtdbGet } from 'firebase/database'; // RTDB functions, added update and get
 
 export interface AuthFormState {
   success: boolean;
@@ -32,7 +31,6 @@ async function createUserProfileInRTDB(user: User) {
     });
   } catch (error) {
     console.error("Error creating user profile in RTDB:", error);
-    // Decide if this error should prevent login/signup or just be logged
   }
 }
 
@@ -40,35 +38,24 @@ async function updateUserProfileOnLoginInRTDB(user: User) {
     if (!user) return;
     const userRefRtdb = rtdbRef(rtdb, 'users/' + user.uid);
     try {
-      // Using set to create or overwrite, ensuring all fields are present
-      // For RTDB, to "merge", you'd typically fetch then update, or structure data to allow partial updates easily.
-      // Here, we'll just set the essentials, including updating lastLoginAt.
-      // If a more nuanced merge is needed, the logic would be more complex.
-      await rtdbSet(userRefRtdb, {
-        uid: user.uid,
-        email: user.email,
+      const updates: Record<string, any> = {
+        lastLoginAt: rtdbServerTimestamp(),
         displayName: user.displayName || user.email?.split('@')[0] || 'User',
         photoURL: user.photoURL || `https://placehold.co/100x100.png?text=${user.email?.[0]?.toUpperCase() || 'U'}`,
-        // Keep createdAt if it exists, otherwise set it. This is tricky with RTDB's set, might need to fetch first.
-        // For simplicity, if we always call this on login, createdAt might be overwritten if not handled.
-        // A better approach might be separate create and update functions or using rtdb.update for specific fields.
-        // For now, we'll re-set createdAt if we're setting the whole object.
-        // If you only want to update lastLoginAt: `rtdbSet(rtdbRef(rtdb, 'users/' + user.uid + '/lastLoginAt'), rtdbServerTimestamp());`
-        createdAt: rtdbServerTimestamp(), // This would overwrite if we don't fetch first
-        lastLoginAt: rtdbServerTimestamp(),
-      });
-      // More robust:
-      // const userProfileSnapshot = await get(userRefRtdb);
-      // const updates: any = { lastLoginAt: rtdbServerTimestamp() };
-      // if (!userProfileSnapshot.exists() || !userProfileSnapshot.val()?.createdAt) {
-      //   updates.createdAt = rtdbServerTimestamp();
-      //   updates.uid = user.uid;
-      //   updates.email = user.email;
-      //   // ... other fields for new profile
-      // }
-      // await rtdbUpdate(userRefRtdb, updates);
+        email: user.email, // Keep email field updated if it can change via Firebase Auth profile
+        uid: user.uid, // Ensure uid is present
+      };
 
-
+      // Check if profile exists to decide whether to create it fully or just update
+      const snapshot = await rtdbGet(userRefRtdb);
+      if (snapshot.exists()) {
+        // Profile exists, just update mutable fields
+        await rtdbUpdate(userRefRtdb, updates);
+      } else {
+        // Profile doesn't exist (edge case, e.g., auth user without RTDB profile), create it fully
+        updates.createdAt = rtdbServerTimestamp(); // Set createdAt as this is effectively an initial creation in RTDB
+        await rtdbSet(userRefRtdb, updates);
+      }
     } catch (error) {
         console.error("Error updating user profile in RTDB on login:", error);
     }
@@ -97,10 +84,7 @@ export async function signUpWithEmailPassword(
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     if (userCredential.user) {
       await createUserProfileInRTDB(userCredential.user);
-      redirect('/'); // Redirect to dashboard
-      // Note: redirect() throws an error that Next.js catches to perform the redirect.
-      // So, code below redirect() in the try block might not execute.
-      // The return statement below is effectively for type matching if redirect doesn't happen or for non-redirect scenarios.
+      redirect('/'); 
       return { success: true, message: 'Signup successful! Redirecting...', redirectUrl: '/', userId: userCredential.user.uid };
     }
     return { success: false, message: 'User creation failed after credential generation.' };
@@ -140,9 +124,8 @@ export async function signInWithEmailPassword(
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     if (userCredential.user) {
-      await updateUserProfileOnLoginInRTDB(userCredential.user); // Changed to update RTDB profile
-      redirect('/'); // Redirect to dashboard
-      // For type matching if redirect doesn't happen or for non-redirect scenarios.
+      await updateUserProfileOnLoginInRTDB(userCredential.user); 
+      redirect('/'); 
       return { success: true, message: 'Login successful! Redirecting...', redirectUrl: '/', userId: userCredential.user.uid };
     }
     return { success: false, message: 'User sign in failed after credential generation.' };
@@ -152,7 +135,7 @@ export async function signInWithEmailPassword(
       switch (error.code) {
         case 'auth/user-not-found':
         case 'auth/wrong-password':
-        case 'auth/invalid-credential': // This covers both wrong email/password
+        case 'auth/invalid-credential': 
           message = 'Invalid email or password. Please try again.';
           break;
         case 'auth/invalid-email':
@@ -174,10 +157,7 @@ export async function signOut() {
   try {
     await auth.signOut();
     redirect('/login');
-    // For type matching if redirect doesn't happen or for non-redirect scenarios.
-    // return { success: true, message: 'Signed out successfully.', redirectUrl: '/login' }; 
   } catch (error: any) {
     console.error('SignOut Error:', error);
-    // return { success: false, message: `Sign out failed: ${error.message}` };
   }
 }
