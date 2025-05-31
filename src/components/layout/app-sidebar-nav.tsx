@@ -7,22 +7,16 @@ import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
   Utensils,
-  ClipboardList, 
-  Archive, 
-  Sparkles, 
-  UsersRound, 
+  ClipboardList,
+  Archive,
+  Sparkles,
+  UsersRound,
   Settings,
   PanelLeft,
-  SquareStack, 
+  SquareStack,
   CalendarCheck,
   Truck,
-  LogOut, 
-  Sun,
-  Moon,
-  Laptop,
-  CheckIcon,
-  Percent, 
-  DollarSign, 
+  LogOut,
 } from 'lucide-react';
 import {
   SidebarHeader,
@@ -37,10 +31,11 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/comp
 import { Logo } from './logo';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-
+import { signOut } from '@/app/auth/actions'; 
 import React from 'react';
+import type { User } from 'firebase/auth'; // Import User type
 
-const navItems = [
+const mainNavItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/menu', label: 'Menu', icon: Utensils },
   { href: '/orders', label: 'Orders', icon: ClipboardList },
@@ -50,10 +45,15 @@ const navItems = [
   { href: '/inventory', label: 'Inventory', icon: Archive },
   { href: '/specials', label: 'Specials', icon: Sparkles },
   { href: '/staff', label: 'Staff', icon: UsersRound },
-  { href: '/settings', label: 'Settings', icon: Settings }, // Added Settings
+  { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
-export function AppSidebarNav() {
+interface AppSidebarNavProps {
+  user: User | null;
+  authLoading: boolean;
+}
+
+export function AppSidebarNav({ user, authLoading }: AppSidebarNavProps) {
   const pathname = usePathname();
   const { open, toggleSidebar, isMobile, state, openMobile, setOpenMobile } = useSidebar();
   const [mounted, setMounted] = React.useState(false);
@@ -62,16 +62,15 @@ export function AppSidebarNav() {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
+  if (!mounted || authLoading) {
     return (
         <>
         <SidebarHeader className="p-4 border-b border-sidebar-border">
              <div className="flex items-center justify-center h-[28px]">
-                {/* Intentionally simple for initial render. Content determined by 'open' is deferred. */}
              </div>
         </SidebarHeader>
         <SidebarContent className="flex-1 px-2 py-2">
-            {navItems.map((item) => (
+            {mainNavItems.map((item) => ( 
               <SidebarMenuItem key={item.href + "-skeleton"}>
                 <div className="flex items-center font-medium text-sm h-10 p-2">
                   <item.icon className="h-5 w-5 text-sidebar-foreground/70 mr-2" />
@@ -84,35 +83,37 @@ export function AppSidebarNav() {
                 <div className="h-9 w-9 rounded-full bg-muted"></div>
                 <div className="h-9 w-96 max-w-[100px] bg-muted rounded"></div>
             </div>
-            {/* Removed settings skeleton button, only logout remains */}
-            <div className="h-9 w-full bg-muted rounded"></div>
+             <form> {/* Placeholder form for skeleton consistency */}
+              <div className="h-9 w-full bg-muted rounded"></div>
+            </form>
         </SidebarFooter>
         </>
     );
   }
+
 
   return (
     <>
       <SidebarHeader className="p-4 border-b border-sidebar-border">
         <div className={cn("flex items-center h-[28px]", open ? "justify-between" : "justify-center")}>
           {open && <Logo />}
-          {!open && !isMobile && ( 
+          {!open && !isMobile && (
             <Link href="/" className="text-primary">
                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-primary">
                 <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16.24 7.76C15.07 6.59 13.53 6 12 6V18C14.05 18 15.92 17.18 17.31 15.79C20.44 12.67 20.44 7.56 17.31 4.43C15.92 3.05 14.05 2.22 12 2.22L12 6C13.53 6 15.07 6.59 16.24 7.76ZM7.76 16.24C6.59 15.07 6 13.53 6 12L18 12C18 14.05 17.18 15.92 15.79 17.31C12.67 20.44 7.56 20.44 4.43 17.31C3.05 15.92 2.22 14.05 2.22 12L6 12C6 13.53 6.59 15.07 7.76 16.24Z" fill="currentColor"/>
               </svg>
             </Link>
           )}
-           {isMobile && ( 
+           {isMobile && (
              <Button variant="ghost" size="icon" onClick={toggleSidebar} className={cn("ml-auto", openMobile ? "" : "absolute top-3 left-3 z-50")}>
                 <PanelLeft />
              </Button>
           )}
         </div>
       </SidebarHeader>
-      <SidebarContent className="flex-1 px-2 py-2"> 
+      <SidebarContent className="flex-1 px-2 py-2">
         <SidebarMenu>
-          {navItems.map((item) => {
+          {mainNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
             return (
@@ -124,16 +125,16 @@ export function AppSidebarNav() {
                         <SidebarMenuButton
                           isActive={isActive}
                           className={cn(
-                            "font-medium text-sm h-10", 
-                            isActive 
-                              ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground" 
+                            "font-medium text-sm h-10",
+                            isActive
+                              ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
                               : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                           )}
                         >
                           <Icon className={cn(
-                            "h-5 w-5", 
-                            isActive 
-                              ? "text-primary-foreground" 
+                            "h-5 w-5",
+                            isActive
+                              ? "text-primary-foreground"
                               : "text-sidebar-foreground/70 group-hover/menu-button:text-sidebar-accent-foreground"
                           )} />
                           {open && <span>{item.label}</span>}
@@ -153,40 +154,42 @@ export function AppSidebarNav() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-3 mt-auto border-t border-sidebar-border space-y-2">
-        {open && (
+        {open && user && (
           <>
             <div className="flex items-center gap-3 p-1 rounded-md hover:bg-sidebar-accent cursor-pointer">
               <Avatar className="h-9 w-9">
-                <AvatarImage src="https://placehold.co/40x40.png?text=FM" alt="Floyd Miles" data-ai-hint="user avatar" />
-                <AvatarFallback>FM</AvatarFallback>
+                <AvatarImage src={user.photoURL || `https://placehold.co/40x40.png?text=${user.email?.[0]?.toUpperCase() || 'U'}`} alt={user.displayName || user.email || "User"} data-ai-hint="user avatar"/>
+                <AvatarFallback>{user.displayName?.[0] || user.email?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
               </Avatar>
               <div>
-                <p className="text-sm font-semibold text-sidebar-foreground">Floyd Miles</p>
+                <p className="text-sm font-semibold text-sidebar-foreground">{user.displayName || user.email?.split('@')[0]}</p>
                 <p className="text-xs text-muted-foreground">Admin</p>
               </div>
             </div>
-            {/* Settings Dropdown removed, Settings is now a main nav item */}
-            <Button variant="ghost" className="w-full justify-start text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-              <LogOut className="mr-2 h-5 w-5 text-sidebar-foreground/70" /> Logout
-            </Button>
+            <form action={signOut}>
+              <Button type="submit" variant="ghost" className="w-full justify-start text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+                <LogOut className="mr-2 h-5 w-5 text-sidebar-foreground/70" /> Logout
+              </Button>
+            </form>
           </>
         )}
-         {state === 'collapsed' && !isMobile && (
+         {state === 'collapsed' && !isMobile && user && (
           <div className="space-y-2 flex flex-col items-center">
              <TooltipProvider delayDuration={0}>
                 <Tooltip>
                     <TooltipTrigger asChild>
                          <Avatar className="h-9 w-9">
-                            <AvatarImage src="https://placehold.co/40x40.png?text=FM" alt="Floyd Miles" data-ai-hint="user avatar"/>
-                            <AvatarFallback>FM</AvatarFallback>
+                            <AvatarImage src={user.photoURL || `https://placehold.co/40x40.png?text=${user.email?.[0]?.toUpperCase() || 'U'}`} alt={user.displayName || user.email || "User"} data-ai-hint="user avatar"/>
+                            <AvatarFallback>{user.displayName?.[0] || user.email?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
                         </Avatar>
                     </TooltipTrigger>
-                    <TooltipContent side="right" className="font-body bg-background text-foreground border-border">Floyd Miles</TooltipContent>
+                    <TooltipContent side="right" className="font-body bg-background text-foreground border-border">{user.displayName || user.email}</TooltipContent>
                 </Tooltip>
-                {/* Settings icon/dropdown removed from here */}
                 <Tooltip>
                     <TooltipTrigger asChild>
-                         <Button variant="ghost" size="icon" className="w-9 h-9 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"><LogOut className="h-5 w-5 text-sidebar-foreground/70"/></Button>
+                        <form action={signOut}>
+                             <Button type="submit" variant="ghost" size="icon" className="w-9 h-9 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"><LogOut className="h-5 w-5 text-sidebar-foreground/70"/></Button>
+                        </form>
                     </TooltipTrigger>
                     <TooltipContent side="right" className="font-body bg-background text-foreground border-border">Logout</TooltipContent>
                 </Tooltip>
