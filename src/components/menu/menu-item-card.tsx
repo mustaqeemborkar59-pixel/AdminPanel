@@ -59,18 +59,19 @@ export function MenuItemCard({
           {item.description || "Delicious choice"}
         </p>
         
-        <div className="mt-auto space-y-2 pt-2"> {/* Wrapper for bottom content, pushes to bottom, adds space between rows */}
+        <div className="mt-auto space-y-2 pt-2">
           
           {/* Row for Price/Badge and Admin Buttons (if admin view) */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3"> {/* Price and Badge Group */}
-              <div className="flex items-baseline gap-1">
+            {/* Container for Price AND Badge, allowing badge to align right */}
+            <div className="flex items-center justify-between flex-grow"> 
+              <div className="flex items-baseline gap-1"> {/* Price */}
                 <span className="text-sm font-bold text-primary">${displayPrice.toFixed(2)}</span>
                 {item.discount && (
                   <span className="text-xs text-muted-foreground line-through">${item.price.toFixed(2)}</span>
                 )}
               </div>
-              <Badge
+              <Badge // Veg/Non-Veg Badge
                 variant="outline"
                 className={cn(
                   "text-xs font-medium py-0.5 px-1.5 h-5 flex items-center",
@@ -88,7 +89,7 @@ export function MenuItemCard({
             </div>
 
             {isAdminView && onEditAdminAction && onDeleteAdminAction && onToggleAvailabilityAdminAction && (
-              <div className="flex gap-1"> {/* Admin Buttons */}
+              <div className="flex gap-1 ml-2"> {/* Admin Buttons, added ml-2 for spacing */}
                    <Button
                       variant="ghost"
                       size="icon"
@@ -110,7 +111,7 @@ export function MenuItemCard({
 
           {/* Row for Add to Order / Quantity Controls (if NOT admin view and item is available) */}
           {item.availability && !isAdminView && (
-            <div className="w-full"> 
+            <div className="w-full pt-1"> 
               {quantityInOrder === 0 ? (
                 <Button
                   variant="outline"
@@ -153,3 +154,4 @@ export function MenuItemCard({
     </Card>
   );
 }
+
