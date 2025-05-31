@@ -38,20 +38,27 @@ export function LoginForm() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
       if (userCredential.user) {
-        // Call server action to update RTDB profile
-        await updateRTDBUserProfileOnLogin({
+        const profileUpdateResult = await updateRTDBUserProfileOnLogin({
           uid: userCredential.user.uid,
           email: userCredential.user.email,
           displayName: userCredential.user.displayName,
           photoURL: userCredential.user.photoURL,
         });
+
+        if (!profileUpdateResult.success) {
+          toast({
+            variant: "destructive",
+            title: "Profile Update Failed",
+            description: profileUpdateResult.message || "Could not update your profile in the database.",
+          });
+          // Depending on app requirements, you might consider this a partial success or handle it differently.
+          // For now, login is considered successful if Firebase auth passed, and user is notified of DB issue.
+        }
       }
       // onAuthStateChanged in AppContentWrapper will handle redirect to dashboard
-      // router.push('/'); // No longer needed here if onAuthStateChanged handles it
-      // Toast for success can be handled by onAuthStateChanged if desired or here
-      // toast({ title: "Login Successful", description: "Welcome back!" });
+      // No explicit router.push('/') here to allow onAuthStateChanged to be the source of truth for redirection.
     } catch (error: any) {
-      console.error("Login failed", error);
+      console.error("Login failed (Firebase Auth Error):", error);
       let message = "An unknown error occurred during sign in.";
       const firebaseError = error as AuthError;
       if (firebaseError.code) {
@@ -68,6 +75,8 @@ export function LoginForm() {
           default:
             message = firebaseError.message || `Sign in failed. (Code: ${firebaseError.code})`;
         }
+      } else if (error.message) {
+         message = error.message;
       }
       toast({
         variant: "destructive",

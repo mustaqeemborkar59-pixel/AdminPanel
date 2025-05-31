@@ -57,19 +57,31 @@ export function SignupForm() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
       if (userCredential.user) {
-        // Call server action to create RTDB profile
-        await createRTDBUserProfileOnSignup({
+        const profileCreationResult = await createRTDBUserProfileOnSignup({
           uid: userCredential.user.uid,
           email: userCredential.user.email,
-          displayName: userCredential.user.displayName, // Will be null initially
-          photoURL: userCredential.user.photoURL, // Will be null initially
+          displayName: userCredential.user.displayName, 
+          photoURL: userCredential.user.photoURL, 
         });
+
+        if (!profileCreationResult.success) {
+          toast({
+            variant: "destructive",
+            title: "Profile Creation Failed",
+            description: profileCreationResult.message || "Could not create your profile in the database. Please contact support if this persists.",
+          });
+          // This is a more critical failure during signup. You might want to:
+          // 1. Attempt to delete the Firebase Auth user: await userCredential.user.delete();
+          //    (Requires careful error handling for the delete operation itself)
+          // 2. Or, guide the user to try signing up again or contact support.
+          // For now, we'll show the error and stop. The user is in Auth but not DB.
+          setIsLoading(false);
+          return; 
+        }
       }
       // onAuthStateChanged in AppContentWrapper will handle redirect to dashboard
-      // router.push('/'); // No longer needed here if onAuthStateChanged handles it
-      // toast({ title: "Signup Successful", description: "Your account has been created." });
     } catch (error: any) {
-      console.error("Signup failed", error);
+      console.error("Signup failed (Firebase Auth Error):", error);
       let message = "An unknown error occurred during sign up.";
       const firebaseError = error as AuthError;
       if (firebaseError.code) {
@@ -86,6 +98,8 @@ export function SignupForm() {
           default:
             message = firebaseError.message || `Sign up failed. (Code: ${firebaseError.code})`;
         }
+      } else if (error.message) {
+        message = error.message;
       }
       toast({
         variant: "destructive",
