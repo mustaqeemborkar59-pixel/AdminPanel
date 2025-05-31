@@ -33,7 +33,7 @@ export function MenuItemCard({
             alt={item.name}
             fill
             style={{ objectFit: 'cover' }}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
             data-ai-hint={item.imageHint || "food item"}
             priority={false}
           />
@@ -53,19 +53,19 @@ export function MenuItemCard({
         </Badge>
       </div>
 
-      <div className="p-3 flex flex-col flex-grow"> {/* Reduced padding from p-4 to p-3 */}
-        <h3 className="font-headline text-lg font-semibold text-foreground mb-1 truncate">{item.name}</h3>
+      <div className="p-3 flex flex-col flex-grow">
+        <h3 className="font-headline text-base font-semibold text-foreground mb-1 truncate">{item.name}</h3>
         
-        <div className="flex items-center text-primary font-bold text-lg mb-2"> {/* Price text-lg, icon h-4 w-4 */}
+        <div className="flex items-center text-primary font-bold text-sm mb-2">
           <DollarSign className="h-4 w-4 mr-1" />
           {item.price.toFixed(2)}
         </div>
 
-        <p className="font-body text-sm text-muted-foreground mb-3 line-clamp-2"> {/* Removed min-h-[40px] */}
+        <p className="font-body text-sm text-muted-foreground mb-3 line-clamp-2">
           {item.description || "No description available."}
         </p>
         
-        <Badge variant="secondary" className="font-body w-fit mb-3 text-xs py-1 px-2 capitalize bg-secondary text-secondary-foreground"> {/* Reduced mb-4 to mb-3 */}
+        <Badge variant="secondary" className="font-body w-fit mb-3 text-xs py-1 px-2 capitalize bg-secondary text-secondary-foreground">
           {item.category}
         </Badge>
 
