@@ -4,20 +4,21 @@
 import { useState, useEffect, ReactNode } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, Users, ShoppingBag, Archive, Activity, AlertTriangle, UsersRound } from 'lucide-react'; // ListPlus removed
+import { DollarSign, Users, ShoppingBag, Archive, Activity, AlertTriangle, UsersRound, Utensils } from 'lucide-react'; 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import type { Order, InventoryItem, StaffMember, OrderStatus, OrderType } from '@/types'; // MenuItem removed
+import type { Order, InventoryItem, StaffMember, OrderStatus, OrderType, MenuItem } from '@/types';
+import { initialMenuItems } from '@/lib/menu-item-data'; // Import menu items for count
+
 
 // --- Initial Data (copied from other pages for demonstration) ---
 const initialOrdersData: Order[] = [
-  { id: 'ORD001', customerName: 'Alice Smith', items: [{ itemId: '1', name: 'Margherita Pizza', qty: 1, price: 12.99 }], status: 'preparing', orderType: 'dine-in', tableNumber: '5', totalAmount: 12.99, timestamp: new Date().toISOString() },
-  { id: 'ORD002', customerName: 'Bob Johnson', items: [{ itemId: '2', name: 'Spaghetti Carbonara', qty: 2, price: 15.50 }], status: 'placed', orderType: 'takeaway', totalAmount: 31.00, timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString() },
-  { id: 'ORD003', customerName: 'Carol Williams', items: [{ itemId: '3', name: 'Caesar Salad', qty: 1, price: 9.75 }, { itemId: '4', name: 'Tiramisu', qty: 1, price: 7.00 }], status: 'delivered', orderType: 'delivery', totalAmount: 16.75, timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString() },
-  { id: 'ORD004', customerName: 'David Brown', items: [{ itemId: '1', name: 'Margherita Pizza', qty: 1, price: 12.99 }, { itemId: '5', name: 'Bruschetta', qty: 1, price: 8.50 }], status: 'ready', orderType: 'dine-in', tableNumber: '2', totalAmount: 21.49, timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
-  { id: 'ORD005', customerName: 'Eva Green', items: [{ itemId: '2', name: 'Spaghetti Carbonara', qty: 1, price: 15.50 }], status: 'placed', orderType: 'takeaway', totalAmount: 15.50, timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString() },
+  { id: 'ORD001', customerName: 'Alice Smith', items: [{ itemId: '1', name: 'Margherita Pizza', qty: 1, price: 12.99, imageUrl: 'https://placehold.co/100x100.png' }], status: 'preparing', orderType: 'dine-in', tableNumber: '5', totalAmount: 12.99, subTotal: 12.99, taxAmount: 0, timestamp: new Date().toISOString() },
+  { id: 'ORD002', customerName: 'Bob Johnson', items: [{ itemId: '2', name: 'Spaghetti Carbonara', qty: 2, price: 15.50, imageUrl: 'https://placehold.co/100x100.png' }], status: 'placed', orderType: 'takeaway', totalAmount: 31.00, subTotal: 31.00, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString() },
+  { id: 'ORD003', customerName: 'Carol Williams', items: [{ itemId: '3', name: 'Caesar Salad', qty: 1, price: 9.75, imageUrl: 'https://placehold.co/100x100.png' }, { itemId: '4', name: 'Tiramisu', qty: 1, price: 7.00, imageUrl: 'https://placehold.co/100x100.png' }], status: 'delivered', orderType: 'delivery', totalAmount: 16.75, subTotal: 16.75, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString() },
+  { id: 'ORD004', customerName: 'David Brown', items: [{ itemId: '1', name: 'Margherita Pizza', qty: 1, price: 12.99, imageUrl: 'https://placehold.co/100x100.png' }, { itemId: '5', name: 'Bruschetta', qty: 1, price: 8.50, imageUrl: 'https://placehold.co/100x100.png' }], status: 'ready', orderType: 'dine-in', tableNumber: '2', totalAmount: 21.49, subTotal: 21.49, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
+  { id: 'ORD005', customerName: 'Eva Green', items: [{ itemId: '2', name: 'Spaghetti Carbonara', qty: 1, price: 15.50, imageUrl: 'https://placehold.co/100x100.png' }], status: 'placed', orderType: 'takeaway', totalAmount: 15.50, subTotal: 15.50, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString() },
 ];
 
-// initialMenuItemsData removed
 
 const initialInventoryItemsData: InventoryItem[] = [
   { id: 'INV001', name: 'Tomatoes', quantity: 50, unit: 'kg', alertLevel: 10, vendor: 'Fresh Farms Co.' },
@@ -38,7 +39,7 @@ const initialStaffData: StaffMember[] = [
 // --- End Initial Data ---
 
 
-const dailySalesData = [ // Keep example data for this chart
+const dailySalesData = [ 
   { name: 'Mon', sales: 4000 },
   { name: 'Tue', sales: 3000 },
   { name: 'Wed', sales: 2000 },
@@ -48,7 +49,7 @@ const dailySalesData = [ // Keep example data for this chart
   { name: 'Sun', sales: 3490 },
 ];
 
-const topSellingItemsData = [ // Keep example data for this chart
+const topSellingItemsData = [ 
   { name: 'Pizza Margherita', value: 400 },
   { name: 'Pasta Carbonara', value: 300 },
   { name: 'Caesar Salad', value: 200 },
@@ -70,7 +71,7 @@ export default function DashboardPage() {
   const [averageOrderValue, setAverageOrderValue] = useState(0);
   const [inventoryItemCount, setInventoryItemCount] = useState(0);
   const [lowStockCount, setLowStockCount] = useState(0);
-  // menuItemCount state removed
+  const [menuItemCount, setMenuItemCount] = useState(0);
   const [activeStaffCount, setActiveStaffCount] = useState(0);
 
   const [orderStatusData, setOrderStatusData] = useState<ChartDataPoint[]>([]);
@@ -80,25 +81,20 @@ export default function DashboardPage() {
   const newCustomers = 45; // Placeholder data
 
   useEffect(() => {
-    // Calculate order stats
     const currentTotalSales = initialOrdersData.reduce((sum, order) => sum + order.totalAmount, 0);
     const currentTotalOrders = initialOrdersData.length;
     setTotalSales(currentTotalSales);
     setTotalOrders(currentTotalOrders);
     setAverageOrderValue(currentTotalOrders > 0 ? currentTotalSales / currentTotalOrders : 0);
 
-    // Calculate inventory stats
     setInventoryItemCount(initialInventoryItemsData.length);
     setLowStockCount(initialInventoryItemsData.filter(item => item.quantity <= item.alertLevel).length);
+    
+    setMenuItemCount(initialMenuItems.length); 
 
-    // Calculate menu stats - menuItemCount removed
-    // setMenuItemCount(initialMenuItemsData.length);
-
-    // Calculate staff stats
     setActiveStaffCount(initialStaffData.filter(staff => staff.status === 'on-duty').length);
 
-    // Prepare chart data
-    const statusCounts: Record<OrderStatus, number> = { placed: 0, preparing: 0, ready: 0, delivered: 0, cancelled: 0 };
+    const statusCounts: Record<OrderStatus, number> = { placed: 0, preparing: 0, ready: 0, delivered: 0, cancelled: 0, pending: 0 };
     initialOrdersData.forEach(order => { statusCounts[order.status]++; });
     setOrderStatusData(Object.entries(statusCounts).map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value })).filter(d => d.value > 0));
 
@@ -126,11 +122,11 @@ export default function DashboardPage() {
           <StatsCard title="Total Sales" value={`$${totalSales.toFixed(2)}`} icon={<DollarSign className="h-5 w-5 text-muted-foreground" />} />
           <StatsCard title="Total Orders" value={totalOrders.toString()} icon={<ShoppingBag className="h-5 w-5 text-muted-foreground" />} />
           <StatsCard title="Avg. Order Value" value={`$${averageOrderValue.toFixed(2)}`} icon={<Activity className="h-5 w-5 text-muted-foreground" />} />
-          <StatsCard title="New Customers" value={newCustomers.toString()} icon={<Users className="h-5 w-5 text-muted-foreground" />} />
-          {/* Menu Items StatsCard removed */}
+          <StatsCard title="Menu Items" value={menuItemCount.toString()} icon={<Utensils className="h-5 w-5 text-muted-foreground" />} />
           <StatsCard title="Total Inventory" value={inventoryItemCount.toString()} icon={<Archive className="h-5 w-5 text-muted-foreground" />} />
           <StatsCard title="Low Stock Alerts" value={lowStockCount.toString()} icon={<AlertTriangle className="h-5 w-5 text-destructive" />} badgeText={lowStockCount > 0 ? `${lowStockCount} items` : undefined} badgeVariant={lowStockCount > 0 ? "destructive" : undefined} />
           <StatsCard title="Active Staff" value={activeStaffCount.toString()} icon={<UsersRound className="h-5 w-5 text-muted-foreground" />} />
+           <StatsCard title="New Customers" value={newCustomers.toString()} icon={<Users className="h-5 w-5 text-muted-foreground" />} />
         </div>
 
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
@@ -146,10 +142,10 @@ export default function DashboardPage() {
                   <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(value) => `$${value}`} />
                   <Tooltip
                     contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }}
-                    labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold', fontFamily: 'var(--font-body)' }}
-                    itemStyle={{ color: 'hsl(var(--foreground))', fontFamily: 'var(--font-body)' }}
+                    labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
+                    itemStyle={{ color: 'hsl(var(--foreground))' }}
                   />
-                  <Legend wrapperStyle={{ fontSize: '0.875rem', color: 'hsl(var(--muted-foreground))', fontFamily: 'var(--font-body)' }} />
+                  <Legend wrapperStyle={{ fontSize: '0.875rem', color: 'hsl(var(--muted-foreground))' }} />
                   <Bar dataKey="sales" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Sales ($)"/>
                 </BarChart>
               </ResponsiveContainer>
@@ -179,11 +175,11 @@ export default function DashboardPage() {
                     ))}
                   </Pie>
                   <Tooltip
-                     contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)', fontFamily: 'var(--font-body)'}}
+                     contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)'}}
                      labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
                      itemStyle={{ color: 'hsl(var(--foreground))' }}
                   />
-                  <Legend wrapperStyle={{ fontSize: '0.875rem', color: 'hsl(var(--muted-foreground))', fontFamily: 'var(--font-body)' }} />
+                  <Legend wrapperStyle={{ fontSize: '0.875rem', color: 'hsl(var(--muted-foreground))' }} />
                 </PieChart>
               </ResponsiveContainer>
             </CardContent>
@@ -199,8 +195,8 @@ export default function DashboardPage() {
                             <Pie data={orderStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
                                 {orderStatusData.map((entry, index) => <Cell key={`cell-order-status-${index}`} fill={PIE_COLORS_EXTENDED[index % PIE_COLORS_EXTENDED.length]} />)}
                             </Pie>
-                            <Tooltip contentStyle={{ fontFamily: 'var(--font-body)' }}/>
-                            <Legend wrapperStyle={{ fontSize: '0.875rem', fontFamily: 'var(--font-body)' }}/>
+                            <Tooltip />
+                            <Legend wrapperStyle={{ fontSize: '0.875rem' }}/>
                         </PieChart>
                     </ResponsiveContainer>
                 </CardContent>
@@ -213,8 +209,8 @@ export default function DashboardPage() {
                             <Pie data={orderTypeData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
                                 {orderTypeData.map((entry, index) => <Cell key={`cell-order-type-${index}`} fill={PIE_COLORS_EXTENDED[index % PIE_COLORS_EXTENDED.length]} />)}
                             </Pie>
-                             <Tooltip contentStyle={{ fontFamily: 'var(--font-body)' }}/>
-                            <Legend wrapperStyle={{ fontSize: '0.875rem', fontFamily: 'var(--font-body)' }}/>
+                             <Tooltip />
+                            <Legend wrapperStyle={{ fontSize: '0.875rem' }}/>
                         </PieChart>
                     </ResponsiveContainer>
                 </CardContent>
@@ -227,8 +223,8 @@ export default function DashboardPage() {
                             <Pie data={staffStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
                                 {staffStatusData.map((entry, index) => <Cell key={`cell-staff-status-${index}`} fill={PIE_COLORS_EXTENDED[index % PIE_COLORS_EXTENDED.length]} />)}
                             </Pie>
-                            <Tooltip contentStyle={{ fontFamily: 'var(--font-body)' }}/>
-                            <Legend wrapperStyle={{ fontSize: '0.875rem', fontFamily: 'var(--font-body)' }}/>
+                            <Tooltip />
+                            <Legend wrapperStyle={{ fontSize: '0.875rem' }}/>
                         </PieChart>
                     </ResponsiveContainer>
                 </CardContent>
@@ -252,13 +248,14 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant }: StatsCardPro
   return (
     <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium font-body text-muted-foreground">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
         {icon}
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold font-headline text-foreground">{value}</div>
-        {badgeText && <p className={`text-xs ${badgeVariant === 'destructive' ? 'text-destructive' : 'text-muted-foreground'} font-body pt-1`}>{badgeText}</p>}
+        <div className="text-2xl font-bold text-foreground">{value}</div>
+        {badgeText && <p className={`text-xs ${badgeVariant === 'destructive' ? 'text-destructive' : 'text-muted-foreground'} pt-1`}>{badgeText}</p>}
       </CardContent>
     </Card>
   );
 }
+

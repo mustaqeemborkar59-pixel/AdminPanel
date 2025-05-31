@@ -5,19 +5,22 @@ export interface MenuItem {
   category: string;
   price: number;
   imageUrl?: string;
-  imageHint?: string;
+  imageHint?: string; // For AI image generation hint
   availability: boolean;
   description?: string;
+  isVegetarian: boolean;
+  discount?: number; // Optional discount percentage (e.g., 20 for 20%)
 }
 
 export interface OrderItem {
-  itemId: string;
+  itemId: string; // Corresponds to MenuItem id
   name: string;
   qty: number;
-  price: number;
+  price: number; // Price at the time of adding to cart (could be discounted)
+  imageUrl?: string; // For display in cart
 }
 
-export type OrderStatus = 'placed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+export type OrderStatus = 'placed' | 'preparing' | 'ready' | 'delivered' | 'cancelled' | 'pending'; // Added 'pending' for cart
 export type OrderType = 'dine-in' | 'takeaway' | 'delivery';
 
 export interface Order {
@@ -26,8 +29,13 @@ export interface Order {
   items: OrderItem[];
   status: OrderStatus;
   orderType: OrderType;
-  tableNumber?: string;
+  tableNumber?: string; // For dine-in
+  deliveryAddress?: string; // For delivery
   totalAmount: number;
+  subTotal: number;
+  taxAmount: number;
+  discountAmount?: number; // Total discount applied to the order
+  paymentMethod?: 'cash' | 'card' | 'qr';
   timestamp: string; // ISO string
 }
 

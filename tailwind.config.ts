@@ -11,8 +11,10 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Alegreya', 'serif'],
-        headline: ['Belleza', 'serif'],
+        // Using Inter as the primary font as it matches the modern UI style
+        sans: ['Inter', 'sans-serif'], 
+        body: ['Inter', 'sans-serif'], // Align body with Inter
+        headline: ['Inter', 'sans-serif'], // Align headline with Inter, perhaps with heavier weight
         code: ['monospace'],
       },
       colors: {
