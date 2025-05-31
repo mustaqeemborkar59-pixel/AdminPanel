@@ -18,7 +18,8 @@ body {
     --popover: 0 0% 100%; 
     --popover-foreground: 20 5% 15%;
 
-    --primary: 16 84% 56%; /* Coral */
+    /* Updated to Green Theme */
+    --primary: 140 60% 45%; /* Green (same as sidebar active) */
     --primary-foreground: 0 0% 100%; /* White */
 
     --secondary: 30 70% 92%; /* Lighter Peach for secondary elements */
@@ -27,7 +28,8 @@ body {
     --muted: 30 50% 90%; /* Muted Peach */
     --muted-foreground: 20 5% 40%;
 
-    --accent: 42 93% 63%; /* Mustard */
+    /* Updated to Green Theme */
+    --accent: 140 50% 65%; /* Lighter Green */
     --accent-foreground: 0 0% 100%; /* White */
 
     --destructive: 0 70% 55%; /* Red */
@@ -35,21 +37,23 @@ body {
 
     --border: 30 40% 88%; /* Peach-toned border */
     --input: 30 30% 85%; /* Slightly darker for input borders */
-    --ring: 16 84% 60%; /* Slightly darker Coral for focus rings */
+    /* Updated to Green Theme */
+    --ring: 140 60% 50%; /* Green for focus rings */
 
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    /* Updated Chart Colors for Green Theme */
+    --chart-1: 140 70% 45%; /* Green */
+    --chart-2: 150 60% 40%; /* Darker Green-Teal */
+    --chart-3: 160 50% 35%; /* Dark Green-Cyan */
+    --chart-4: 130 40% 55%; /* Softer Green */
+    --chart-5: 120 45% 60%; /* Leaf Green */
     --radius: 0.75rem;
 
     /* Sidebar Theme - Kept Green Accent as per image request */
     --sidebar-background: 0 0% 100%; 
     --sidebar-foreground: 220 10% 35%; 
     
-    --sidebar-accent: 140 60% 95%; /* Very light Green (hover item background) */
-    --sidebar-accent-foreground: 140 60% 40%; /* Solid Green (hover text/icon) */
+    --sidebar-accent: 140 70% 95%; /* Very light Green (hover item background) */
+    --sidebar-accent-foreground: 140 60% 35%; /* Darker Green (hover text/icon) */
     
     --sidebar-border: 220 15% 92%; 
     --sidebar-ring: 140 60% 50%; 
@@ -69,7 +73,8 @@ body {
     --popover: 20 5% 10%; 
     --popover-foreground: 30 30% 95%;
 
-    --primary: 16 75% 65%; /* Brighter Coral for dark mode */
+    /* Updated to Green Theme */
+    --primary: 140 60% 55%; /* Brighter Green for dark mode (same as sidebar active) */
     --primary-foreground: 0 0% 100%; /* White */
 
     --secondary: 20 5% 20%; 
@@ -78,7 +83,8 @@ body {
     --muted: 20 5% 20%; 
     --muted-foreground: 30 30% 70%; 
 
-    --accent: 42 85% 70%; /* Brighter Mustard for dark mode */
+    /* Updated to Green Theme */
+    --accent: 140 50% 75%; /* Brighter Lighter Green for dark mode */
     --accent-foreground: 0 0% 100%; /* White */
 
     --destructive: 0 62.8% 45.6%; /* Adjusted Red */
@@ -86,20 +92,22 @@ body {
 
     --border: 20 5% 25%; 
     --input: 20 5% 25%; 
-    --ring: 16 75% 70%; 
+    /* Updated to Green Theme */
+    --ring: 140 60% 60%; /* Brighter Green for focus rings */
     
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    /* Updated Chart Colors for Green Theme - Dark Mode */
+    --chart-1: 140 70% 55%; /* Bright Green */
+    --chart-2: 150 60% 50%; /* Lighter Green-Teal */
+    --chart-3: 160 50% 45%; /* Lighter Green-Cyan */
+    --chart-4: 130 40% 65%; /* Brighter Softer Green */
+    --chart-5: 120 45% 70%; /* Brighter Leaf Green */
 
     /* Dark Sidebar Theme - Kept Green Accent */
     --sidebar-background: 220 10% 12%; 
     --sidebar-foreground: 0 0% 90%; 
 
-    --sidebar-accent: 140 50% 20%; /* Dark Green (hover item background for dark mode) */
-    --sidebar-accent-foreground: 140 60% 75%; /* Light, Bright Green (hover text/icon for dark mode) */
+    --sidebar-accent: 140 55% 25%; /* Darker Green (hover item background for dark mode) */
+    --sidebar-accent-foreground: 140 65% 80%; /* Lighter, Bright Green (hover text/icon for dark mode) */
     
     --sidebar-border: 220 10% 20%;
     --sidebar-ring: 140 60% 60%;
