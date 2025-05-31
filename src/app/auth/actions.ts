@@ -2,13 +2,13 @@
 "use server";
 
 import { redirect } from 'next/navigation';
-import { auth, rtdb } from '@/lib/firebase'; // Import rtdb
+import { auth, rtdb } from '@/lib/firebase';
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword,
   type User
 } from 'firebase/auth';
-import { ref as rtdbRef, set as rtdbSet, update as rtdbUpdate, serverTimestamp as rtdbServerTimestamp, get as rtdbGet } from 'firebase/database'; // RTDB functions, added update and get
+import { ref as rtdbRef, set as rtdbSet, update as rtdbUpdate, serverTimestamp as rtdbServerTimestamp, get as rtdbGet } from 'firebase/database';
 
 export interface AuthFormState {
   success: boolean;
@@ -31,6 +31,7 @@ async function createUserProfileInRTDB(user: User) {
     });
   } catch (error) {
     console.error("Error creating user profile in RTDB:", error);
+    // Optionally, re-throw or handle this error to inform the calling action
   }
 }
 
@@ -42,22 +43,21 @@ async function updateUserProfileOnLoginInRTDB(user: User) {
         lastLoginAt: rtdbServerTimestamp(),
         displayName: user.displayName || user.email?.split('@')[0] || 'User',
         photoURL: user.photoURL || `https://placehold.co/100x100.png?text=${user.email?.[0]?.toUpperCase() || 'U'}`,
-        email: user.email, // Keep email field updated if it can change via Firebase Auth profile
-        uid: user.uid, // Ensure uid is present
+        email: user.email,
+        uid: user.uid,
       };
 
-      // Check if profile exists to decide whether to create it fully or just update
       const snapshot = await rtdbGet(userRefRtdb);
       if (snapshot.exists()) {
-        // Profile exists, just update mutable fields
         await rtdbUpdate(userRefRtdb, updates);
       } else {
-        // Profile doesn't exist (edge case, e.g., auth user without RTDB profile), create it fully
-        updates.createdAt = rtdbServerTimestamp(); // Set createdAt as this is effectively an initial creation in RTDB
+        // Profile doesn't exist, create it fully (including createdAt)
+        updates.createdAt = rtdbServerTimestamp(); 
         await rtdbSet(userRefRtdb, updates);
       }
     } catch (error) {
-        console.error("Error updating user profile in RTDB on login:", error);
+        console.error("Error updating/creating user profile in RTDB on login:", error);
+        // Optionally, re-throw or handle this error
     }
 }
 
@@ -89,7 +89,9 @@ export async function signUpWithEmailPassword(
     }
     return { success: false, message: 'User creation failed after credential generation.' };
   } catch (error: any) {
+    console.error('SignUp Error:', error);
     let message = 'An unknown error occurred during sign up.';
+
     if (error.code) {
       switch (error.code) {
         case 'auth/email-already-in-use':
@@ -102,10 +104,11 @@ export async function signUpWithEmailPassword(
           message = 'The email address is not valid.';
           break;
         default:
-          message = `Sign up failed: ${error.message} (Code: ${error.code})`;
+          message = `Sign up failed: ${error.message || 'Please try again.'} (Code: ${error.code})`;
       }
+    } else if (error.message) {
+      message = `Sign up failed: ${error.message}`;
     }
-    console.error('SignUp Error:', error);
     return { success: false, message };
   }
 }
@@ -130,12 +133,12 @@ export async function signInWithEmailPassword(
     }
     return { success: false, message: 'User sign in failed after credential generation.' };
   } catch (error: any) {
+    console.error('SignIn Error:', error);
     let message = 'An unknown error occurred during sign in.';
+
     if (error.code) {
       switch (error.code) {
-        case 'auth/user-not-found':
-        case 'auth/wrong-password':
-        case 'auth/invalid-credential': 
+        case 'auth/invalid-credential':
           message = 'Invalid email or password. Please try again.';
           break;
         case 'auth/invalid-email':
@@ -145,10 +148,11 @@ export async function signInWithEmailPassword(
           message = 'This user account has been disabled.';
           break;
         default:
-          message = `Sign in failed: ${error.message} (Code: ${error.code})`;
+          message = `Sign in failed: ${error.message || 'Please try again.'} (Code: ${error.code})`;
       }
+    } else if (error.message) {
+      message = `Sign in failed: ${error.message}`;
     }
-    console.error('SignIn Error:', error);
     return { success: false, message };
   }
 }
