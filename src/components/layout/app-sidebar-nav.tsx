@@ -85,11 +85,17 @@ export function AppSidebarNav() {
                           isActive={isActive}
                           className={cn(
                             "font-medium text-sm h-10", // Consistent height
-                            isActive ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
-                                     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                            isActive 
+                              ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground" 
+                              : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                           )}
                         >
-                          <Icon className={cn("h-5 w-5", isActive ? "text-primary-foreground" : "text-sidebar-foreground/70 group-hover/menu-button:text-sidebar-accent-foreground")} />
+                          <Icon className={cn(
+                            "h-5 w-5", 
+                            isActive 
+                              ? "text-primary-foreground" 
+                              : "text-sidebar-foreground/70 group-hover/menu-button:text-sidebar-accent-foreground"
+                          )} />
                           {open && <span>{item.label}</span>}
                         </SidebarMenuButton>
                       </Link>
