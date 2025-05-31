@@ -64,7 +64,7 @@ const navItems = [
 
 export function AppSidebarNav() {
   const pathname = usePathname();
-  const { open, toggleSidebar, isMobile, state, openMobile, setOpenMobile } = useSidebar(); // Added setOpenMobile
+  const { open, toggleSidebar, isMobile, state, openMobile, setOpenMobile } = useSidebar();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
@@ -98,36 +98,36 @@ export function AppSidebarNav() {
   );
 
   if (!mounted) {
-    // Render a minimal, static header during server-side rendering and initial client hydration
-    // to prevent mismatches.
     return (
         <>
         <SidebarHeader className="p-4 border-b border-sidebar-border">
-            <div className="flex items-center justify-start h-[28px]"> 
-              {/* Intentionally simple for initial render. Content determined by 'open' is deferred. */}
-              {isMobile && (
-                <Button variant="ghost" size="icon" onClick={() => setOpenMobile(!openMobile)} className={cn("ml-auto", openMobile ? "" : "absolute top-3 left-3 z-50")}>
-                    <PanelLeft />
-                </Button>
-              )}
+            {/* Use a consistent, simple class for the initial render. 'justify-center' is like collapsed state. */}
+            <div className="flex items-center justify-center h-[28px]"> 
+              {/*
+                No dynamic elements like Logo or specific buttons based on isMobile/openMobile here.
+                These will be rendered after mount to ensure server and client initial HTML match.
+                The error mentioned a diff in this div's class.
+                Server rendered: "flex items-center justify-between"
+                Client expected: "flex items-center justify-start h-[28px]"
+                This change makes the !mounted block render "justify-center".
+                If the server is truly rendering the "mounted" state (justify-between for open=true),
+                this still won't match, but it makes the !mounted block more robust.
+              */}
             </div>
         </SidebarHeader>
         <SidebarContent className="flex-1 px-2 py-2">
-            {/* Skeleton loaders for menu items can go here if desired */}
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href + "-skeleton"}>
                 <div className="flex items-center font-medium text-sm h-10 p-2">
                   <item.icon className="h-5 w-5 text-sidebar-foreground/70 mr-2" />
-                   {/* No span for label in skeleton to match potential collapsed state */}
                 </div>
               </SidebarMenuItem>
             ))}
         </SidebarContent>
         <SidebarFooter className="p-3 mt-auto border-t border-sidebar-border space-y-2">
-            {/* Footer skeleton or placeholder */}
             <div className="flex items-center gap-3 p-1 h-[48px]">
                 <div className="h-9 w-9 rounded-full bg-muted"></div>
-                <div className="h-9 w-24 bg-muted rounded"></div>
+                <div className="h-9 w-96 max-w-[100px] bg-muted rounded"></div>
             </div>
             <div className="h-9 w-full bg-muted rounded"></div>
             <div className="h-9 w-full bg-muted rounded"></div>
@@ -149,6 +149,7 @@ export function AppSidebarNav() {
               </svg>
             </Link>
           )}
+          {/* Mobile toggle button - only shown after mount and if isMobile is true */}
           {isMobile && ( 
              <Button variant="ghost" size="icon" onClick={toggleSidebar} className={cn("ml-auto", openMobile ? "" : "absolute top-3 left-3 z-50")}>
                 <PanelLeft />
@@ -262,3 +263,4 @@ export function AppSidebarNav() {
     </>
   );
 }
+
