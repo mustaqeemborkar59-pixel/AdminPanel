@@ -44,15 +44,15 @@ body {
     --chart-5: 27 87% 67%;
     --radius: 0.75rem; /* Slightly more rounded to match image */
 
-    /* Sidebar Theme */
+    /* Sidebar Theme - Aligned with the provided image */
     --sidebar-background: 0 0% 100%; /* White */
-    --sidebar-foreground: 220 10% 25%; /* Dark Gray for text */
+    --sidebar-foreground: 220 10% 35%; /* Darker Gray for text, less contrast than main foreground */
     --sidebar-primary: 140 60% 45%; /* Green (active item background) */
-    --sidebar-primary-foreground: 0 0% 100%; /* White */
+    --sidebar-primary-foreground: 0 0% 100%; /* White (active item text/icon) */
     --sidebar-accent: 220 20% 96%; /* Very light gray (hover item background) */
-    --sidebar-accent-foreground: 140 60% 45%; /* Green (hover text/icon) */
-    --sidebar-border: 220 15% 90%; /* Light gray border for sidebar if needed */
-    --sidebar-ring: 140 60% 50%; /* Green */
+    --sidebar-accent-foreground: 140 55% 40%; /* Darker Green (hover text/icon) */
+    --sidebar-border: 220 15% 92%; /* Light gray border for sidebar */
+    --sidebar-ring: 140 60% 50%; /* Green for focus rings */
   }
 
   .dark {
@@ -82,13 +82,14 @@ body {
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
-    --sidebar-background: 220 10% 15%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 140 60% 55%;
-    --sidebar-primary-foreground: 0 0% 10%;
-    --sidebar-accent: 220 10% 22%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 220 10% 25%;
+    /* Dark Sidebar Theme (example, can be refined) */
+    --sidebar-background: 220 10% 12%; /* Darker than card */
+    --sidebar-foreground: 0 0% 90%; /* Light gray text */
+    --sidebar-primary: 140 60% 55%; /* Brighter Green */
+    --sidebar-primary-foreground: 0 0% 10%; /* Dark text on green */
+    --sidebar-accent: 220 10% 18%; /* Hover background */
+    --sidebar-accent-foreground: 140 60% 60%; /* Lighter green for hover text */
+    --sidebar-border: 220 10% 20%;
     --sidebar-ring: 140 60% 60%;
   }
 }
