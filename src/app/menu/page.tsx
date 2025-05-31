@@ -117,7 +117,7 @@ export default function MenuPage() {
         return [...prevOrderItems, { itemId: item.id, name: item.name, qty: 1, price: displayPrice, imageUrl: item.imageUrl, imageHint: item.imageHint }];
       }
     });
-    if(!isOrderSheetOpen) setIsOrderSheetOpen(true);
+    // Do not open the sheet automatically: if(!isOrderSheetOpen) setIsOrderSheetOpen(true);
     toast({ title: "Item Added", description: `${item.name} added to order.` });
   };
 
@@ -171,6 +171,10 @@ export default function MenuPage() {
     return counts;
   }, [menuItems]);
   
+  const totalItemsInOrder = useMemo(() => {
+    return currentOrderItems.reduce((sum, item) => sum + item.qty, 0);
+  }, [currentOrderItems]);
+
   if (!isMounted) {
     return <div className="flex items-center justify-center h-screen"><PlusCircle className="h-10 w-10 animate-spin text-primary" /></div>;
   }
@@ -182,8 +186,8 @@ export default function MenuPage() {
         description="Browse items, manage the menu, and create customer orders."
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setIsOrderSheetOpen(true)} disabled={currentOrderItems.length === 0}>
-                <ShoppingCart className="mr-2 h-4 w-4" /> View Order ({currentOrderItems.reduce((sum, item) => sum + item.qty, 0)})
+            <Button variant="outline" size="sm" onClick={() => setIsOrderSheetOpen(true)} disabled={totalItemsInOrder === 0}>
+                <ShoppingCart className="mr-2 h-4 w-4" /> View Order {totalItemsInOrder > 0 ? `(${totalItemsInOrder})` : ''}
             </Button>
             <Button variant={isAdminMode ? "default" : "outline"} size="sm" onClick={() => setIsAdminMode(!isAdminMode)}>
               <Settings className="mr-2 h-4 w-4" /> {isAdminMode ? "Exit Admin" : "Admin Mode"}
@@ -203,7 +207,7 @@ export default function MenuPage() {
             onOpenChange={setIsAddEditDialogOpen}
             onSaveItem={handleSaveMenuItem}
             existingItem={itemToEdit}
-            trigger={null} // No default trigger from dialog itself, managed by state
+            trigger={null} 
         />
        )}
 
@@ -289,3 +293,4 @@ export default function MenuPage() {
     </div>
   );
 }
+
