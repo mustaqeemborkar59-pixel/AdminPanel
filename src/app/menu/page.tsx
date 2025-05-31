@@ -29,6 +29,9 @@ export default function MenuPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isMounted, setIsMounted] = useState(false);
+  const [editingItem, setEditingItem] = useState<MenuItem | undefined>(undefined);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
 
   useEffect(() => {
     setIsMounted(true);
@@ -36,16 +39,37 @@ export default function MenuPage() {
   }, []);
 
 
-  const handleAddItem = (newItem: Omit<MenuItem, 'id'>) => {
-    setMenuItems(prevItems => [...prevItems, { ...newItem, id: String(Date.now()) }]);
+  const handleAddItem = (newItemData: Omit<MenuItem, 'id'>) => {
+    if (editingItem) { // If editingItem exists, it's an update
+      setMenuItems(prevItems => prevItems.map(item => item.id === editingItem.id ? { ...item, ...newItemData } : item));
+      setEditingItem(undefined); // Clear editing state
+    } else { // Otherwise, it's a new item
+      setMenuItems(prevItems => [...prevItems, { ...newItemData, id: String(Date.now()) }]);
+    }
+    setIsAddDialogOpen(false); // Close dialog
   };
 
-  const handleEditItem = (updatedItem: MenuItem) => {
-    setMenuItems(prevItems => prevItems.map(item => item.id === updatedItem.id ? updatedItem : item));
+  const openEditDialog = (itemToEdit: MenuItem) => {
+    setEditingItem(itemToEdit);
+    setIsAddDialogOpen(true);
   };
+  
+  const openAddDialog = () => {
+    setEditingItem(undefined); // Ensure no item is being edited
+    setIsAddDialogOpen(true);
+  }
+
 
   const handleDeleteItem = (itemId: string) => {
     setMenuItems(prevItems => prevItems.filter(item => item.id !== itemId));
+  };
+
+  const handleToggleAvailability = (itemId: string, availability: boolean) => {
+    setMenuItems(prevItems =>
+      prevItems.map(item =>
+        item.id === itemId ? { ...item, availability } : item
+      )
+    );
   };
 
   const categories = ['all', ...new Set(menuItems.map(item => item.category))];
@@ -65,7 +89,19 @@ export default function MenuPage() {
       <PageHeader
         title="Menu Management"
         description="Add, edit, or delete food items and manage categories."
-        actions={<AddMenuItemDialog onAddItem={handleAddItem} />}
+        actions={
+          <AddMenuItemDialog 
+            onAddItem={handleAddItem} 
+            existingItem={editingItem} 
+            isOpen={isAddDialogOpen} 
+            setIsOpen={setIsAddDialogOpen}
+            triggerButton={
+              <Button onClick={openAddDialog} className="font-body">
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Menu Item
+              </Button>
+            }
+          />
+        }
       />
       <div className="p-4 md:p-6 space-y-4">
         <div className="flex flex-col md:flex-row gap-2">
@@ -101,16 +137,9 @@ export default function MenuPage() {
               <MenuItemCard
                 key={item.id}
                 item={item}
-                onEdit={() => {
-                  const itemToEdit = menuItems.find(i => i.id === item.id);
-                  if (itemToEdit) {
-                    // For simplicity, using AddMenuItemDialog also for editing by passing existing item
-                    // In a real app, you might have a dedicated EditMenuItemDialog or prefill AddMenuItemDialog
-                    // This example would need AddMenuItemDialog to accept an `itemToEdit` prop
-                    console.log("Edit item:", itemToEdit);
-                  }
-                }}
+                onEdit={() => openEditDialog(item)}
                 onDelete={() => handleDeleteItem(item.id)}
+                onToggleAvailability={handleToggleAvailability}
               />
             ))}
           </div>

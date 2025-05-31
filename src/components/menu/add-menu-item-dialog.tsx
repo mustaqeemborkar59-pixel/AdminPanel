@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,12 +16,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { PlusCircle } from "lucide-react";
 import { type MenuItem } from '@/types';
 
 interface AddMenuItemDialogProps {
   onAddItem: (item: Omit<MenuItem, 'id'>) => void;
-  existingItem?: MenuItem; // For editing
+  existingItem?: MenuItem;
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  triggerButton?: ReactNode; // Optional custom trigger
 }
 
 const defaultState = {
@@ -29,14 +31,37 @@ const defaultState = {
   category: '',
   price: 0,
   description: '',
-  imageUrl: '',
-  imageHint: '',
+  imageUrl: 'https://placehold.co/300x200.png', // Default placeholder
+  imageHint: 'food item', // Default hint
   availability: true,
 };
 
-export function AddMenuItemDialog({ onAddItem, existingItem }: AddMenuItemDialogProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [formData, setFormData] = useState<Omit<MenuItem, 'id'>>(existingItem || defaultState);
+export function AddMenuItemDialog({ 
+  onAddItem, 
+  existingItem, 
+  isOpen, 
+  setIsOpen, 
+  triggerButton 
+}: AddMenuItemDialogProps) {
+  const [formData, setFormData] = useState<Omit<MenuItem, 'id'>>(defaultState);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (existingItem) {
+        setFormData({
+          name: existingItem.name,
+          category: existingItem.category,
+          price: existingItem.price,
+          description: existingItem.description || '',
+          imageUrl: existingItem.imageUrl || 'https://placehold.co/300x200.png',
+          imageHint: existingItem.imageHint || 'food item',
+          availability: existingItem.availability,
+        });
+      } else {
+        setFormData(defaultState);
+      }
+    }
+  }, [existingItem, isOpen]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -54,23 +79,12 @@ export function AddMenuItemDialog({ onAddItem, existingItem }: AddMenuItemDialog
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onAddItem(formData);
-    setIsOpen(false);
-    setFormData(defaultState); // Reset form
+    setIsOpen(false); 
   };
   
-  const openDialog = () => {
-    setFormData(existingItem || defaultState); // Reset/prefill form when opening
-    setIsOpen(true);
-  }
-
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button onClick={openDialog} className="font-body">
-          <PlusCircle className="mr-2 h-4 w-4" /> Add Menu Item
-        </Button>
-      </DialogTrigger>
+      {triggerButton && <DialogTrigger asChild>{triggerButton}</DialogTrigger>}
       <DialogContent className="sm:max-w-[480px] bg-card">
         <DialogHeader>
           <DialogTitle className="font-headline">{existingItem ? 'Edit' : 'Add New'} Menu Item</DialogTitle>
