@@ -34,7 +34,7 @@ export function MenuItemCard({
   return (
     <Card className={cn(
       "overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full group",
-      !item.availability && "opacity-60 bg-slate-50"
+      !item.availability && "opacity-60 bg-slate-50 dark:bg-slate-800/50" // Adjusted dark mode for unavailable
     )}>
       <div className="relative w-full aspect-[3/2]">
         <Image
@@ -60,11 +60,8 @@ export function MenuItemCard({
         </p>
         
         <div className="mt-auto space-y-2 pt-2">
-          
-          {/* Row for Price/Badge and Admin Buttons (if admin view) */}
           <div className="flex items-center justify-between">
-            {/* Container for Price AND Badge, allowing badge to align right */}
-            <div className="flex items-center justify-between flex-grow"> 
+            <div className="flex items-baseline gap-3 flex-grow justify-between"> {/* Price and Badge container */}
               <div className="flex items-baseline gap-1"> {/* Price */}
                 <span className="text-sm font-bold text-primary">${displayPrice.toFixed(2)}</span>
                 {item.discount && (
@@ -74,22 +71,22 @@ export function MenuItemCard({
               <Badge // Veg/Non-Veg Badge
                 variant="outline"
                 className={cn(
-                  "text-xs font-medium py-0.5 px-1.5 h-5 flex items-center",
+                  "text-xs font-medium py-0.5 px-1.5 h-5 flex items-center self-center", // Added self-center
                   item.isVegetarian 
-                    ? "border-green-600 text-green-700 bg-green-50/80" 
-                    : "border-red-600 text-red-700 bg-red-50/80"
+                    ? "border-green-600 text-green-700 bg-green-100 dark:bg-green-900/50 dark:text-green-400 dark:border-green-700" 
+                    : "border-red-600 text-red-700 bg-red-100 dark:bg-red-900/50 dark:text-red-400 dark:border-red-700"
                 )}
               >
                 {item.isVegetarian 
-                  ? <Leaf className="h-3 w-3 mr-0.5 text-green-600" />
-                  : <Drumstick className="h-3 w-3 mr-0.5 text-red-600" />
+                  ? <Leaf className="h-3 w-3 mr-0.5 text-green-600 dark:text-green-500" />
+                  : <Drumstick className="h-3 w-3 mr-0.5 text-red-600 dark:text-red-500" />
                 }
                 <span className="leading-none">{item.isVegetarian ? 'Veg' : 'Non-Veg'}</span>
               </Badge>
             </div>
 
             {isAdminView && onEditAdminAction && onDeleteAdminAction && onToggleAvailabilityAdminAction && (
-              <div className="flex gap-1 ml-2"> {/* Admin Buttons, added ml-2 for spacing */}
+              <div className="flex gap-1 ml-2"> {/* Admin Buttons */}
                    <Button
                       variant="ghost"
                       size="icon"
@@ -108,14 +105,17 @@ export function MenuItemCard({
               </div>
             )}
           </div>
-
-          {/* Row for Add to Order / Quantity Controls (if NOT admin view and item is available) */}
+          
           {item.availability && !isAdminView && (
             <div className="w-full pt-1"> 
               {quantityInOrder === 0 ? (
                 <Button
                   variant="outline"
-                  className="w-full bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:text-green-800 font-semibold h-9 text-sm"
+                  className={cn(
+                    "w-full font-semibold h-9 text-sm",
+                    "bg-transparent border-primary text-primary", // Base state
+                    "hover:bg-primary hover:text-primary-foreground" // Hover state
+                  )}
                   onClick={() => onAddToOrder(item)}
                 >
                   <PlusCircle className="mr-2 h-4 w-4" /> Add to Dish
@@ -145,7 +145,7 @@ export function MenuItemCard({
           )}
           
           {!item.availability && (
-              <Badge variant="outline" className="w-full justify-center py-1 text-sm border-yellow-500 text-yellow-700 bg-yellow-50">
+              <Badge variant="outline" className="w-full justify-center py-1 text-sm border-yellow-500 text-yellow-700 bg-yellow-50 dark:bg-yellow-900/50 dark:text-yellow-400 dark:border-yellow-700">
                   Currently Unavailable
               </Badge>
           )}
@@ -154,4 +154,3 @@ export function MenuItemCard({
     </Card>
   );
 }
-
