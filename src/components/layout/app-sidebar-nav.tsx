@@ -22,6 +22,8 @@ import {
   Moon,
   Laptop,
   CheckIcon,
+  Percent, // Added
+  DollarSign, // Added
 } from 'lucide-react';
 import {
   SidebarHeader,
@@ -74,7 +76,7 @@ export function AppSidebarNav() {
 
 
   const settingsDropdownContent = (
-    <DropdownMenuContent align="end" sideOffset={state === 'collapsed' && !isMobile ? 10 : 5} className="w-48">
+    <DropdownMenuContent align="end" sideOffset={state === 'collapsed' && !isMobile ? 10 : 5} className="w-56">
       <DropdownMenuLabel>Appearance</DropdownMenuLabel>
       <DropdownMenuSeparator />
       <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
@@ -94,6 +96,18 @@ export function AppSidebarNav() {
            {theme === "system" && <CheckIcon className="ml-auto h-4 w-4" />}
         </DropdownMenuRadioItem>
       </DropdownMenuRadioGroup>
+
+      <DropdownMenuSeparator />
+      <DropdownMenuLabel>Store Configuration</DropdownMenuLabel>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem className="cursor-pointer">
+        <Percent className="mr-2 h-4 w-4" />
+        <span>Tax Setup</span>
+      </DropdownMenuItem>
+      <DropdownMenuItem className="cursor-pointer">
+        <DollarSign className="mr-2 h-4 w-4" />
+        <span>Currency Setup</span>
+      </DropdownMenuItem>
     </DropdownMenuContent>
   );
 
@@ -101,18 +115,7 @@ export function AppSidebarNav() {
     return (
         <>
         <SidebarHeader className="p-4 border-b border-sidebar-border">
-            {/* Use a consistent, simple class for the initial render. 'justify-center' is like collapsed state. */}
             <div className="flex items-center justify-center h-[28px]"> 
-              {/*
-                No dynamic elements like Logo or specific buttons based on isMobile/openMobile here.
-                These will be rendered after mount to ensure server and client initial HTML match.
-                The error mentioned a diff in this div's class.
-                Server rendered: "flex items-center justify-between"
-                Client expected: "flex items-center justify-start h-[28px]"
-                This change makes the !mounted block render "justify-center".
-                If the server is truly rendering the "mounted" state (justify-between for open=true),
-                this still won't match, but it makes the !mounted block more robust.
-              */}
             </div>
         </SidebarHeader>
         <SidebarContent className="flex-1 px-2 py-2">
@@ -149,7 +152,6 @@ export function AppSidebarNav() {
               </svg>
             </Link>
           )}
-          {/* Mobile toggle button - only shown after mount and if isMobile is true */}
           {isMobile && ( 
              <Button variant="ghost" size="icon" onClick={toggleSidebar} className={cn("ml-auto", openMobile ? "" : "absolute top-3 left-3 z-50")}>
                 <PanelLeft />
