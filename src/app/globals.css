@@ -18,7 +18,7 @@ body {
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
 
-    --primary: 220 90% 55%; /* Vivid Blue */
+    --primary: 145 63% 42%; /* Vibrant Green */
     --primary-foreground: 0 0% 100%; /* White */
 
     --secondary: 210 40% 96.1%; /* Light Blue-Gray */
@@ -35,12 +35,12 @@ body {
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 220 90% 55%; /* Vivid Blue */
+    --ring: 145 63% 42%; /* Vibrant Green for focus rings */
 
     /* Updated Chart Colors for new theme based on image */
     --chart-1: 10 80% 55%;  /* Red-Orange */
     --chart-2: 275 55% 60%; /* Purple */
-    --chart-3: 150 50% 50%; /* Green */
+    --chart-3: 150 50% 50%; /* Green (a different shade for charts) */
     --chart-4: 230 60% 60%; /* Blue */
     --chart-5: 45 80% 50%;  /* Gold/Yellow for fallback */
     --radius: 0.75rem;
@@ -53,10 +53,10 @@ body {
     --sidebar-accent-foreground: 222.2 47.4% 11.2%; /* Dark text, like secondary-foreground */
     
     --sidebar-border: 214.3 31.8% 91.4%; /* Light gray border, like main border */
-    --sidebar-ring: 220 90% 55%; /* Vivid Blue for focus rings (same as main ring) */
+    --sidebar-ring: 145 63% 42%; /* Vibrant Green for focus rings */
 
-    --sidebar-primary: 220 90% 55%; /* Vivid Blue for active item background (same as main primary) */
-    --sidebar-primary-foreground: 0 0% 100%; /* White for active item text (same as main primary-foreground) */
+    --sidebar-primary: 145 63% 42%; /* Vibrant Green for active item background */
+    --sidebar-primary-foreground: 0 0% 100%; /* White for active item text */
   }
 
   .dark {
@@ -69,7 +69,7 @@ body {
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 210 90% 65%; /* Brighter Vivid Blue */
+    --primary: 145 58% 52%; /* Brighter Green for dark mode */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 15% 15%; /* Darker Blue-Gray */
@@ -86,16 +86,23 @@ body {
 
     --border: 220 15% 20%; /* Darker border */
     --input: 220 15% 20%;
-    --ring: 210 90% 65%; /* Brighter Vivid Blue */
+    --ring: 145 58% 52%; /* Brighter Green for focus rings */
     
     /* Updated Chart Colors for Dark Theme based on image */
     --chart-1: 10 85% 60%;  /* Red-Orange */
     --chart-2: 275 60% 65%; /* Purple */
-    --chart-3: 150 55% 55%; /* Green */
+    --chart-3: 150 55% 55%; /* Green (chart specific) */
     --chart-4: 230 65% 65%; /* Blue */
     --chart-5: 45 90% 55%;  /* Gold/Yellow for fallback */
 
     /* Dark Sidebar Theme - Blue Accent (remains unchanged from previous dark theme) */
+    /* For the sidebar, we could also make it green-accented in dark mode, but the user's image had blue. */
+    /* Let's keep the existing dark mode sidebar theme for now unless specified otherwise. */
+    /* If green accents are desired for dark sidebar too:
+    --sidebar-background: 20 5% 12%; /* Darker, slightly warm if green is primary */
+    /* --sidebar-accent: 145 50% 50%; /* Green for hover */
+    /* --sidebar-primary: 145 58% 52%; /* Brighter Green for active item */
+
     --sidebar-background: 230 35% 12%; /* Even Darker Blue */
     --sidebar-foreground: 0 0% 92%; 
 
@@ -103,9 +110,9 @@ body {
     --sidebar-accent-foreground: 0 0% 98%; 
     
     --sidebar-border: 230 30% 20%;
-    --sidebar-ring: 210 90% 65%;
+    --sidebar-ring: 145 58% 52%; /* Green ring to match theme primary */
     
-    --sidebar-primary: 210 90% 65%; /* Brighter Vivid Blue for active item */
+    --sidebar-primary: 145 58% 52%; /* Brighter Green for active item to match theme primary */
     --sidebar-primary-foreground: 0 0% 100%; 
   }
 }
