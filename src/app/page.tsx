@@ -1,13 +1,15 @@
 
 "use client";
 
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, ReactNode, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign, Users, ShoppingBag, Archive, Activity, AlertTriangle, UsersRound, Utensils } from 'lucide-react'; 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import type { Order, InventoryItem, StaffMember, OrderStatus, OrderType, MenuItem } from '@/types';
-import { initialMenuItems } from '@/lib/menu-item-data'; // Import menu items for count
+import { initialMenuItems } from '@/lib/menu-item-data';
+import { useToast } from '@/hooks/use-toast';
 
 
 // --- Initial Data (copied from other pages for demonstration) ---
@@ -65,7 +67,11 @@ interface ChartDataPoint {
   value: number;
 }
 
-export default function DashboardPage() {
+function DashboardContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { toast } = useToast();
+
   const [totalSales, setTotalSales] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
   const [averageOrderValue, setAverageOrderValue] = useState(0);
@@ -79,6 +85,26 @@ export default function DashboardPage() {
   const [staffStatusData, setStaffStatusData] = useState<ChartDataPoint[]>([]);
   
   const newCustomers = 45; // Placeholder data
+
+  useEffect(() => {
+    const loginSuccess = searchParams.get('login_success');
+    const signupSuccess = searchParams.get('signup_success');
+
+    if (loginSuccess === 'true') {
+      toast({
+        title: "Login Successful",
+        description: "Welcome back to your dashboard!",
+      });
+      router.replace('/', { scroll: false }); // Remove query param
+    }
+    if (signupSuccess === 'true') {
+      toast({
+        title: "Signup Successful",
+        description: "Welcome to GastroFlow! Your account has been created.",
+      });
+      router.replace('/', { scroll: false }); // Remove query param
+    }
+  }, [searchParams, router, toast]);
 
   useEffect(() => {
     const currentTotalSales = initialOrdersData.reduce((sum, order) => sum + order.totalAmount, 0);
@@ -235,6 +261,16 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+export default function DashboardPage() {
+  // Wrap DashboardContent with Suspense because useSearchParams() needs it.
+  return (
+    <Suspense fallback={<div>Loading...</div>}> 
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
 
 interface StatsCardProps {
   title: string;
