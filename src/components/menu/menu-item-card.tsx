@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { MenuItem } from '@/types';
-import { Leaf, PlusCircle, Edit3, Trash2, EyeOff, Eye, Minus, Drumstick } from 'lucide-react';
+import { PlusCircle, Edit3, Trash2, EyeOff, Eye, Minus } from 'lucide-react'; // Removed Leaf, Drumstick
 import { cn } from '@/lib/utils';
 
 interface MenuItemCardProps {
@@ -18,6 +18,20 @@ interface MenuItemCardProps {
   onToggleAvailabilityAdminAction?: (itemId: string) => void;
   isAdminView?: boolean;
 }
+
+const VegIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600 dark:text-green-500">
+    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
+    <circle cx="12" cy="12" r="5" fill="currentColor"/>
+  </svg>
+);
+
+const NonVegIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-600 dark:text-red-500">
+    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
+    <circle cx="12" cy="12" r="5" fill="currentColor"/>
+  </svg>
+);
 
 export function MenuItemCard({
   item,
@@ -34,7 +48,7 @@ export function MenuItemCard({
   return (
     <Card className={cn(
       "overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full group",
-      !item.availability && "opacity-60 bg-slate-50 dark:bg-slate-800/50" // Adjusted dark mode for unavailable
+      !item.availability && "opacity-60 bg-slate-50 dark:bg-slate-800/50"
     )}>
       <div className="relative w-full aspect-[3/2]">
         <Image
@@ -60,33 +74,19 @@ export function MenuItemCard({
         </p>
         
         <div className="mt-auto space-y-2 pt-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-baseline gap-3 flex-grow justify-between"> {/* Price and Badge container */}
-              <div className="flex items-baseline gap-1"> {/* Price */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center flex-grow justify-between"> 
+              <div className="flex items-baseline gap-1"> 
                 <span className="text-sm font-bold text-primary">${displayPrice.toFixed(2)}</span>
                 {item.discount && (
                   <span className="text-xs text-muted-foreground line-through">${item.price.toFixed(2)}</span>
                 )}
               </div>
-              <Badge // Veg/Non-Veg Badge
-                variant="outline"
-                className={cn(
-                  "text-xs font-medium py-0.5 px-1.5 h-5 flex items-center self-center", // Added self-center
-                  item.isVegetarian 
-                    ? "border-green-600 text-green-700 bg-green-100 dark:bg-green-900/50 dark:text-green-400 dark:border-green-700" 
-                    : "border-red-600 text-red-700 bg-red-100 dark:bg-red-900/50 dark:text-red-400 dark:border-red-700"
-                )}
-              >
-                {item.isVegetarian 
-                  ? <Leaf className="h-3 w-3 mr-0.5 text-green-600 dark:text-green-500" />
-                  : <Drumstick className="h-3 w-3 mr-0.5 text-red-600 dark:text-red-500" />
-                }
-                <span className="leading-none">{item.isVegetarian ? 'Veg' : 'Non-Veg'}</span>
-              </Badge>
+              {item.isVegetarian ? <VegIcon /> : <NonVegIcon />}
             </div>
 
             {isAdminView && onEditAdminAction && onDeleteAdminAction && onToggleAvailabilityAdminAction && (
-              <div className="flex gap-1 ml-2"> {/* Admin Buttons */}
+              <div className="flex gap-1 ml-2"> 
                    <Button
                       variant="ghost"
                       size="icon"
@@ -106,15 +106,15 @@ export function MenuItemCard({
             )}
           </div>
           
-          {item.availability && !isAdminView && (
+          {!isAdminView && item.availability && (
             <div className="w-full pt-1"> 
               {quantityInOrder === 0 ? (
                 <Button
                   variant="outline"
                   className={cn(
                     "w-full font-semibold h-9 text-sm",
-                    "bg-transparent border-primary text-primary", // Base state
-                    "hover:bg-primary hover:text-primary-foreground" // Hover state
+                    "bg-transparent border-primary text-primary", 
+                    "hover:bg-primary hover:text-primary-foreground" 
                   )}
                   onClick={() => onAddToOrder(item)}
                 >
