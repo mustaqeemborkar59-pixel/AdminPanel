@@ -50,7 +50,6 @@ export function MenuItemCard({
             {item.discount}% OFF
           </Badge>
         )}
-         {/* Old Veg/Non-Veg badge removed from here */}
       </div>
       <CardContent className="p-3 flex flex-col flex-grow">
         <h3 className="text-base font-semibold mb-0.5 truncate group-hover:whitespace-normal" title={item.name}>
@@ -59,9 +58,10 @@ export function MenuItemCard({
         <p className="text-xs text-muted-foreground mb-2 line-clamp-2 flex-grow min-h-[1.5rem]">
           {item.description || "Delicious choice"}
         </p>
+        
         <div className="flex items-center justify-between mt-auto">
           {/* Group for price and new veg/non-veg badge */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3"> {/* Changed gap-2 to gap-3 here */}
             <div className="flex items-baseline gap-1">
               <span className="text-sm font-bold text-primary">${displayPrice.toFixed(2)}</span>
               {item.discount && (
@@ -85,7 +85,7 @@ export function MenuItemCard({
             </Badge>
           </div>
 
-           {isAdminView && onEditAdminAction && onDeleteAdminAction && onToggleAvailabilityAdminAction && (
+          {isAdminView && onEditAdminAction && onDeleteAdminAction && onToggleAvailabilityAdminAction && (
             <div className="flex gap-1">
                  <Button
                     variant="ghost"
@@ -103,45 +103,49 @@ export function MenuItemCard({
                     <Trash2 className="h-4 w-4"/>
                 </Button>
             </div>
-        )}
+          )}
+          {!item.availability && !isAdminView && ( // If unavailable and NOT admin view, show nothing here (availability badge below takes care of it)
+             null 
+          )}
+          {item.availability && !isAdminView && ( // Ensure add to order buttons only show if not in admin view and item is available
+            <div>
+              {quantityInOrder === 0 ? (
+                <Button
+                  variant="outline"
+                  className="w-full bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:text-green-800 font-semibold h-9 text-sm" // Matched size of qty controls
+                  onClick={() => onAddToOrder(item)}
+                >
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add to Dish
+                </Button>
+              ) : (
+                <div className="flex items-center justify-end gap-2"> {/* Ensure this takes remaining space or is aligned right */}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9 border-primary text-primary hover:bg-primary/10"
+                    onClick={() => onDecreaseFromOrder(item.id)}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <span className="text-lg font-semibold text-center w-8">{quantityInOrder}</span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9 border-primary text-primary hover:bg-primary/10"
+                    onClick={() => onAddToOrder(item)}
+                  >
+                    <PlusCircle className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-         {!item.availability && (
+        
+        {!item.availability && (
             <Badge variant="outline" className="w-full justify-center mt-2 py-1 text-sm border-yellow-500 text-yellow-700 bg-yellow-50">
                 Currently Unavailable
             </Badge>
-        )}
-        {item.availability && !isAdminView && ( // Ensure add to order buttons only show if not in admin view and item is available
-          <div className="mt-2">
-            {quantityInOrder === 0 ? (
-              <Button
-                variant="outline"
-                className="w-full bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:text-green-800 font-semibold"
-                onClick={() => onAddToOrder(item)}
-              >
-                <PlusCircle className="mr-2 h-4 w-4" /> Add to Dish
-              </Button>
-            ) : (
-              <div className="flex items-center justify-between gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-9 w-9 border-primary text-primary hover:bg-primary/10"
-                  onClick={() => onDecreaseFromOrder(item.id)}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <span className="text-lg font-semibold text-center w-8">{quantityInOrder}</span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-9 w-9 border-primary text-primary hover:bg-primary/10"
-                  onClick={() => onAddToOrder(item)}
-                >
-                  <PlusCircle className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-          </div>
         )}
       </CardContent>
     </Card>
