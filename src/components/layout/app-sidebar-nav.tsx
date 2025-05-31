@@ -74,7 +74,7 @@ export function AppSidebarNav() {
         <SidebarMenu>
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== "/");
+            const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
             return (
               <SidebarMenuItem key={item.href}>
                 <TooltipProvider delayDuration={state === 'collapsed' ? 0 : 500}>

@@ -69,13 +69,13 @@ body {
     --popover: 220 10% 10%;
     --popover-foreground: 0 0% 98%;
     --primary: 140 60% 55%;
-    --primary-foreground: 0 0% 100%; /* UPDATED from 0 0% 10% to white */
+    --primary-foreground: 0 0% 100%; /* White */
     --secondary: 220 10% 20%;
     --secondary-foreground: 0 0% 98%;
     --muted: 220 10% 20%;
     --muted-foreground: 220 10% 65%;
     --accent: 140 60% 55%;
-    --accent-foreground: 0 0% 100%; /* UPDATED from 0 0% 10% to white for consistency with primary*/
+    --accent-foreground: 0 0% 100%; /* White for consistency with primary */
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 220 10% 25%;
@@ -123,4 +123,3 @@ body {
 /* Add Inter font import if not already in layout.tsx */
 /* @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'); */
 /* This is now added in layout.tsx for better practice */
-
