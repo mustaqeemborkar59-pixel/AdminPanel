@@ -69,13 +69,13 @@ body {
     --popover: 220 10% 10%;
     --popover-foreground: 0 0% 98%;
     --primary: 140 60% 55%;
-    --primary-foreground: 0 0% 10%;
+    --primary-foreground: 0 0% 100%; /* UPDATED from 0 0% 10% to white */
     --secondary: 220 10% 20%;
     --secondary-foreground: 0 0% 98%;
     --muted: 220 10% 20%;
     --muted-foreground: 220 10% 65%;
     --accent: 140 60% 55%;
-    --accent-foreground: 0 0% 10%;
+    --accent-foreground: 0 0% 100%; /* UPDATED from 0 0% 10% to white for consistency with primary*/
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 220 10% 25%;
@@ -102,7 +102,7 @@ body {
     
     /* These specific variables are not directly used by app-sidebar-nav for active items, but defined for completeness */
     --sidebar-primary: 140 60% 55%; /* Brighter Green (if using sidebar-primary class) */
-    --sidebar-primary-foreground: 0 0% 10%; /* Dark text on green (if using sidebar-primary-foreground class) */
+    --sidebar-primary-foreground: 0 0% 100%; /* White (active item text/icon if using sidebar-primary-foreground class) */
   }
 }
 
