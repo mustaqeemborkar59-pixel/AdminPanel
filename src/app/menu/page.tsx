@@ -3,13 +3,15 @@
 import { useState, type ReactNode, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Edit, Trash2, Search, LayoutGrid, Egg, Soup, Wheat, CookingPot, Sandwich, Utensils } from 'lucide-react';
-import { type MenuItem } from '@/types';
+import { PlusCircle, Search, LayoutGrid, Egg, Soup, Wheat, CookingPot, Sandwich, Utensils, ShoppingCart } from 'lucide-react';
+import { type MenuItem, type OrderItem, type Order } from '@/types';
 import { Input } from '@/components/ui/input';
 import { AddMenuItemDialog } from '@/components/menu/add-menu-item-dialog';
 import { MenuItemCard } from '@/components/menu/menu-item-card';
+import { CurrentOrderSheet } from '@/components/menu/current-order-sheet';
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 const initialMenuItems: MenuItem[] = [
   { id: '1', name: 'Margherita Pizza', category: 'Pizza', price: 12.99, availability: true, description: 'Classic cheese and tomato pizza.', imageUrl: 'https://i.pinimg.com/736x/47/6d/6f/476d6f63f0a080a004cc579f9dfd1f4f.jpg', imageHint: 'pizza cheese' },
@@ -25,17 +27,16 @@ const initialMenuItems: MenuItem[] = [
 
 const categoryIcons: Record<string, React.ElementType> = {
   all: LayoutGrid,
-  pizza: Utensils, // Placeholder, could be more specific
+  pizza: Utensils,
   pasta: Wheat,
-  salads: LayoutGrid, // Placeholder
-  desserts: Egg, // Placeholder for cake/sweet
-  starters: Utensils, // Placeholder
+  salads: LayoutGrid,
+  desserts: Egg,
+  starters: Utensils,
   burgers: Sandwich,
   soups: Soup,
   'main course': CookingPot,
   breakfast: Egg,
 };
-
 
 export default function MenuPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -43,34 +44,41 @@ export default function MenuPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isMounted, setIsMounted] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | undefined>(undefined);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isAddMenuItemDialogOpen, setIsAddMenuItemDialogOpen] = useState(false);
+
+  const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
+  const [isOrderSheetOpen, setIsOrderSheetOpen] = useState(false);
+  const [orderCustomerName, setOrderCustomerName] = useState('');
+  const [orderDeliveryAddress, setOrderDeliveryAddress] = useState('');
+
+  const { toast } = useToast();
 
   useEffect(() => {
     setIsMounted(true);
     setMenuItems(initialMenuItems);
   }, []);
 
-  const handleAddItem = (newItemData: Omit<MenuItem, 'id'>) => {
+  const handleAddMenuItem = (newItemData: Omit<MenuItem, 'id'>) => {
     if (editingItem) {
       setMenuItems(prevItems => prevItems.map(item => item.id === editingItem.id ? { ...item, ...newItemData } : item));
       setEditingItem(undefined);
     } else {
       setMenuItems(prevItems => [...prevItems, { ...newItemData, id: String(Date.now()) }]);
     }
-    setIsAddDialogOpen(false);
+    setIsAddMenuItemDialogOpen(false);
   };
 
-  const openEditDialog = (itemToEdit: MenuItem) => {
+  const openEditMenuItemDialog = (itemToEdit: MenuItem) => {
     setEditingItem(itemToEdit);
-    setIsAddDialogOpen(true);
+    setIsAddMenuItemDialogOpen(true);
   };
   
-  const openAddDialog = () => {
+  const openAddMenuItemDialog = () => {
     setEditingItem(undefined);
-    setIsAddDialogOpen(true);
+    setIsAddMenuItemDialogOpen(true);
   }
 
-  const handleDeleteItem = (itemId: string) => {
+  const handleDeleteMenuItem = (itemId: string) => {
     setMenuItems(prevItems => prevItems.filter(item => item.id !== itemId));
   };
 
@@ -81,6 +89,79 @@ export default function MenuPage() {
       )
     );
   };
+
+  // --- Order Management Functions ---
+  const handleAddItemToOrder = (menuItem: MenuItem) => {
+    if (!menuItem.availability) {
+      toast({
+        title: "Item Unavailable",
+        description: `${menuItem.name} is currently unavailable.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    setCurrentOrderItems(prevItems => {
+      const existingItem = prevItems.find(item => item.itemId === menuItem.id);
+      if (existingItem) {
+        return prevItems.map(item =>
+          item.itemId === menuItem.id ? { ...item, qty: item.qty + 1 } : item
+        );
+      }
+      return [...prevItems, { itemId: menuItem.id, name: menuItem.name, price: menuItem.price, qty: 1 }];
+    });
+    toast({
+      title: "Item Added",
+      description: `${menuItem.name} added to current order.`,
+    });
+    setIsOrderSheetOpen(true); // Open sheet when item is added
+  };
+
+  const handleUpdateOrderItemQuantity = (itemId: string, newQuantity: number) => {
+    if (newQuantity <= 0) {
+      handleRemoveOrderItem(itemId);
+    } else {
+      setCurrentOrderItems(prevItems =>
+        prevItems.map(item => (item.itemId === itemId ? { ...item, qty: newQuantity } : item))
+      );
+    }
+  };
+
+  const handleRemoveOrderItem = (itemId: string) => {
+    setCurrentOrderItems(prevItems => prevItems.filter(item => item.itemId !== itemId));
+  };
+
+  const handlePlaceOrder = () => {
+    if (currentOrderItems.length === 0) {
+      toast({ title: "Empty Order", description: "Please add items to the order.", variant: "destructive"});
+      return;
+    }
+    const totalAmount = currentOrderItems.reduce((sum, item) => sum + item.qty * item.price, 0);
+    const newOrder: Omit<Order, 'id' | 'timestamp'> = {
+      customerName: orderCustomerName,
+      // For now, let's assume 'delivery' if address is provided, else 'takeaway' or 'dine-in' based on context
+      orderType: orderDeliveryAddress ? 'delivery' : 'takeaway', 
+      items: currentOrderItems,
+      status: 'placed',
+      totalAmount,
+      // deliveryAddress: orderDeliveryAddress, // If your Order type supports this
+    };
+
+    console.log("Placing Order:", newOrder); // Placeholder for actual order placement logic
+    toast({
+      title: "Order Placed (Simulated)",
+      description: `Order for ${orderCustomerName || 'customer'} totaling $${totalAmount.toFixed(2)} has been logged.`,
+    });
+
+    // Reset order state
+    setCurrentOrderItems([]);
+    setOrderCustomerName('');
+    setOrderDeliveryAddress('');
+    setIsOrderSheetOpen(false);
+    // You would typically send this `newOrder` to a server action / API endpoint
+    // For now, we'll just log it and clear the current order.
+    // Example: await placeOrderAction(newOrder);
+  };
+
 
   const uniqueCategories = ['all', ...new Set(menuItems.map(item => item.category.toLowerCase()))];
   
@@ -101,6 +182,9 @@ export default function MenuPage() {
      item.description?.toLowerCase().includes(searchTerm.toLowerCase())) &&
     (selectedCategory === 'all' || item.category.toLowerCase() === selectedCategory.toLowerCase())
   );
+  
+  const currentOrderTotalItems = currentOrderItems.reduce((sum, item) => sum + item.qty, 0);
+
 
   if (!isMounted) {
     return (
@@ -113,20 +197,30 @@ export default function MenuPage() {
   return (
     <div className="flex flex-col h-full bg-background">
       <PageHeader
-        title="Menu"
-        description="Manage your restaurant's offerings."
+        title="Menu Management & Ordering"
+        description="Manage menu items and create new customer orders."
         actions={
-          <AddMenuItemDialog 
-            onAddItem={handleAddItem} 
-            existingItem={editingItem} 
-            isOpen={isAddDialogOpen} 
-            setIsOpen={setIsAddDialogOpen}
-            triggerButton={
-              <Button onClick={openAddDialog} className="font-body bg-primary hover:bg-primary/90 text-primary-foreground">
-                <PlusCircle className="mr-2 h-4 w-4" /> Add Menu Item
-              </Button>
-            }
-          />
+          <div className="flex items-center gap-2">
+            <AddMenuItemDialog 
+              onAddItem={handleAddMenuItem} 
+              existingItem={editingItem} 
+              isOpen={isAddMenuItemDialogOpen} 
+              setIsOpen={setIsAddMenuItemDialogOpen}
+              triggerButton={
+                <Button onClick={openAddMenuItemDialog} variant="outline" className="font-body">
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add Menu Item
+                </Button>
+              }
+            />
+            <Button onClick={() => setIsOrderSheetOpen(true)} className="font-body bg-primary hover:bg-primary/90 text-primary-foreground relative">
+              <ShoppingCart className="mr-2 h-4 w-4" /> View Current Order
+              {currentOrderTotalItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                  {currentOrderTotalItems}
+                </span>
+              )}
+            </Button>
+          </div>
         }
       />
       <div className="p-4 md:p-6 space-y-6">
@@ -173,9 +267,10 @@ export default function MenuPage() {
               <MenuItemCard
                 key={item.id}
                 item={item}
-                onEdit={() => openEditDialog(item)}
-                onDelete={() => handleDeleteItem(item.id)}
-                onToggleAvailability={handleToggleAvailability}
+                onEditAdminAction={() => openEditMenuItemDialog(item)}
+                onDeleteAdminAction={() => handleDeleteMenuItem(item.id)}
+                onToggleAvailabilityAdminAction={handleToggleAvailability}
+                onAddToOrder={handleAddItemToOrder}
               />
             ))}
           </div>
@@ -185,6 +280,18 @@ export default function MenuPage() {
           </div>
         )}
       </div>
+      <CurrentOrderSheet
+        isOpen={isOrderSheetOpen}
+        setIsOpen={setIsOrderSheetOpen}
+        orderItems={currentOrderItems}
+        customerName={orderCustomerName}
+        setCustomerName={setOrderCustomerName}
+        deliveryAddress={orderDeliveryAddress}
+        setDeliveryAddress={setOrderDeliveryAddress}
+        onUpdateQuantity={handleUpdateOrderItemQuantity}
+        onRemoveItem={handleRemoveOrderItem}
+        onPlaceOrder={handlePlaceOrder}
+      />
     </div>
   );
 }
