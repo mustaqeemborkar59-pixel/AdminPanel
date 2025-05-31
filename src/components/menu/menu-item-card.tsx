@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { MenuItem } from '@/types';
-import { Leaf, PlusCircle, Edit3, Trash2, EyeOff, Eye, Minus } from 'lucide-react';
+import { Leaf, PlusCircle, Edit3, Trash2, EyeOff, Eye, Minus, Drumstick } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MenuItemCardProps {
@@ -50,31 +50,41 @@ export function MenuItemCard({
             {item.discount}% OFF
           </Badge>
         )}
-         <Badge
-            variant="outline"
-            className={cn(
-                "absolute top-2 right-2 text-xs backdrop-blur-sm bg-white/70 font-medium",
-                item.isVegetarian ? "border-green-500 text-green-700" : "border-red-500 text-red-700"
-            )}
-        >
-            {item.isVegetarian ? <Leaf className="h-3 w-3 mr-1 text-green-600" /> : <span className="h-3 w-3 mr-1 text-red-500 flex items-center justify-center font-bold text-xs">∙</span>}
-            {item.isVegetarian ? 'Veg' : 'Non-Veg'}
-        </Badge>
+         {/* Old Veg/Non-Veg badge removed from here */}
       </div>
       <CardContent className="p-3 flex flex-col flex-grow">
         <h3 className="text-base font-semibold mb-0.5 truncate group-hover:whitespace-normal" title={item.name}>
           {item.name}
         </h3>
-        <p className="text-xs text-muted-foreground mb-2 line-clamp-2 flex-grow min-h-[1.5rem]"> {/* Reduced min-height */}
+        <p className="text-xs text-muted-foreground mb-2 line-clamp-2 flex-grow min-h-[1.5rem]">
           {item.description || "Delicious choice"}
         </p>
         <div className="flex items-center justify-between mt-auto">
-          <div className="flex items-baseline gap-1">
-            <span className="text-sm font-bold text-primary">${displayPrice.toFixed(2)}</span>
-            {item.discount && (
-              <span className="text-xs text-muted-foreground line-through">${item.price.toFixed(2)}</span>
-            )}
+          {/* Group for price and new veg/non-veg badge */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-baseline gap-1">
+              <span className="text-sm font-bold text-primary">${displayPrice.toFixed(2)}</span>
+              {item.discount && (
+                <span className="text-xs text-muted-foreground line-through">${item.price.toFixed(2)}</span>
+              )}
+            </div>
+            <Badge
+              variant="outline"
+              className={cn(
+                "text-xs font-medium py-0.5 px-1.5 h-5 flex items-center",
+                item.isVegetarian 
+                  ? "border-green-600 text-green-700 bg-green-50/80" 
+                  : "border-red-600 text-red-700 bg-red-50/80"
+              )}
+            >
+              {item.isVegetarian 
+                ? <Leaf className="h-3 w-3 mr-0.5 text-green-600" />
+                : <Drumstick className="h-3 w-3 mr-0.5 text-red-600" />
+              }
+              <span className="leading-none">{item.isVegetarian ? 'Veg' : 'Non-Veg'}</span>
+            </Badge>
           </div>
+
            {isAdminView && onEditAdminAction && onDeleteAdminAction && onToggleAvailabilityAdminAction && (
             <div className="flex gap-1">
                  <Button
@@ -100,7 +110,7 @@ export function MenuItemCard({
                 Currently Unavailable
             </Badge>
         )}
-        {item.availability && (
+        {item.availability && !isAdminView && ( // Ensure add to order buttons only show if not in admin view and item is available
           <div className="mt-2">
             {quantityInOrder === 0 ? (
               <Button
