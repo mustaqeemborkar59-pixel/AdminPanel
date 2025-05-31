@@ -66,62 +66,59 @@ export default function MenuPage() {
     const contentDiv = categoriesContentRef.current;
     if (!contentDiv) return;
 
-    // The actual scrolling element is the parent of our contentDiv (the ScrollArea Viewport)
-    const slider = contentDiv.parentElement as HTMLElement;
+    const slider = contentDiv.parentElement as HTMLElement; // This should be the ScrollArea Viewport
     if (!slider) return;
 
-    contentDiv.style.cursor = 'grab'; // Set initial cursor for the content area
+    contentDiv.style.cursor = 'grab';
 
     let isDown = false;
     let startX: number;
-    let scrollLeftVal: number;
+    let scrollLeftStart: number;
 
     const handleMouseDown = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      // Do not start drag if clicking on a button or the scrollbar itself
-      if (target.closest('button') || target.closest('[data-radix-scroll-area-scrollbar]')) {
+      // Do not start drag if clicking on a button or the scrollbar thumb itself
+      if (target.closest('button') || target.closest('[data-radix-scroll-area-scrollbar] div')) {
         return;
       }
-
       isDown = true;
       contentDiv.style.cursor = 'grabbing';
-      contentDiv.style.userSelect = 'none'; // Prevent text selection during drag
-      startX = e.pageX - slider.offsetLeft; // Use viewport's offsetLeft
-      scrollLeftVal = slider.scrollLeft;
+      contentDiv.style.userSelect = 'none';
+      startX = e.clientX; 
+      scrollLeftStart = slider.scrollLeft;
     };
 
     const handleMouseLeaveOrUp = () => {
       if (!isDown) return;
       isDown = false;
-      contentDiv.style.cursor = 'grab';
-      contentDiv.style.userSelect = '';
+      if (contentDiv) { // Check if still mounted
+        contentDiv.style.cursor = 'grab';
+        contentDiv.style.userSelect = '';
+      }
     };
 
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDown) return;
-      e.preventDefault(); // Prevent default drag behavior (e.g., image ghosting or text selection)
-      const x = e.pageX - slider.offsetLeft; // Use viewport's offsetLeft
-      const walk = (x - startX) * 1.5; // Adjust multiplier for scroll sensitivity
-      slider.scrollLeft = scrollLeftVal - walk;
+      e.preventDefault();
+      const x = e.clientX;
+      const walk = (x - startX) * 1.5; // Sensitivity factor can be adjusted
+      slider.scrollLeft = scrollLeftStart - walk;
     };
 
     contentDiv.addEventListener('mousedown', handleMouseDown);
-    // Attach mousemove and mouseup to the document to ensure they are caught
-    // even if the mouse leaves the contentDiv while dragging.
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseLeaveOrUp);
-    // contentDiv.addEventListener('mouseleave', handleMouseLeaveOrUp); // Reset cursor if mouse leaves while dragging
 
     return () => {
       contentDiv.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseLeaveOrUp);
-      // contentDiv.removeEventListener('mouseleave', handleMouseLeaveOrUp);
-      // Reset styles if component unmounts
-      contentDiv.style.cursor = 'grab';
-      contentDiv.style.userSelect = '';
+      if (contentDiv) {
+        contentDiv.style.cursor = 'grab';
+        contentDiv.style.userSelect = '';
+      }
     };
-  }, []); // Empty dependency array ensures this runs once on mount
+  }, []);
 
   const handleSaveMenuItem = (itemData: Omit<MenuItem, 'id'> | MenuItem) => {
     if ('id' in itemData) { 
