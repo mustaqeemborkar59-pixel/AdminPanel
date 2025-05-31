@@ -138,28 +138,22 @@ export default function MenuPage() {
     const totalAmount = currentOrderItems.reduce((sum, item) => sum + item.qty * item.price, 0);
     const newOrder: Omit<Order, 'id' | 'timestamp'> = {
       customerName: orderCustomerName,
-      // For now, let's assume 'delivery' if address is provided, else 'takeaway' or 'dine-in' based on context
       orderType: orderDeliveryAddress ? 'delivery' : 'takeaway', 
       items: currentOrderItems,
       status: 'placed',
       totalAmount,
-      // deliveryAddress: orderDeliveryAddress, // If your Order type supports this
     };
 
-    console.log("Placing Order:", newOrder); // Placeholder for actual order placement logic
+    console.log("Placing Order:", newOrder); 
     toast({
       title: "Order Placed (Simulated)",
       description: `Order for ${orderCustomerName || 'customer'} totaling $${totalAmount.toFixed(2)} has been logged.`,
     });
 
-    // Reset order state
     setCurrentOrderItems([]);
     setOrderCustomerName('');
     setOrderDeliveryAddress('');
     setIsOrderSheetOpen(false);
-    // You would typically send this `newOrder` to a server action / API endpoint
-    // For now, we'll just log it and clear the current order.
-    // Example: await placeOrderAction(newOrder);
   };
 
 
@@ -197,8 +191,8 @@ export default function MenuPage() {
   return (
     <div className="flex flex-col h-full bg-background">
       <PageHeader
-        title="Menu Management & Ordering"
-        description="Manage menu items and create new customer orders."
+        title="Menu & Ordering"
+        description="Manage menu items and create customer orders."
         actions={
           <div className="flex items-center gap-2">
             <AddMenuItemDialog 
@@ -244,7 +238,7 @@ export default function MenuPage() {
                 onClick={() => setSelectedCategory(name)}
                 className={cn(
                   "flex flex-col items-start justify-center h-auto p-3 rounded-lg shadow-sm border border-border transition-all",
-                  "w-32 h-24 text-left", 
+                  "w-32 text-left", // Removed fixed height, using h-auto
                   selectedCategory.toLowerCase() === name.toLowerCase()
                     ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/90'
                     : 'bg-card text-card-foreground hover:bg-secondary'
@@ -262,7 +256,7 @@ export default function MenuPage() {
 
       <div className="flex-1 p-4 md:p-6 space-y-6 overflow-auto">
         {filteredItems.length > 0 ? (
-          <div className="grid gap-x-6 gap-y-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredItems.map(item => (
               <MenuItemCard
                 key={item.id}

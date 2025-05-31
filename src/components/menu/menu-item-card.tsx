@@ -53,19 +53,19 @@ export function MenuItemCard({
         </Badge>
       </div>
 
-      <div className="p-4 flex flex-col flex-grow">
+      <div className="p-3 flex flex-col flex-grow"> {/* Reduced padding from p-4 to p-3 */}
         <h3 className="font-headline text-lg font-semibold text-foreground mb-1 truncate">{item.name}</h3>
         
-        <div className="flex items-center text-primary font-bold text-xl mb-2">
-          <DollarSign className="h-5 w-5 mr-1" />
+        <div className="flex items-center text-primary font-bold text-lg mb-2"> {/* Price text-lg, icon h-4 w-4 */}
+          <DollarSign className="h-4 w-4 mr-1" />
           {item.price.toFixed(2)}
         </div>
 
-        <p className="font-body text-sm text-muted-foreground mb-3 min-h-[40px] line-clamp-2">
+        <p className="font-body text-sm text-muted-foreground mb-3 line-clamp-2"> {/* Removed min-h-[40px] */}
           {item.description || "No description available."}
         </p>
         
-        <Badge variant="secondary" className="font-body w-fit mb-4 text-xs py-1 px-2 capitalize bg-secondary text-secondary-foreground">
+        <Badge variant="secondary" className="font-body w-fit mb-3 text-xs py-1 px-2 capitalize bg-secondary text-secondary-foreground"> {/* Reduced mb-4 to mb-3 */}
           {item.category}
         </Badge>
 
