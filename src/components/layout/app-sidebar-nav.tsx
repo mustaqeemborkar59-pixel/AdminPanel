@@ -16,14 +16,13 @@ import {
   SquareStack, 
   CalendarCheck,
   Truck,
-  LineChart,
   LogOut, 
   Sun,
   Moon,
   Laptop,
   CheckIcon,
-  Percent, // Added
-  DollarSign, // Added
+  Percent, 
+  DollarSign, 
 } from 'lucide-react';
 import {
   SidebarHeader,
@@ -38,17 +37,7 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/comp
 import { Logo } from './logo';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem
-} from "@/components/ui/dropdown-menu";
-import { useTheme } from "next-themes";
+
 import React from 'react';
 
 const navItems = [
@@ -60,63 +49,26 @@ const navItems = [
   { href: '/delivery', label: 'Delivery', icon: Truck },
   { href: '/inventory', label: 'Inventory', icon: Archive },
   { href: '/specials', label: 'Specials', icon: Sparkles },
-  { href: '/accounting', label: 'Accounting', icon: LineChart },
   { href: '/staff', label: 'Staff', icon: UsersRound },
+  { href: '/settings', label: 'Settings', icon: Settings }, // Added Settings
 ];
 
 export function AppSidebarNav() {
   const pathname = usePathname();
   const { open, toggleSidebar, isMobile, state, openMobile, setOpenMobile } = useSidebar();
-  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
 
-
-  const settingsDropdownContent = (
-    <DropdownMenuContent align="end" sideOffset={state === 'collapsed' && !isMobile ? 10 : 5} className="w-56">
-      <DropdownMenuLabel>Appearance</DropdownMenuLabel>
-      <DropdownMenuSeparator />
-      <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-        <DropdownMenuRadioItem value="light" className="cursor-pointer">
-          <Sun className="mr-2 h-4 w-4" />
-          <span>Light</span>
-          {theme === "light" && <CheckIcon className="ml-auto h-4 w-4" />}
-        </DropdownMenuRadioItem>
-        <DropdownMenuRadioItem value="dark" className="cursor-pointer">
-          <Moon className="mr-2 h-4 w-4" />
-          <span>Dark</span>
-           {theme === "dark" && <CheckIcon className="ml-auto h-4 w-4" />}
-        </DropdownMenuRadioItem>
-        <DropdownMenuRadioItem value="system" className="cursor-pointer">
-          <Laptop className="mr-2 h-4 w-4" />
-          <span>System</span>
-           {theme === "system" && <CheckIcon className="ml-auto h-4 w-4" />}
-        </DropdownMenuRadioItem>
-      </DropdownMenuRadioGroup>
-
-      <DropdownMenuSeparator />
-      <DropdownMenuLabel>Store Configuration</DropdownMenuLabel>
-      <DropdownMenuSeparator />
-      <DropdownMenuItem className="cursor-pointer">
-        <Percent className="mr-2 h-4 w-4" />
-        <span>Tax Setup</span>
-      </DropdownMenuItem>
-      <DropdownMenuItem className="cursor-pointer">
-        <DollarSign className="mr-2 h-4 w-4" />
-        <span>Currency Setup</span>
-      </DropdownMenuItem>
-    </DropdownMenuContent>
-  );
-
   if (!mounted) {
     return (
         <>
         <SidebarHeader className="p-4 border-b border-sidebar-border">
-            <div className="flex items-center justify-center h-[28px]"> 
-            </div>
+             <div className="flex items-center justify-center h-[28px]">
+                {/* Intentionally simple for initial render. Content determined by 'open' is deferred. */}
+             </div>
         </SidebarHeader>
         <SidebarContent className="flex-1 px-2 py-2">
             {navItems.map((item) => (
@@ -132,18 +84,17 @@ export function AppSidebarNav() {
                 <div className="h-9 w-9 rounded-full bg-muted"></div>
                 <div className="h-9 w-96 max-w-[100px] bg-muted rounded"></div>
             </div>
-            <div className="h-9 w-full bg-muted rounded"></div>
+            {/* Removed settings skeleton button, only logout remains */}
             <div className="h-9 w-full bg-muted rounded"></div>
         </SidebarFooter>
         </>
     );
   }
 
-
   return (
     <>
       <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className={cn("flex items-center", open ? "justify-between" : "justify-center")}>
+        <div className={cn("flex items-center h-[28px]", open ? "justify-between" : "justify-center")}>
           {open && <Logo />}
           {!open && !isMobile && ( 
             <Link href="/" className="text-primary">
@@ -152,7 +103,7 @@ export function AppSidebarNav() {
               </svg>
             </Link>
           )}
-          {isMobile && ( 
+           {isMobile && ( 
              <Button variant="ghost" size="icon" onClick={toggleSidebar} className={cn("ml-auto", openMobile ? "" : "absolute top-3 left-3 z-50")}>
                 <PanelLeft />
              </Button>
@@ -214,14 +165,7 @@ export function AppSidebarNav() {
                 <p className="text-xs text-muted-foreground">Admin</p>
               </div>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-                  <Settings className="mr-2 h-5 w-5 text-sidebar-foreground/70" /> Settings
-                </Button>
-              </DropdownMenuTrigger>
-              {settingsDropdownContent}
-            </DropdownMenu>
+            {/* Settings Dropdown removed, Settings is now a main nav item */}
             <Button variant="ghost" className="w-full justify-start text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
               <LogOut className="mr-2 h-5 w-5 text-sidebar-foreground/70" /> Logout
             </Button>
@@ -239,19 +183,7 @@ export function AppSidebarNav() {
                     </TooltipTrigger>
                     <TooltipContent side="right" className="font-body bg-background text-foreground border-border">Floyd Miles</TooltipContent>
                 </Tooltip>
-                <DropdownMenu>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="w-9 h-9 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-                          <Settings className="h-5 w-5 text-sidebar-foreground/70"/>
-                        </Button>
-                      </DropdownMenuTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent side="right" className="font-body bg-background text-foreground border-border">Settings</TooltipContent>
-                  </Tooltip>
-                  {settingsDropdownContent}
-                </DropdownMenu>
+                {/* Settings icon/dropdown removed from here */}
                 <Tooltip>
                     <TooltipTrigger asChild>
                          <Button variant="ghost" size="icon" className="w-9 h-9 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"><LogOut className="h-5 w-5 text-sidebar-foreground/70"/></Button>
@@ -265,4 +197,3 @@ export function AppSidebarNav() {
     </>
   );
 }
-
