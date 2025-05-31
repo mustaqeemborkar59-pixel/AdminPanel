@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation'; // Added useRouter
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
@@ -31,9 +31,10 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/comp
 import { Logo } from './logo';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { signOut } from '@/app/auth/actions'; 
 import React from 'react';
-import type { User } from 'firebase/auth'; // Import User type
+import type { User } from 'firebase/auth'; 
+import { auth } from '@/lib/firebase'; // Import auth for client-side sign out
+import { useToast } from '@/hooks/use-toast'; // For potential error messages
 
 const mainNavItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -55,12 +56,27 @@ interface AppSidebarNavProps {
 
 export function AppSidebarNav({ user, authLoading }: AppSidebarNavProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { toast } = useToast();
   const { open, toggleSidebar, isMobile, state, openMobile, setOpenMobile } = useSidebar();
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      // onAuthStateChanged in AppContentWrapper will handle redirect logic
+      // but we can push to login page immediately for a faster UX
+      router.push('/login'); 
+      toast({ title: "Logged Out", description: "You have been successfully logged out." });
+    } catch (error) {
+      console.error("Logout failed", error);
+      toast({ variant: "destructive", title: "Logout Failed", description: "Could not log you out. Please try again." });
+    }
+  };
 
   if (!mounted || authLoading) {
     return (
@@ -83,9 +99,7 @@ export function AppSidebarNav({ user, authLoading }: AppSidebarNavProps) {
                 <div className="h-9 w-9 rounded-full bg-muted"></div>
                 <div className="h-9 w-96 max-w-[100px] bg-muted rounded"></div>
             </div>
-             <form> {/* Placeholder form for skeleton consistency */}
-              <div className="h-9 w-full bg-muted rounded"></div>
-            </form>
+            <div className="h-9 w-full bg-muted rounded"></div>
         </SidebarFooter>
         </>
     );
@@ -166,11 +180,14 @@ export function AppSidebarNav({ user, authLoading }: AppSidebarNavProps) {
                 <p className="text-xs text-muted-foreground">Admin</p>
               </div>
             </div>
-            <form action={signOut}>
-              <Button type="submit" variant="ghost" className="w-full justify-start text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-                <LogOut className="mr-2 h-5 w-5 text-sidebar-foreground/70" /> Logout
-              </Button>
-            </form>
+            <Button 
+              type="button" // Changed from submit
+              variant="ghost" 
+              className="w-full justify-start text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              onClick={handleLogout} // Added onClick handler
+            >
+              <LogOut className="mr-2 h-5 w-5 text-sidebar-foreground/70" /> Logout
+            </Button>
           </>
         )}
          {state === 'collapsed' && !isMobile && user && (
@@ -187,9 +204,15 @@ export function AppSidebarNav({ user, authLoading }: AppSidebarNavProps) {
                 </Tooltip>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <form action={signOut}>
-                             <Button type="submit" variant="ghost" size="icon" className="w-9 h-9 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"><LogOut className="h-5 w-5 text-sidebar-foreground/70"/></Button>
-                        </form>
+                         <Button 
+                            type="button" // Changed from submit
+                            variant="ghost" 
+                            size="icon" 
+                            className="w-9 h-9 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                            onClick={handleLogout} // Added onClick handler
+                         >
+                            <LogOut className="h-5 w-5 text-sidebar-foreground/70"/>
+                         </Button>
                     </TooltipTrigger>
                     <TooltipContent side="right" className="font-body bg-background text-foreground border-border">Logout</TooltipContent>
                 </Tooltip>
