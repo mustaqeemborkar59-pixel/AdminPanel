@@ -3,9 +3,10 @@
 
 import { useState, useEffect, ReactNode, Suspense } from 'react';
 import { PageHeader } from '@/components/page-header';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, Users, ShoppingBag, Archive, Activity, AlertTriangle, UsersRound, Utensils } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { DollarSign, Users, ShoppingBag, Archive, Activity, AlertTriangle, UsersRound, Utensils, ChevronDown } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label, LabelList } from 'recharts';
 import type { Order, InventoryItem, StaffMember, OrderStatus, OrderType, MenuItem } from '@/types';
 import { initialMenuItems } from '@/lib/menu-item-data';
 import { cn } from '@/lib/utils';
@@ -40,31 +41,24 @@ const initialStaffData: StaffMember[] = [
 // --- End Initial Data ---
 
 
-const dailySalesData = [
-  { name: 'Mon', sales: 4000 },
-  { name: 'Tue', sales: 3000 },
-  { name: 'Wed', sales: 2000 },
-  { name: 'Thu', sales: 2780 },
-  { name: 'Fri', sales: 1890 },
-  { name: 'Sat', sales: 2390 },
-  { name: 'Sun', sales: 3490 },
+const weeklyOrderData = [
+  { name: 'Sat', sales: 180 },
+  { name: 'Sun', sales: 240 },
+  { name: 'Mon', sales: 220 },
+  { name: 'Tue', sales: 265 }, // Highlighted
+  { name: 'Wed', sales: 200 },
+  { name: 'Thu', sales: 150 },
+  { name: 'Fri', sales: 120 },
 ];
 
-const topSellingItemsData = [
-  { name: 'Pizza Margherita', value: 400 },
-  { name: 'Pasta Carbonara', value: 300 },
-  { name: 'Caesar Salad', value: 200 },
-  { name: 'Tiramisu', value: 150 },
+const salesDetailsData = [
+  { name: 'Total Order', value: 35 },
+  { name: 'Running order', value: 22 },
+  { name: 'Customer Growth', value: 26 },
+  { name: 'Total Revenue', value: 17 },
 ];
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
-const PIE_COLORS_EXTENDED = [COLORS[0], COLORS[1], COLORS[2], COLORS[3], 'hsl(var(--primary))', 'hsl(var(--secondary))'];
-
-
-interface ChartDataPoint {
-  name: string;
-  value: number;
-}
 
 // Helper array for gradients for StatsCards
 const gradientStyles = [
@@ -73,6 +67,21 @@ const gradientStyles = [
   "bg-gradient-to-br from-orange-400 to-red-500",
   "bg-gradient-to-br from-green-400 to-lime-500",
 ];
+
+const renderCustomLegend = (props: any) => {
+  const { payload } = props;
+  return (
+    <ul className="flex flex-col space-y-3 text-sm ml-2 md:ml-6">
+      {payload.map((entry: any, index: number) => (
+        <li key={`item-${index}`} className="flex items-center">
+          <span style={{ backgroundColor: entry.color, width: '10px', height: '10px', borderRadius: '2px', marginRight: '10px', display: 'inline-block' }}></span>
+          <span className="text-muted-foreground mr-1">{entry.payload.name}:</span>
+          <span className="font-semibold text-foreground">{entry.payload.value}%</span>
+        </li>
+      ))}
+    </ul>
+  );
+};
 
 
 function DashboardContent() {
@@ -83,11 +92,6 @@ function DashboardContent() {
   const [lowStockCount, setLowStockCount] = useState(0);
   const [menuItemCount, setMenuItemCount] = useState(0);
   const [activeStaffCount, setActiveStaffCount] = useState(0);
-
-  const [orderStatusData, setOrderStatusData] = useState<ChartDataPoint[]>([]);
-  const [orderTypeData, setOrderTypeData] = useState<ChartDataPoint[]>([]);
-  const [staffStatusData, setStaffStatusData] = useState<ChartDataPoint[]>([]);
-
   const newCustomers = 45; // Placeholder data
 
   useEffect(() => {
@@ -99,28 +103,8 @@ function DashboardContent() {
 
     setInventoryItemCount(initialInventoryItemsData.length);
     setLowStockCount(initialInventoryItemsData.filter(item => item.quantity <= item.alertLevel).length);
-
     setMenuItemCount(initialMenuItems.length);
-
     setActiveStaffCount(initialStaffData.filter(staff => staff.status === 'on-duty').length);
-
-    const statusCounts: Record<OrderStatus, number> = { placed: 0, preparing: 0, ready: 0, delivered: 0, cancelled: 0, pending: 0 };
-    initialOrdersData.forEach(order => { statusCounts[order.status]++; });
-    setOrderStatusData(Object.entries(statusCounts).map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value })).filter(d => d.value > 0));
-
-    const typeCounts: Record<OrderType, number> = { 'dine-in': 0, takeaway: 0, delivery: 0 };
-    initialOrdersData.forEach(order => { typeCounts[order.orderType]++; });
-    setOrderTypeData(Object.entries(typeCounts).map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value })).filter(d => d.value > 0));
-
-    const staffStatusCounts: Record<string, number> = { 'On-duty': 0, 'Off-duty': 0, 'On-leave': 0 };
-    initialStaffData.forEach(staff => {
-      if (staff.status) {
-        const key = staff.status.charAt(0).toUpperCase() + staff.status.slice(1).replace('-', ' ');
-        staffStatusCounts[key] = (staffStatusCounts[key] || 0) + 1;
-      }
-    });
-    setStaffStatusData(Object.entries(staffStatusCounts).map(([name, value]) => ({ name, value })).filter(d => d.value > 0));
-
   }, []);
 
 
@@ -148,107 +132,83 @@ function DashboardContent() {
 
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
           <Card>
-            <CardHeader>
-              <CardTitle className="font-headline">Daily Sales Performance</CardTitle>
+            <CardHeader className="flex-row items-center justify-between">
+              <div>
+                <CardTitle className="font-headline text-xl">Sales Details</CardTitle>
+                <CardDescription className="text-xs text-muted-foreground mt-1">February, 2023</CardDescription>
+              </div>
+              <Button variant="outline" size="sm" className="ml-auto h-8 text-xs">
+                Monthly <ChevronDown className="ml-2 h-3 w-3 text-muted-foreground" />
+              </Button>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={dailySalesData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" />
-                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(value) => `$${value}`} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }}
-                    labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
-                    itemStyle={{ color: 'hsl(var(--foreground))' }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: '0.875rem', color: 'hsl(var(--muted-foreground))' }} />
-                  <Bar dataKey="sales" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Sales ($)"/>
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-headline">Top Selling Items (Example)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+            <CardContent className="flex flex-col md:flex-row items-center pt-4">
+              <ResponsiveContainer width="50%" height={250} className="min-w-[150px] md:min-w-[200px]">
                 <PieChart>
                   <Pie
-                    data={topSellingItemsData}
+                    data={salesDetailsData}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    outerRadius={100}
-                    innerRadius={65} // Added for donut style
+                    outerRadius={85}
+                    innerRadius={55} 
                     fill="#8884d8"
                     dataKey="value"
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                    stroke="hsl(var(--border))"
+                    strokeWidth={2}
+                    stroke="hsl(var(--background))" 
                   >
-                    {topSellingItemsData.map((entry, index) => (
-                      <Cell key={`cell-top-selling-${index}`} fill={COLORS[index % COLORS.length]} />
+                    {salesDetailsData.map((entry, index) => (
+                      <Cell key={`cell-sales-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
+                     <Label
+                        value="100%"
+                        position="center"
+                        className="fill-foreground text-2xl font-bold"
+                        dy={-5}
+                      />
                   </Pie>
                   <Tooltip
                      contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)'}}
                      labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
                      itemStyle={{ color: 'hsl(var(--foreground))' }}
+                     formatter={(value, name) => [`${value}%`, name]}
                   />
-                  <Legend wrapperStyle={{ fontSize: '0.875rem', color: 'hsl(var(--muted-foreground))' }} />
                 </PieChart>
+              </ResponsiveContainer>
+              <div className="w-full mt-4 md:mt-0 md:w-1/2">
+                <Legend content={renderCustomLegend} verticalAlign="middle" align="right" layout="vertical" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+             <CardHeader className="flex-row items-center justify-between">
+              <CardTitle className="font-headline text-xl">Order Chart</CardTitle>
+               <Button variant="outline" size="sm" className="ml-auto h-8 text-xs">
+                Weekly <ChevronDown className="ml-2 h-3 w-3 text-muted-foreground" />
+              </Button>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={weeklyOrderData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" vertical={false} />
+                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }}
+                    labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
+                    itemStyle={{ color: 'hsl(var(--foreground))' }}
+                    cursor={{fill: 'hsl(var(--muted)/0.3)'}}
+                  />
+                  <Bar dataKey="sales" name="Orders" radius={[4, 4, 0, 0]}>
+                    {weeklyOrderData.map((entry, index) => (
+                        <Cell key={`cell-order-${index}`} fill={entry.name === 'Tue' ? 'hsl(var(--chart-5))' : 'hsl(var(--primary)/0.6)'} />
+                    ))}
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
         </div>
-
-        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
-            <Card>
-                <CardHeader><CardTitle className="font-headline">Order Status</CardTitle></CardHeader>
-                <CardContent>
-                    <ResponsiveContainer width="100%" height={250}>
-                        <PieChart>
-                            <Pie data={orderStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} innerRadius={50} label>
-                                {orderStatusData.map((entry, index) => <Cell key={`cell-order-status-${index}`} fill={PIE_COLORS_EXTENDED[index % PIE_COLORS_EXTENDED.length]} />)}
-                            </Pie>
-                            <Tooltip />
-                            <Legend wrapperStyle={{ fontSize: '0.875rem' }}/>
-                        </PieChart>
-                    </ResponsiveContainer>
-                </CardContent>
-            </Card>
-             <Card>
-                <CardHeader><CardTitle className="font-headline">Order Types</CardTitle></CardHeader>
-                <CardContent>
-                    <ResponsiveContainer width="100%" height={250}>
-                        <PieChart>
-                            <Pie data={orderTypeData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} innerRadius={50} label>
-                                {orderTypeData.map((entry, index) => <Cell key={`cell-order-type-${index}`} fill={PIE_COLORS_EXTENDED[index % PIE_COLORS_EXTENDED.length]} />)}
-                            </Pie>
-                             <Tooltip />
-                            <Legend wrapperStyle={{ fontSize: '0.875rem' }}/>
-                        </PieChart>
-                    </ResponsiveContainer>
-                </CardContent>
-            </Card>
-             <Card>
-                <CardHeader><CardTitle className="font-headline">Staff Availability</CardTitle></CardHeader>
-                <CardContent>
-                    <ResponsiveContainer width="100%" height={250}>
-                        <PieChart>
-                            <Pie data={staffStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} innerRadius={50} label>
-                                {staffStatusData.map((entry, index) => <Cell key={`cell-staff-status-${index}`} fill={PIE_COLORS_EXTENDED[index % PIE_COLORS_EXTENDED.length]} />)}
-                            </Pie>
-                            <Tooltip />
-                            <Legend wrapperStyle={{ fontSize: '0.875rem' }}/>
-                        </PieChart>
-                    </ResponsiveContainer>
-                </CardContent>
-            </Card>
-        </div>
-
       </div>
     </div>
   );
