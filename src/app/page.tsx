@@ -4,9 +4,9 @@
 import { useState, useEffect, ReactNode } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, Users, ShoppingBag, Archive, Activity, ListPlus, AlertTriangle, UsersRound } from 'lucide-react';
+import { DollarSign, Users, ShoppingBag, Archive, Activity, AlertTriangle, UsersRound } from 'lucide-react'; // ListPlus removed
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import type { Order, MenuItem, InventoryItem, StaffMember, OrderStatus, OrderType } from '@/types';
+import type { Order, InventoryItem, StaffMember, OrderStatus, OrderType } from '@/types'; // MenuItem removed
 
 // --- Initial Data (copied from other pages for demonstration) ---
 const initialOrdersData: Order[] = [
@@ -17,13 +17,7 @@ const initialOrdersData: Order[] = [
   { id: 'ORD005', customerName: 'Eva Green', items: [{ itemId: '2', name: 'Spaghetti Carbonara', qty: 1, price: 15.50 }], status: 'placed', orderType: 'takeaway', totalAmount: 15.50, timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString() },
 ];
 
-const initialMenuItemsData: MenuItem[] = [
-  { id: '1', name: 'Margherita Pizza', category: 'Pizza', price: 12.99, availability: true, description: 'Classic cheese and tomato pizza.', imageUrl: 'https://placehold.co/300x200.png', imageHint: 'pizza cheese' },
-  { id: '2', name: 'Spaghetti Carbonara', category: 'Pasta', price: 15.50, availability: true, description: 'Creamy pasta with bacon and egg.', imageUrl: 'https://placehold.co/300x200.png', imageHint: 'pasta carbonara' },
-  { id: '3', name: 'Caesar Salad', category: 'Salads', price: 9.75, availability: false, description: 'Fresh salad with Caesar dressing.', imageUrl: 'https://placehold.co/300x200.png', imageHint: 'salad greens' },
-  { id: '4', name: 'Tiramisu', category: 'Desserts', price: 7.00, availability: true, description: 'Classic Italian coffee dessert.', imageUrl: 'https://placehold.co/300x200.png', imageHint: 'dessert cake' },
-  { id: '5', name: 'Bruschetta', category: 'Starters', price: 8.50, availability: true, description: 'Toasted bread with tomatoes and basil.', imageUrl: 'https://placehold.co/300x200.png', imageHint: 'bread appetizer' },
-];
+// initialMenuItemsData removed
 
 const initialInventoryItemsData: InventoryItem[] = [
   { id: 'INV001', name: 'Tomatoes', quantity: 50, unit: 'kg', alertLevel: 10, vendor: 'Fresh Farms Co.' },
@@ -76,7 +70,7 @@ export default function DashboardPage() {
   const [averageOrderValue, setAverageOrderValue] = useState(0);
   const [inventoryItemCount, setInventoryItemCount] = useState(0);
   const [lowStockCount, setLowStockCount] = useState(0);
-  const [menuItemCount, setMenuItemCount] = useState(0);
+  // menuItemCount state removed
   const [activeStaffCount, setActiveStaffCount] = useState(0);
 
   const [orderStatusData, setOrderStatusData] = useState<ChartDataPoint[]>([]);
@@ -97,8 +91,8 @@ export default function DashboardPage() {
     setInventoryItemCount(initialInventoryItemsData.length);
     setLowStockCount(initialInventoryItemsData.filter(item => item.quantity <= item.alertLevel).length);
 
-    // Calculate menu stats
-    setMenuItemCount(initialMenuItemsData.length);
+    // Calculate menu stats - menuItemCount removed
+    // setMenuItemCount(initialMenuItemsData.length);
 
     // Calculate staff stats
     setActiveStaffCount(initialStaffData.filter(staff => staff.status === 'on-duty').length);
@@ -133,7 +127,7 @@ export default function DashboardPage() {
           <StatsCard title="Total Orders" value={totalOrders.toString()} icon={<ShoppingBag className="h-5 w-5 text-muted-foreground" />} />
           <StatsCard title="Avg. Order Value" value={`$${averageOrderValue.toFixed(2)}`} icon={<Activity className="h-5 w-5 text-muted-foreground" />} />
           <StatsCard title="New Customers" value={newCustomers.toString()} icon={<Users className="h-5 w-5 text-muted-foreground" />} />
-          <StatsCard title="Menu Items" value={menuItemCount.toString()} icon={<ListPlus className="h-5 w-5 text-muted-foreground" />} />
+          {/* Menu Items StatsCard removed */}
           <StatsCard title="Total Inventory" value={inventoryItemCount.toString()} icon={<Archive className="h-5 w-5 text-muted-foreground" />} />
           <StatsCard title="Low Stock Alerts" value={lowStockCount.toString()} icon={<AlertTriangle className="h-5 w-5 text-destructive" />} badgeText={lowStockCount > 0 ? `${lowStockCount} items` : undefined} badgeVariant={lowStockCount > 0 ? "destructive" : undefined} />
           <StatsCard title="Active Staff" value={activeStaffCount.toString()} icon={<UsersRound className="h-5 w-5 text-muted-foreground" />} />
@@ -268,6 +262,3 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant }: StatsCardPro
     </Card>
   );
 }
-
-
-    

@@ -4,8 +4,8 @@ import { useState, type ReactNode, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, ListFilter } from 'lucide-react';
-import { type Order, type OrderStatus, type OrderType, type MenuItem } from '@/types';
-import { CreateOrderDialog } from '@/components/orders/create-order-dialog';
+import { type Order, type OrderStatus, type OrderType } from '@/types';
+// CreateOrderDialog and MenuItem are removed as Menu page is deleted
 import { OrderListItem } from '@/components/orders/order-list-item';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -16,15 +16,7 @@ const initialOrders: Order[] = [
   { id: 'ORD004', customerName: 'David Brown', items: [{ itemId: '1', name: 'Margherita Pizza', qty: 1, price: 12.99 }, { itemId: '5', name: 'Bruschetta', qty: 1, price: 8.50 }], status: 'ready', orderType: 'dine-in', tableNumber: '2', totalAmount: 21.49, timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
 ];
 
-// Re-using initial menu items from MenuPage for the dialog
-const initialMenuItemsData: MenuItem[] = [
-  { id: '1', name: 'Margherita Pizza', category: 'Pizza', price: 12.99, availability: true, description: 'Classic cheese and tomato pizza.', imageUrl: 'https://placehold.co/300x200.png', imageHint: 'pizza cheese' },
-  { id: '2', name: 'Spaghetti Carbonara', category: 'Pasta', price: 15.50, availability: true, description: 'Creamy pasta with bacon and egg.', imageUrl: 'https://placehold.co/300x200.png', imageHint: 'pasta carbonara' },
-  { id: '3', name: 'Caesar Salad', category: 'Salads', price: 9.75, availability: true, description: 'Fresh salad with Caesar dressing.', imageUrl: 'https://placehold.co/300x200.png', imageHint: 'salad greens' },
-  { id: '4', name: 'Tiramisu', category: 'Desserts', price: 7.00, availability: true, description: 'Classic Italian coffee dessert.', imageUrl: 'https://placehold.co/300x200.png', imageHint: 'dessert cake' },
-  { id: '5', name: 'Bruschetta', category: 'Starters', price: 8.50, availability: true, description: 'Toasted bread with tomatoes and basil.', imageUrl: 'https://placehold.co/300x200.png', imageHint: 'bread appetizer' },
-];
-
+// initialMenuItemsData removed as it was for CreateOrderDialog
 
 const orderStatuses: OrderStatus[] = ['placed', 'preparing', 'ready', 'delivered', 'cancelled'];
 
@@ -32,15 +24,17 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [currentTab, setCurrentTab] = useState<OrderStatus | 'all'>('all');
   const [isMounted, setIsMounted] = useState(false);
-  const [menuItemsForDialog, setMenuItemsForDialog] = useState<MenuItem[]>([]);
+  // menuItemsForDialog state removed
 
   useEffect(() => {
     setIsMounted(true);
     setOrders(initialOrders);
-    setMenuItemsForDialog(initialMenuItemsData.filter(item => item.availability)); // Only available items
+    // setMenuItemsForDialog removed
   }, []);
 
   const handleAddOrder = (newOrderData: Omit<Order, 'id' | 'timestamp' | 'totalAmount'>) => {
+    // This function would need a new way to be triggered if CreateOrderDialog is removed.
+    // For now, it remains, but the dialog that calls it is gone from this page's header.
     const totalAmount = newOrderData.items.reduce((sum, item) => sum + item.qty * item.price, 0);
     const newOrder: Order = {
       ...newOrderData,
@@ -68,7 +62,8 @@ export default function OrdersPage() {
       <PageHeader
         title="Order Management"
         description="View, create, and manage customer orders."
-        actions={<CreateOrderDialog menuItems={menuItemsForDialog} onAddOrder={handleAddOrder} />}
+        // CreateOrderDialog removed from actions
+        // actions={<CreateOrderDialog menuItems={menuItemsForDialog} onAddOrder={handleAddOrder} />}
       />
       <div className="px-4 md:px-6 pt-4">
         <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as OrderStatus | 'all')}>
