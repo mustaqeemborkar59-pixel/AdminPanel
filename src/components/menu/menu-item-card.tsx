@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { MenuItem } from '@/types';
-import { PlusCircle, Edit3, Trash2, EyeOff, Eye, Minus } from 'lucide-react'; // Removed Leaf, Drumstick
+import { PlusCircle, Edit3, Trash2, EyeOff, Eye, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MenuItemCardProps {
@@ -75,8 +75,8 @@ export function MenuItemCard({
         
         <div className="mt-auto space-y-2 pt-2">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center flex-grow justify-between"> 
-              <div className="flex items-baseline gap-1"> 
+            <div className="flex items-baseline gap-1 flex-grow justify-between"> 
+              <div className="flex items-baseline gap-3"> 
                 <span className="text-sm font-bold text-primary">${displayPrice.toFixed(2)}</span>
                 {item.discount && (
                   <span className="text-xs text-muted-foreground line-through">${item.price.toFixed(2)}</span>
@@ -123,18 +123,18 @@ export function MenuItemCard({
               ) : (
                 <div className="flex items-center justify-center gap-2"> 
                   <Button
-                    variant="outline"
+                    variant="default"
                     size="icon"
-                    className="h-9 w-9 border-primary text-primary hover:bg-primary/10"
+                    className="h-9 w-9"
                     onClick={() => onDecreaseFromOrder(item.id)}
                   >
                     <Minus className="h-4 w-4" />
                   </Button>
                   <span className="text-lg font-semibold text-center w-8">{quantityInOrder}</span>
                   <Button
-                    variant="outline"
+                    variant="default"
                     size="icon"
-                    className="h-9 w-9 border-primary text-primary hover:bg-primary/10"
+                    className="h-9 w-9"
                     onClick={() => onAddToOrder(item)}
                   >
                     <PlusCircle className="h-4 w-4" />
@@ -154,3 +154,4 @@ export function MenuItemCard({
     </Card>
   );
 }
+
