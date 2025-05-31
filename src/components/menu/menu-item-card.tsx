@@ -5,34 +5,38 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { MenuItem } from '@/types';
-import { Leaf, PlusCircle, Edit3, Trash2, EyeOff, Eye } from 'lucide-react'; // Assuming a generic food icon for non-veg or just text
+import { Leaf, PlusCircle, Edit3, Trash2, EyeOff, Eye, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MenuItemCardProps {
   item: MenuItem;
+  quantityInOrder?: number;
   onAddToOrder: (item: MenuItem) => void;
-  onEditAdminAction?: (item: MenuItem) => void; // Optional admin actions
+  onDecreaseFromOrder: (itemId: string) => void;
+  onEditAdminAction?: (item: MenuItem) => void;
   onDeleteAdminAction?: (itemId: string) => void;
   onToggleAvailabilityAdminAction?: (itemId: string) => void;
-  isAdminView?: boolean; // To show/hide admin controls
+  isAdminView?: boolean;
 }
 
 export function MenuItemCard({
   item,
+  quantityInOrder = 0,
   onAddToOrder,
+  onDecreaseFromOrder,
   onEditAdminAction,
   onDeleteAdminAction,
   onToggleAvailabilityAdminAction,
-  isAdminView = false // Default to false if not provided
+  isAdminView = false
 }: MenuItemCardProps) {
   const displayPrice = item.discount ? item.price * (1 - item.discount / 100) : item.price;
 
   return (
     <Card className={cn(
-      "overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full",
+      "overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full group",
       !item.availability && "opacity-60 bg-slate-50"
     )}>
-      <div className="relative w-full aspect-[3/2]"> {/* Fixed aspect ratio for image container */}
+      <div className="relative w-full aspect-[3/2]">
         <Image
           src={item.imageUrl || `https://placehold.co/300x200.png?text=${encodeURIComponent(item.name)}`}
           alt={item.name}
@@ -46,23 +50,23 @@ export function MenuItemCard({
             {item.discount}% OFF
           </Badge>
         )}
-         <Badge 
-            variant="outline" 
+         <Badge
+            variant="outline"
             className={cn(
-                "absolute top-2 right-2 text-xs backdrop-blur-sm bg-white/70",
+                "absolute top-2 right-2 text-xs backdrop-blur-sm bg-white/70 font-medium",
                 item.isVegetarian ? "border-green-500 text-green-700" : "border-red-500 text-red-700"
             )}
         >
-            {item.isVegetarian ? <Leaf className="h-3 w-3 mr-1 text-green-600" /> : null}
+            {item.isVegetarian ? <Leaf className="h-3 w-3 mr-1 text-green-600" /> : <span className="h-3 w-3 mr-1 text-red-500 flex items-center justify-center font-bold text-xs">∙</span>}
             {item.isVegetarian ? 'Veg' : 'Non-Veg'}
         </Badge>
       </div>
       <CardContent className="p-3 flex flex-col flex-grow">
-        <h3 className="text-base font-semibold mb-1 truncate group-hover:whitespace-normal" title={item.name}>
+        <h3 className="text-base font-semibold mb-0.5 truncate group-hover:whitespace-normal" title={item.name}>
           {item.name}
         </h3>
-        <p className="text-xs text-muted-foreground mb-2 line-clamp-2 flex-grow min-h-[2.5rem]">
-          {item.description || "No description available."}
+        <p className="text-xs text-muted-foreground mb-2 line-clamp-2 flex-grow min-h-[1.5rem]"> {/* Reduced min-height */}
+          {item.description || "Delicious choice"}
         </p>
         <div className="flex items-center justify-between mt-auto">
           <div className="flex items-baseline gap-1">
@@ -97,13 +101,37 @@ export function MenuItemCard({
             </Badge>
         )}
         {item.availability && (
-             <Button 
-                variant="outline" 
-                className="w-full mt-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground" 
+          <div className="mt-2">
+            {quantityInOrder === 0 ? (
+              <Button
+                variant="outline"
+                className="w-full bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:text-green-800 font-semibold"
                 onClick={() => onAddToOrder(item)}
-            >
-                <PlusCircle className="mr-2 h-4 w-4" /> Add to Order
-            </Button>
+              >
+                <PlusCircle className="mr-2 h-4 w-4" /> Add to Dish
+              </Button>
+            ) : (
+              <div className="flex items-center justify-between gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 border-primary text-primary hover:bg-primary/10"
+                  onClick={() => onDecreaseFromOrder(item.id)}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <span className="text-lg font-semibold text-center w-8">{quantityInOrder}</span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 border-primary text-primary hover:bg-primary/10"
+                  onClick={() => onAddToOrder(item)}
+                >
+                  <PlusCircle className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
         )}
       </CardContent>
     </Card>

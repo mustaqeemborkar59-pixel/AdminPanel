@@ -19,8 +19,8 @@ import { cn } from '@/lib/utils';
 
 const iconMap: { [key: string]: React.ElementType } = {
   LayoutGrid, Soup, SaladIcon, Grape, Fish, Sandwich, Coffee, Cake, Settings,
-  'Salad': SaladIcon, // Explicit mapping for SaladIcon if key is 'Salad'
-  'LeafyGreen': SaladIcon, // Assuming LeafyGreen maps to SaladIcon or similar
+  'Salad': SaladIcon, 
+  'LeafyGreen': SaladIcon,
 };
 
 export default function MenuPage() {
@@ -117,9 +117,26 @@ export default function MenuPage() {
         return [...prevOrderItems, { itemId: item.id, name: item.name, qty: 1, price: displayPrice, imageUrl: item.imageUrl, imageHint: item.imageHint }];
       }
     });
-    // Do not open the sheet automatically: if(!isOrderSheetOpen) setIsOrderSheetOpen(true);
-    toast({ title: "Item Added", description: `${item.name} added to order.` });
+    toast({ title: item.name, description: `Added to order.` });
   };
+
+  const handleDecreaseOrderItem = (itemId: string) => {
+    setCurrentOrderItems(prevOrderItems => {
+      const existingItem = prevOrderItems.find(oi => oi.itemId === itemId);
+      if (existingItem) {
+        if (existingItem.qty > 1) {
+          return prevOrderItems.map(oi =>
+            oi.itemId === itemId ? { ...oi, qty: oi.qty - 1 } : oi
+          );
+        } else {
+          // If quantity is 1, remove the item
+          return prevOrderItems.filter(oi => oi.itemId !== itemId);
+        }
+      }
+      return prevOrderItems; // Should not happen if button is only visible for items in cart
+    });
+  };
+
 
   const handleUpdateOrderItemQuantity = (itemId: string, newQuantity: number) => {
     if (newQuantity <= 0) {
@@ -254,17 +271,23 @@ export default function MenuPage() {
 
             <ScrollArea className="flex-1 -mx-4 sm:mx-0">
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3 px-4 sm:px-0 pb-6">
-                {filteredItems.map(item => (
-                    <MenuItemCard
-                    key={item.id}
-                    item={item}
-                    onAddToOrder={handleAddToOrder}
-                    isAdminView={isAdminMode}
-                    onEditAdminAction={handleOpenEditDialog}
-                    onDeleteAdminAction={handleDeleteMenuItem}
-                    onToggleAvailabilityAdminAction={handleToggleAvailability}
-                    />
-                ))}
+                {filteredItems.map(item => {
+                    const orderItem = currentOrderItems.find(oi => oi.itemId === item.id);
+                    const quantityInOrder = orderItem ? orderItem.qty : 0;
+                    return (
+                        <MenuItemCard
+                        key={item.id}
+                        item={item}
+                        quantityInOrder={quantityInOrder}
+                        onAddToOrder={handleAddToOrder}
+                        onDecreaseFromOrder={handleDecreaseOrderItem}
+                        isAdminView={isAdminMode}
+                        onEditAdminAction={handleOpenEditDialog}
+                        onDeleteAdminAction={handleDeleteMenuItem}
+                        onToggleAvailabilityAdminAction={handleToggleAvailability}
+                        />
+                    );
+                })}
                 {filteredItems.length === 0 && (
                     <p className="col-span-full text-center text-muted-foreground py-10">
                     No menu items match your criteria.
@@ -293,4 +316,3 @@ export default function MenuPage() {
     </div>
   );
 }
-
