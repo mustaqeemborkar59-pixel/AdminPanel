@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect, ReactNode, Suspense } from 'react';
-// useRouter and useSearchParams are removed as we simplify the success message logic for now
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign, Users, ShoppingBag, Archive, Activity, AlertTriangle, UsersRound, Utensils } from 'lucide-react';
@@ -10,7 +9,6 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import type { Order, InventoryItem, StaffMember, OrderStatus, OrderType, MenuItem } from '@/types';
 import { initialMenuItems } from '@/lib/menu-item-data';
 import { cn } from '@/lib/utils';
-// useToast is removed as we simplify the success message logic for now
 
 
 // --- Initial Data (copied from other pages for demonstration) ---
@@ -78,8 +76,6 @@ const gradientStyles = [
 
 
 function DashboardContent() {
-  // Removed searchParams, router, toast as they are not used for success messages now
-
   const [totalSales, setTotalSales] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
   const [averageOrderValue, setAverageOrderValue] = useState(0);
@@ -93,8 +89,6 @@ function DashboardContent() {
   const [staffStatusData, setStaffStatusData] = useState<ChartDataPoint[]>([]);
 
   const newCustomers = 45; // Placeholder data
-
-  // Removed useEffect for handling login/signup success query params
 
   useEffect(() => {
     const currentTotalSales = initialOrdersData.reduce((sum, order) => sum + order.totalAmount, 0);
@@ -188,6 +182,7 @@ function DashboardContent() {
                     cy="50%"
                     labelLine={false}
                     outerRadius={100}
+                    innerRadius={65} // Added for donut style
                     fill="#8884d8"
                     dataKey="value"
                     label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
@@ -215,7 +210,7 @@ function DashboardContent() {
                 <CardContent>
                     <ResponsiveContainer width="100%" height={250}>
                         <PieChart>
-                            <Pie data={orderStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                            <Pie data={orderStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} innerRadius={50} label>
                                 {orderStatusData.map((entry, index) => <Cell key={`cell-order-status-${index}`} fill={PIE_COLORS_EXTENDED[index % PIE_COLORS_EXTENDED.length]} />)}
                             </Pie>
                             <Tooltip />
@@ -229,7 +224,7 @@ function DashboardContent() {
                 <CardContent>
                     <ResponsiveContainer width="100%" height={250}>
                         <PieChart>
-                            <Pie data={orderTypeData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                            <Pie data={orderTypeData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} innerRadius={50} label>
                                 {orderTypeData.map((entry, index) => <Cell key={`cell-order-type-${index}`} fill={PIE_COLORS_EXTENDED[index % PIE_COLORS_EXTENDED.length]} />)}
                             </Pie>
                              <Tooltip />
@@ -243,7 +238,7 @@ function DashboardContent() {
                 <CardContent>
                     <ResponsiveContainer width="100%" height={250}>
                         <PieChart>
-                            <Pie data={staffStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                            <Pie data={staffStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} innerRadius={50} label>
                                 {staffStatusData.map((entry, index) => <Cell key={`cell-staff-status-${index}`} fill={PIE_COLORS_EXTENDED[index % PIE_COLORS_EXTENDED.length]} />)}
                             </Pie>
                             <Tooltip />
@@ -259,9 +254,8 @@ function DashboardContent() {
   );
 }
 
-export default function DashboardPage() {
-  // Wrap DashboardContent with Suspense because useSearchParams() *might* be used by child components
-  // or if re-added later. It's good practice.
+export default function DashboardPage()
+ {
   return (
     <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading Dashboard...</div>}>
       <DashboardContent />
@@ -276,7 +270,7 @@ interface StatsCardProps {
   icon: React.ReactNode;
   badgeText?: string;
   badgeVariant?: "default" | "secondary" | "destructive" | "outline" | null | undefined;
-  className?: string; // To pass gradient and other classes
+  className?: string; 
 }
 
 function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: StatsCardProps) {
