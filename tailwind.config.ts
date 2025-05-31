@@ -11,10 +11,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // Using Inter as the primary font as it matches the modern UI style
-        sans: ['Inter', 'sans-serif'], 
-        body: ['Inter', 'sans-serif'], // Align body with Inter
-        headline: ['Inter', 'sans-serif'], // Align headline with Inter, perhaps with heavier weight
+        sans: ['Inter', 'sans-serif'],
+        body: ['Inter', 'sans-serif'], 
+        headline: ['Inter', 'sans-serif'], 
         code: ['monospace'],
       },
       colors: {

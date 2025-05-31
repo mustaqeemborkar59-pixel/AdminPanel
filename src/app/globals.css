@@ -4,83 +4,89 @@
 @tailwind utilities;
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', sans-serif; /* Default to Inter */
 }
 
 @layer base {
   :root {
-    --background: 220 20% 98%; /* Light cool gray, almost white */
-    --foreground: 220 10% 20%; /* Dark cool gray */
+    --background: 0 0% 98%; /* Peach White */
+    --foreground: 20 5% 15%; /* Dark Brown/Black for text */
 
     --card: 0 0% 100%; /* White */
-    --card-foreground: 220 10% 20%; /* Dark cool gray */
+    --card-foreground: 20 5% 15%; 
 
-    --popover: 0 0% 100%; /* White */
-    --popover-foreground: 220 10% 20%; /* Dark cool gray */
+    --popover: 0 0% 100%; 
+    --popover-foreground: 20 5% 15%;
 
-    --primary: 140 60% 45%; /* Vibrant Green from image */
+    --primary: 16 84% 56%; /* Coral */
     --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 220 15% 94%; /* Lighter gray for secondary elements */
-    --secondary-foreground: 220 10% 35%; /* Slightly lighter dark gray */
+    --secondary: 30 70% 92%; /* Lighter Peach for secondary elements */
+    --secondary-foreground: 20 5% 25%; 
 
-    --muted: 220 15% 90%; /* Muted gray */
-    --muted-foreground: 220 10% 45%; /* Gray for muted text */
+    --muted: 30 50% 90%; /* Muted Peach */
+    --muted-foreground: 20 5% 40%;
 
-    --accent: 140 60% 45%; /* Same as primary for this theme's active elements */
+    --accent: 42 93% 63%; /* Mustard */
     --accent-foreground: 0 0% 100%; /* White */
 
-    --destructive: 0 70% 55%; /* A suitable red */
-    --destructive-foreground: 0 0% 100%; /* White */
+    --destructive: 0 70% 55%; /* Red */
+    --destructive-foreground: 0 0% 100%; 
 
-    --border: 220 15% 88%; /* Light gray border */
-    --input: 220 15% 85%; /* Slightly darker for input borders */
-    --ring: 140 60% 50%; /* Slightly darker green for focus rings */
+    --border: 30 40% 88%; /* Peach-toned border */
+    --input: 30 30% 85%; /* Slightly darker for input borders */
+    --ring: 16 84% 60%; /* Slightly darker Coral for focus rings */
 
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.75rem; /* Slightly more rounded to match image */
+    --radius: 0.75rem;
 
-    /* Sidebar Theme - Aligned with the provided image */
-    --sidebar-background: 0 0% 100%; /* White */
-    --sidebar-foreground: 220 10% 35%; /* Darker Gray for text, less contrast than main foreground */
+    /* Sidebar Theme - Kept Green Accent as per image request */
+    --sidebar-background: 0 0% 100%; 
+    --sidebar-foreground: 220 10% 35%; 
     
-    /* Active item in sidebar uses global --primary and --primary-foreground for its bg/text */
-    /* These are for hover on INACTIVE items */
     --sidebar-accent: 140 60% 95%; /* Very light Green (hover item background) */
     --sidebar-accent-foreground: 140 60% 40%; /* Solid Green (hover text/icon) */
     
-    --sidebar-border: 220 15% 92%; /* Light gray border for sidebar */
-    --sidebar-ring: 140 60% 50%; /* Green for focus rings */
+    --sidebar-border: 220 15% 92%; 
+    --sidebar-ring: 140 60% 50%; 
 
-    /* These specific variables are not directly used by app-sidebar-nav for active items, but defined for completeness */
-    --sidebar-primary: 140 60% 45%; /* Green (active item background if using sidebar-primary class) */
-    --sidebar-primary-foreground: 0 0% 100%; /* White (active item text/icon if using sidebar-primary-foreground class) */
+    /* Active item in sidebar uses these for its bg/text - primary is green for sidebar */
+    --sidebar-primary: 140 60% 45%; /* Green for active sidebar item background */
+    --sidebar-primary-foreground: 0 0% 100%; /* White for active sidebar item text/icon */
   }
 
   .dark {
-    --background: 220 10% 10%;
-    --foreground: 0 0% 98%;
-    --card: 220 10% 12%;
-    --card-foreground: 0 0% 98%;
-    --popover: 220 10% 10%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 140 60% 55%;
+    --background: 20 5% 10%; /* Dark Brown */
+    --foreground: 30 30% 95%; /* Light Peach/Off-white */
+
+    --card: 20 5% 12%; 
+    --card-foreground: 30 30% 95%;
+
+    --popover: 20 5% 10%; 
+    --popover-foreground: 30 30% 95%;
+
+    --primary: 16 75% 65%; /* Brighter Coral for dark mode */
     --primary-foreground: 0 0% 100%; /* White */
-    --secondary: 220 10% 20%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 220 10% 20%;
-    --muted-foreground: 220 10% 65%;
-    --accent: 140 60% 55%;
-    --accent-foreground: 0 0% 100%; /* White for consistency with primary */
-    --destructive: 0 62.8% 30.6%;
+
+    --secondary: 20 5% 20%; 
+    --secondary-foreground: 30 30% 95%;
+
+    --muted: 20 5% 20%; 
+    --muted-foreground: 30 30% 70%; 
+
+    --accent: 42 85% 70%; /* Brighter Mustard for dark mode */
+    --accent-foreground: 0 0% 100%; /* White */
+
+    --destructive: 0 62.8% 45.6%; /* Adjusted Red */
     --destructive-foreground: 0 0% 98%;
-    --border: 220 10% 25%;
-    --input: 220 10% 25%;
-    --ring: 140 60% 60%;
+
+    --border: 20 5% 25%; 
+    --input: 20 5% 25%; 
+    --ring: 16 75% 70%; 
     
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -88,21 +94,19 @@ body {
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
-    /* Dark Sidebar Theme */
-    --sidebar-background: 220 10% 12%; /* Darker than card */
-    --sidebar-foreground: 0 0% 90%; /* Light gray text */
+    /* Dark Sidebar Theme - Kept Green Accent */
+    --sidebar-background: 220 10% 12%; 
+    --sidebar-foreground: 0 0% 90%; 
 
-    /* Active item in sidebar uses global --primary and --primary-foreground for its bg/text */
-    /* These are for hover on INACTIVE items in dark mode */
     --sidebar-accent: 140 50% 20%; /* Dark Green (hover item background for dark mode) */
     --sidebar-accent-foreground: 140 60% 75%; /* Light, Bright Green (hover text/icon for dark mode) */
     
     --sidebar-border: 220 10% 20%;
     --sidebar-ring: 140 60% 60%;
     
-    /* These specific variables are not directly used by app-sidebar-nav for active items, but defined for completeness */
-    --sidebar-primary: 140 60% 55%; /* Brighter Green (if using sidebar-primary class) */
-    --sidebar-primary-foreground: 0 0% 100%; /* White (active item text/icon if using sidebar-primary-foreground class) */
+    /* Active item in sidebar uses these for its bg/text - primary is green for sidebar */
+    --sidebar-primary: 140 60% 55%; /* Brighter Green for active sidebar item */
+    --sidebar-primary-foreground: 0 0% 100%; /* White for active sidebar item text/icon */
   }
 }
 
@@ -112,9 +116,12 @@ body {
   }
   body {
     @apply bg-background text-foreground;
-     font-family: 'Inter', sans-serif; /* More modern font like in image */
+     font-family: 'Inter', sans-serif;
   }
-  /* Apply Inter to inputs and buttons too for consistency */
+  /* Ensure all relevant elements use Inter */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', sans-serif;
+  }
   input, button, textarea, select {
     font-family: 'Inter', sans-serif;
   }
