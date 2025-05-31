@@ -5,6 +5,7 @@ import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar'
 import { AppSidebarNav } from '@/components/layout/app-sidebar-nav';
 import { Toaster } from '@/components/ui/toaster';
 import { Header } from '@/components/layout/header';
+import { ThemeProvider } from "@/components/theme-provider";
 
 
 export const metadata: Metadata = {
@@ -22,23 +23,28 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* Using Inter as it's a common modern UI font similar to the image */}
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-        {/* Removed Alegreya and Belleza as per new UI direction */}
       </head>
-      <body className="antialiased"> {/* Removed font-body, will be handled by global css */}
-        <SidebarProvider defaultOpen>
-          <Sidebar>
-            <AppSidebarNav />
-          </Sidebar>
-          <SidebarInset className="flex flex-col">
-            <Header />
-            <main className="flex-1 overflow-y-auto bg-background"> {/* Ensure main also has bg-background */}
-              {children}
-            </main>
-            <Toaster />
-          </SidebarInset>
-        </SidebarProvider>
+      <body className="antialiased">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <SidebarProvider defaultOpen>
+            <Sidebar>
+              <AppSidebarNav />
+            </Sidebar>
+            <SidebarInset className="flex flex-col">
+              <Header />
+              <main className="flex-1 overflow-y-auto bg-background">
+                {children}
+              </main>
+              <Toaster />
+            </SidebarInset>
+          </SidebarProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
