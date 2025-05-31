@@ -238,7 +238,7 @@ export default function MenuPage() {
                 onClick={() => setSelectedCategory(name)}
                 className={cn(
                   "flex flex-col items-start justify-center h-auto p-3 rounded-lg shadow-sm border border-border transition-all",
-                  "w-32 text-left", // Removed fixed height, using h-auto
+                  "w-32 text-left", 
                   selectedCategory.toLowerCase() === name.toLowerCase()
                     ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/90'
                     : 'bg-card text-card-foreground hover:bg-secondary'
@@ -256,7 +256,7 @@ export default function MenuPage() {
 
       <div className="flex-1 p-4 md:p-6 space-y-6 overflow-auto">
         {filteredItems.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
             {filteredItems.map(item => (
               <MenuItemCard
                 key={item.id}
@@ -289,3 +289,6 @@ export default function MenuPage() {
     </div>
   );
 }
+
+
+    
