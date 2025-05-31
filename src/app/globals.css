@@ -55,7 +55,7 @@ body {
     --sidebar-border: 214.3 31.8% 91.4%; /* Light gray border */
     --sidebar-ring: 145 63% 42%; /* Green for focus rings */
 
-    --sidebar-primary: 142 71% 45%; /* Green background for selected/active item */
+    --sidebar-primary: 142 71% 30%; /* Dark Green background for selected/active item */
     --sidebar-primary-foreground: 0 0% 100%; /* White text for selected/active item */
 
 

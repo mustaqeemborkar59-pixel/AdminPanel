@@ -141,14 +141,14 @@ export function AppSidebarNav({ user, authLoading }: AppSidebarNavProps) {
                           className={cn(
                             "font-medium text-sm h-10",
                             isActive
-                              ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+                              ? "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground" // Use sidebar-specific colors for active state
                               : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                           )}
                         >
                           <Icon className={cn(
                             "h-5 w-5",
                             isActive
-                              ? "text-primary-foreground"
+                              ? "text-sidebar-primary-foreground" // Use sidebar-specific foreground for active icon
                               : "text-sidebar-foreground/70 group-hover/menu-button:text-sidebar-accent-foreground"
                           )} />
                           {open && <span>{item.label}</span>}
