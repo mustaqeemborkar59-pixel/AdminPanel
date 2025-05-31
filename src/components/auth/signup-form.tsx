@@ -10,11 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { UserPlus } from 'lucide-react';
 import { createRTDBUserProfileOnSignup } from '@/app/auth/actions';
-// useToast import removed as we are switching to alert()
 
 export function SignupForm() {
   const router = useRouter();
-  // const { toast } = useToast(); // Removed useToast
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -25,17 +23,17 @@ export function SignupForm() {
     setIsLoading(true);
 
     if (!email || !password || !confirmPassword) {
-      alert("All fields are required."); // Switched to alert
+      alert("All fields are required.");
       setIsLoading(false);
       return;
     }
     if (password.length < 6) {
-      alert("Password must be at least 6 characters long."); // Switched to alert
+      alert("Password must be at least 6 characters long.");
       setIsLoading(false);
       return;
     }
     if (password !== confirmPassword) {
-      alert("Passwords do not match."); // Switched to alert
+      alert("Passwords do not match.");
       setIsLoading(false);
       return;
     }
@@ -48,22 +46,22 @@ export function SignupForm() {
         const profileCreationResult = await createRTDBUserProfileOnSignup({
           uid: userCredential.user.uid,
           email: userCredential.user.email,
-          displayName: userCredential.user.displayName, 
-          photoURL: userCredential.user.photoURL, 
+          displayName: userCredential.user.email?.split('@')[0], // Default display name
+          photoURL: `https://placehold.co/100x100.png?text=${userCredential.user.email?.[0]?.toUpperCase() || 'U'}`, // Default photo
         });
 
         if (!profileCreationResult.success) {
-          alert(profileCreationResult.message || "Could not create your profile in the database. Please contact support if this persists."); // Switched to alert
-          setIsLoading(false);
-          return; 
+          alert(profileCreationResult.message || "Could not create your profile in the database. Please contact support if this persists.");
+          // Optionally, don't redirect or attempt to delete the Firebase Auth user if DB fails
+          // For simplicity, we'll let the redirect happen for now.
         }
       }
       // onAuthStateChanged in AppContentWrapper will handle redirect to dashboard
+      router.push('/');
     } catch (error: any) {
-      console.error("Signup failed (Firebase Auth Error):", error);
+      // Removed console.error to prevent Next.js dev overlay for handled errors
       const firebaseError = error as AuthError;
 
-      // Simplified error handling as per suggestion for signup
       if (firebaseError.code === 'auth/email-already-in-use') {
         alert('This email is already in use. Please try a different email or log in.');
       } else if (firebaseError.code === 'auth/weak-password') {

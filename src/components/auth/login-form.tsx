@@ -10,22 +10,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LogIn } from 'lucide-react';
 import { updateRTDBUserProfileOnLogin } from '@/app/auth/actions';
-// useToast import removed as we are switching to alert()
 
 export function LoginForm() {
   const router = useRouter();
-  // const { toast } = useToast(); // Removed useToast
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  // Removed client-side error state, as alert will be used directly.
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
     if (!email || !password) {
-      alert("Email and password are required."); // Switched to alert
+      alert("Email and password are required.");
       setIsLoading(false);
       return;
     }
@@ -43,21 +40,26 @@ export function LoginForm() {
         });
 
         if (!profileUpdateResult.success) {
-          // For DB errors, we can still use alert or keep toast if preferred for non-auth errors
           alert(profileUpdateResult.message || "Could not update your profile in the database.");
+          // Optionally, don't redirect if DB update fails, or handle differently
         }
       }
       // onAuthStateChanged in AppContentWrapper will handle redirect to dashboard
-      // No explicit router.push('/') here to allow onAuthStateChanged to be the source of truth for redirection.
-      // Successful login will be handled by onAuthStateChanged, which should redirect.
+      // Forcing a push might be redundant if onAuthStateChanged is quick,
+      // but can provide a more immediate UX.
+      router.push('/'); 
     } catch (error: any) {
-      console.error("Login failed (Firebase Auth Error):", error);
+      // Removed console.error to prevent Next.js dev overlay for handled errors
       const firebaseError = error as AuthError;
       if (firebaseError.code === 'auth/invalid-credential') {
         alert('Invalid email or password. Please try again.');
-      } else {
+      } else if (firebaseError.code === 'auth/user-disabled') {
+        alert('This user account has been disabled.');
+      } else if (firebaseError.code === 'auth/invalid-email') {
+        alert('The email address is not valid.');
+      }
+      else {
         alert('An error occurred during sign in. Please try again later.');
-        // console.error(error); // console.error is already done above
       }
     } finally {
       setIsLoading(false);
