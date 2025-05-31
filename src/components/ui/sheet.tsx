@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -58,7 +59,7 @@ const SheetContent = React.forwardRef<
   SheetContentProps
 >(({ side = "right", className, children, ...props }, ref) => (
   <SheetPortal>
-    <SheetOverlay />
+    {/* <SheetOverlay /> REMOVED THIS LINE */}
     <SheetPrimitive.Content
       ref={ref}
       className={cn(sheetVariants({ side }), className)}
