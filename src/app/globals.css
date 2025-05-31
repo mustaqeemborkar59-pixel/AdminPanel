@@ -47,16 +47,18 @@ body {
 
     /* Sidebar Theme - Light Mode (White Background) */
     --sidebar-background: 0 0% 100%; /* White */
-    --sidebar-foreground: 240 10% 3.9%; /* Dark text, like main foreground */
-    
-    --sidebar-accent: 210 40% 90%; /* Slightly darker light gray-blue for better hover visibility */
-    --sidebar-accent-foreground: 222.2 47.4% 11.2%; /* Dark text, like secondary-foreground */
-    
-    --sidebar-border: 214.3 31.8% 91.4%; /* Light gray border, like main border */
-    --sidebar-ring: 145 63% 42%; /* Vibrant Green for focus rings */
+    --sidebar-foreground: 240 10% 3.9%; /* Dark text */
 
-    --sidebar-primary: 145 63% 42%; /* Vibrant Green for active item background */
-    --sidebar-primary-foreground: 0 0% 100%; /* White for active item text */
+    --sidebar-accent: 210 40% 90%; /* Hover background (light gray-blue) */
+    --sidebar-accent-foreground: 222.2 47.4% 11.2%; /* Hover text color (dark) */
+
+    --sidebar-border: 214.3 31.8% 91.4%; /* Light gray border */
+    --sidebar-ring: 145 63% 42%; /* Green for focus rings */
+
+    --sidebar-primary: 142 71% 45%; /* Green background for selected/active item */
+    --sidebar-primary-foreground: 0 0% 100%; /* White text for selected/active item */
+
+
   }
 
   .dark {
