@@ -29,7 +29,8 @@ async function createUserProfileInRTDB(user: User) {
     });
   } catch (error) {
     console.error("Error creating user profile in RTDB:", error);
-    throw new Error("Failed to create user profile in database.");
+    // Not throwing error here to let auth flow continue, but logging it.
+    // Depending on requirements, you might want to handle this more strictly.
   }
 }
 
@@ -41,7 +42,7 @@ async function updateUserProfileOnLoginInRTDB(user: User) {
         lastLoginAt: rtdbServerTimestamp(),
         displayName: user.displayName || user.email?.split('@')[0] || 'User',
         photoURL: user.photoURL || `https://placehold.co/100x100.png?text=${user.email?.[0]?.toUpperCase() || 'U'}`,
-        email: user.email, 
+        email: user.email,
         uid: user.uid,
       };
 
@@ -49,12 +50,13 @@ async function updateUserProfileOnLoginInRTDB(user: User) {
       if (snapshot.exists()) {
         await rtdbUpdate(userRefRtdb, updates);
       } else {
-        updates.createdAt = rtdbServerTimestamp();
+        // If profile doesn't exist for some reason, create it.
+        updates.createdAt = rtdbServerTimestamp(); // Set createdAt if creating new.
         await rtdbSet(userRefRtdb, updates);
       }
     } catch (error) {
         console.error("Error updating/creating user profile in RTDB on login:", error);
-        throw new Error("Failed to update user profile in database.");
+        // Not throwing error here to let auth flow continue.
     }
 }
 
@@ -82,6 +84,7 @@ export async function signUpWithEmailPassword(
     if (userCredential.user) {
       await createUserProfileInRTDB(userCredential.user);
     } else {
+      // This case should ideally not happen if createUserWithEmailAndPassword succeeds.
       return { success: false, message: 'User creation failed after credential generation.' };
     }
   } catch (error: any) {
@@ -100,19 +103,14 @@ export async function signUpWithEmailPassword(
           message = 'The email address is not valid.';
           break;
         default:
-          message = `Sign up failed: ${error.message || 'Please try again.'} (Code: ${error.code})`;
+          message = error.message || `Sign up failed. (Code: ${error.code})`;
       }
     } else if (error.message) {
-       if (error.message && !error.message.includes('NEXT_REDIRECT')) {
-        message = `Sign up failed: ${error.message}`;
-      } else if (error.message && error.message.includes('NEXT_REDIRECT')) {
-         console.warn("Caught NEXT_REDIRECT like error unexpectedly in catch block for signup: ", error.message);
-         message = "An unexpected issue occurred during sign up. Please try again.";
-      }
+        message = error.message;
     }
     return { success: false, message };
   }
-  redirect('/?signup_success=true'); 
+  redirect('/'); // Redirect to dashboard on success
 }
 
 export async function signInWithEmailPassword(
@@ -131,6 +129,7 @@ export async function signInWithEmailPassword(
     if (userCredential.user) {
       await updateUserProfileOnLoginInRTDB(userCredential.user);
     } else {
+      // This case should ideally not happen if signInWithEmailAndPassword succeeds.
       return { success: false, message: 'User sign in failed after credential generation.' };
     }
   } catch (error: any) {
@@ -139,7 +138,7 @@ export async function signInWithEmailPassword(
 
     if (error.code) {
       switch (error.code) {
-        case 'auth/invalid-credential':
+        case 'auth/invalid-credential': // Covers user-not-found and wrong-password
           message = 'Invalid email or password. Please try again.';
           break;
         case 'auth/invalid-email':
@@ -149,19 +148,14 @@ export async function signInWithEmailPassword(
           message = 'This user account has been disabled.';
           break;
         default:
-          message = `Sign in failed: ${error.message || 'Please try again.'} (Code: ${error.code})`;
+          message = error.message || `Sign in failed. (Code: ${error.code})`;
       }
     } else if (error.message) {
-      if (error.message && !error.message.includes('NEXT_REDIRECT')) {
-        message = `Sign in failed: ${error.message}`;
-      } else if (error.message && error.message.includes('NEXT_REDIRECT')) {
-         console.warn("Caught NEXT_REDIRECT like error unexpectedly in catch block for signin: ", error.message);
-         message = "An unexpected issue occurred during sign in. Please try again.";
-      }
+        message = error.message;
     }
     return { success: false, message };
   }
-  redirect('/?login_success=true');
+  redirect('/'); // Redirect to dashboard on success
 }
 
 export async function signOut() {
@@ -169,6 +163,8 @@ export async function signOut() {
     await auth.signOut();
   } catch (error: any) {
     console.error('SignOut Error:', error);
+    // If signout fails, we might still want to redirect or show an error
+    // For now, a console error is fine. The redirect below will always happen.
   }
   redirect('/login');
 }

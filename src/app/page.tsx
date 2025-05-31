@@ -2,14 +2,14 @@
 "use client";
 
 import { useState, useEffect, ReactNode, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+// useRouter and useSearchParams are removed as we simplify the success message logic for now
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, Users, ShoppingBag, Archive, Activity, AlertTriangle, UsersRound, Utensils } from 'lucide-react'; 
+import { DollarSign, Users, ShoppingBag, Archive, Activity, AlertTriangle, UsersRound, Utensils } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import type { Order, InventoryItem, StaffMember, OrderStatus, OrderType, MenuItem } from '@/types';
 import { initialMenuItems } from '@/lib/menu-item-data';
-import { useToast } from '@/hooks/use-toast';
+// useToast is removed as we simplify the success message logic for now
 
 
 // --- Initial Data (copied from other pages for demonstration) ---
@@ -41,7 +41,7 @@ const initialStaffData: StaffMember[] = [
 // --- End Initial Data ---
 
 
-const dailySalesData = [ 
+const dailySalesData = [
   { name: 'Mon', sales: 4000 },
   { name: 'Tue', sales: 3000 },
   { name: 'Wed', sales: 2000 },
@@ -51,7 +51,7 @@ const dailySalesData = [
   { name: 'Sun', sales: 3490 },
 ];
 
-const topSellingItemsData = [ 
+const topSellingItemsData = [
   { name: 'Pizza Margherita', value: 400 },
   { name: 'Pasta Carbonara', value: 300 },
   { name: 'Caesar Salad', value: 200 },
@@ -68,9 +68,7 @@ interface ChartDataPoint {
 }
 
 function DashboardContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const { toast } = useToast();
+  // Removed searchParams, router, toast as they are not used for success messages now
 
   const [totalSales, setTotalSales] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
@@ -83,28 +81,10 @@ function DashboardContent() {
   const [orderStatusData, setOrderStatusData] = useState<ChartDataPoint[]>([]);
   const [orderTypeData, setOrderTypeData] = useState<ChartDataPoint[]>([]);
   const [staffStatusData, setStaffStatusData] = useState<ChartDataPoint[]>([]);
-  
+
   const newCustomers = 45; // Placeholder data
 
-  useEffect(() => {
-    const loginSuccess = searchParams.get('login_success');
-    const signupSuccess = searchParams.get('signup_success');
-
-    if (loginSuccess === 'true') {
-      toast({
-        title: "Login Successful",
-        description: "Welcome back to your dashboard!",
-      });
-      router.replace('/', { scroll: false }); // Remove query param
-    }
-    if (signupSuccess === 'true') {
-      toast({
-        title: "Signup Successful",
-        description: "Welcome to GastroFlow! Your account has been created.",
-      });
-      router.replace('/', { scroll: false }); // Remove query param
-    }
-  }, [searchParams, router, toast]);
+  // Removed useEffect for handling login/signup success query params
 
   useEffect(() => {
     const currentTotalSales = initialOrdersData.reduce((sum, order) => sum + order.totalAmount, 0);
@@ -115,8 +95,8 @@ function DashboardContent() {
 
     setInventoryItemCount(initialInventoryItemsData.length);
     setLowStockCount(initialInventoryItemsData.filter(item => item.quantity <= item.alertLevel).length);
-    
-    setMenuItemCount(initialMenuItems.length); 
+
+    setMenuItemCount(initialMenuItems.length);
 
     setActiveStaffCount(initialStaffData.filter(staff => staff.status === 'on-duty').length);
 
@@ -127,7 +107,7 @@ function DashboardContent() {
     const typeCounts: Record<OrderType, number> = { 'dine-in': 0, takeaway: 0, delivery: 0 };
     initialOrdersData.forEach(order => { typeCounts[order.orderType]++; });
     setOrderTypeData(Object.entries(typeCounts).map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value })).filter(d => d.value > 0));
-    
+
     const staffStatusCounts: Record<string, number> = { 'On-duty': 0, 'Off-duty': 0, 'On-leave': 0 };
     initialStaffData.forEach(staff => {
       if (staff.status) {
@@ -211,7 +191,7 @@ function DashboardContent() {
             </CardContent>
           </Card>
         </div>
-        
+
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
             <Card>
                 <CardHeader><CardTitle className="font-headline">Order Status</CardTitle></CardHeader>
@@ -263,9 +243,10 @@ function DashboardContent() {
 }
 
 export default function DashboardPage() {
-  // Wrap DashboardContent with Suspense because useSearchParams() needs it.
+  // Wrap DashboardContent with Suspense because useSearchParams() *might* be used by child components
+  // or if re-added later. It's good practice.
   return (
-    <Suspense fallback={<div>Loading...</div>}> 
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading Dashboard...</div>}>
       <DashboardContent />
     </Suspense>
   );
@@ -294,4 +275,3 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant }: StatsCardPro
     </Card>
   );
 }
-
