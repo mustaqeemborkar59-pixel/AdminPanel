@@ -59,66 +59,68 @@ export function MenuItemCard({
           {item.description || "Delicious choice"}
         </p>
         
-        <div className="flex items-center justify-between mt-auto">
-          {/* Group for price and new veg/non-veg badge */}
-          <div className="flex items-center gap-3"> {/* Changed gap-2 to gap-3 here */}
-            <div className="flex items-baseline gap-1">
-              <span className="text-sm font-bold text-primary">${displayPrice.toFixed(2)}</span>
-              {item.discount && (
-                <span className="text-xs text-muted-foreground line-through">${item.price.toFixed(2)}</span>
-              )}
+        <div className="mt-auto space-y-2 pt-2"> {/* Wrapper for bottom content, pushes to bottom, adds space between rows */}
+          
+          {/* Row for Price/Badge and Admin Buttons (if admin view) */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3"> {/* Price and Badge Group */}
+              <div className="flex items-baseline gap-1">
+                <span className="text-sm font-bold text-primary">${displayPrice.toFixed(2)}</span>
+                {item.discount && (
+                  <span className="text-xs text-muted-foreground line-through">${item.price.toFixed(2)}</span>
+                )}
+              </div>
+              <Badge
+                variant="outline"
+                className={cn(
+                  "text-xs font-medium py-0.5 px-1.5 h-5 flex items-center",
+                  item.isVegetarian 
+                    ? "border-green-600 text-green-700 bg-green-50/80" 
+                    : "border-red-600 text-red-700 bg-red-50/80"
+                )}
+              >
+                {item.isVegetarian 
+                  ? <Leaf className="h-3 w-3 mr-0.5 text-green-600" />
+                  : <Drumstick className="h-3 w-3 mr-0.5 text-red-600" />
+                }
+                <span className="leading-none">{item.isVegetarian ? 'Veg' : 'Non-Veg'}</span>
+              </Badge>
             </div>
-            <Badge
-              variant="outline"
-              className={cn(
-                "text-xs font-medium py-0.5 px-1.5 h-5 flex items-center",
-                item.isVegetarian 
-                  ? "border-green-600 text-green-700 bg-green-50/80" 
-                  : "border-red-600 text-red-700 bg-red-50/80"
-              )}
-            >
-              {item.isVegetarian 
-                ? <Leaf className="h-3 w-3 mr-0.5 text-green-600" />
-                : <Drumstick className="h-3 w-3 mr-0.5 text-red-600" />
-              }
-              <span className="leading-none">{item.isVegetarian ? 'Veg' : 'Non-Veg'}</span>
-            </Badge>
+
+            {isAdminView && onEditAdminAction && onDeleteAdminAction && onToggleAvailabilityAdminAction && (
+              <div className="flex gap-1"> {/* Admin Buttons */}
+                   <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => onToggleAvailabilityAdminAction(item.id)}
+                      title={item.availability ? "Mark Unavailable" : "Mark Available"}
+                  >
+                      {item.availability ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4 text-destructive" />}
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEditAdminAction(item)}>
+                      <Edit3 className="h-4 w-4"/>
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive/80" onClick={() => onDeleteAdminAction(item.id)}>
+                      <Trash2 className="h-4 w-4"/>
+                  </Button>
+              </div>
+            )}
           </div>
 
-          {isAdminView && onEditAdminAction && onDeleteAdminAction && onToggleAvailabilityAdminAction && (
-            <div className="flex gap-1">
-                 <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => onToggleAvailabilityAdminAction(item.id)}
-                    title={item.availability ? "Mark Unavailable" : "Mark Available"}
-                >
-                    {item.availability ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4 text-destructive" />}
-                </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEditAdminAction(item)}>
-                    <Edit3 className="h-4 w-4"/>
-                </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive/80" onClick={() => onDeleteAdminAction(item.id)}>
-                    <Trash2 className="h-4 w-4"/>
-                </Button>
-            </div>
-          )}
-          {!item.availability && !isAdminView && ( // If unavailable and NOT admin view, show nothing here (availability badge below takes care of it)
-             null 
-          )}
-          {item.availability && !isAdminView && ( // Ensure add to order buttons only show if not in admin view and item is available
-            <div>
+          {/* Row for Add to Order / Quantity Controls (if NOT admin view and item is available) */}
+          {item.availability && !isAdminView && (
+            <div className="w-full"> 
               {quantityInOrder === 0 ? (
                 <Button
                   variant="outline"
-                  className="w-full bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:text-green-800 font-semibold h-9 text-sm" // Matched size of qty controls
+                  className="w-full bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:text-green-800 font-semibold h-9 text-sm"
                   onClick={() => onAddToOrder(item)}
                 >
                   <PlusCircle className="mr-2 h-4 w-4" /> Add to Dish
                 </Button>
               ) : (
-                <div className="flex items-center justify-end gap-2"> {/* Ensure this takes remaining space or is aligned right */}
+                <div className="flex items-center justify-center gap-2"> 
                   <Button
                     variant="outline"
                     size="icon"
@@ -140,13 +142,13 @@ export function MenuItemCard({
               )}
             </div>
           )}
+          
+          {!item.availability && (
+              <Badge variant="outline" className="w-full justify-center py-1 text-sm border-yellow-500 text-yellow-700 bg-yellow-50">
+                  Currently Unavailable
+              </Badge>
+          )}
         </div>
-        
-        {!item.availability && (
-            <Badge variant="outline" className="w-full justify-center mt-2 py-1 text-sm border-yellow-500 text-yellow-700 bg-yellow-50">
-                Currently Unavailable
-            </Badge>
-        )}
       </CardContent>
     </Card>
   );
