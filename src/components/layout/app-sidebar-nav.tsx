@@ -43,10 +43,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuPortal,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem
 } from "@/components/ui/dropdown-menu";
@@ -68,8 +64,8 @@ const navItems = [
 
 export function AppSidebarNav() {
   const pathname = usePathname();
-  const { open, toggleSidebar, isMobile, state, openMobile } = useSidebar();
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { open, toggleSidebar, isMobile, state, openMobile, setOpenMobile } = useSidebar(); // Added setOpenMobile
+  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -98,24 +94,43 @@ export function AppSidebarNav() {
            {theme === "system" && <CheckIcon className="ml-auto h-4 w-4" />}
         </DropdownMenuRadioItem>
       </DropdownMenuRadioGroup>
-      {/* Add other settings items here if needed */}
     </DropdownMenuContent>
   );
 
   if (!mounted) {
-    // Prevent hydration mismatch for theme-dependent UI
+    // Render a minimal, static header during server-side rendering and initial client hydration
+    // to prevent mismatches.
     return (
         <>
         <SidebarHeader className="p-4 border-b border-sidebar-border">
-            <div className={cn("flex items-center justify-between", !open && isMobile ? "" : (open ? "" : "justify-center"))}>
-            {open && <Logo />}
+            <div className="flex items-center justify-start h-[28px]"> 
+              {/* Intentionally simple for initial render. Content determined by 'open' is deferred. */}
+              {isMobile && (
+                <Button variant="ghost" size="icon" onClick={() => setOpenMobile(!openMobile)} className={cn("ml-auto", openMobile ? "" : "absolute top-3 left-3 z-50")}>
+                    <PanelLeft />
+                </Button>
+              )}
             </div>
         </SidebarHeader>
         <SidebarContent className="flex-1 px-2 py-2">
-            {/* You can put skeleton loaders here if you prefer */}
+            {/* Skeleton loaders for menu items can go here if desired */}
+            {navItems.map((item) => (
+              <SidebarMenuItem key={item.href + "-skeleton"}>
+                <div className="flex items-center font-medium text-sm h-10 p-2">
+                  <item.icon className="h-5 w-5 text-sidebar-foreground/70 mr-2" />
+                   {/* No span for label in skeleton to match potential collapsed state */}
+                </div>
+              </SidebarMenuItem>
+            ))}
         </SidebarContent>
         <SidebarFooter className="p-3 mt-auto border-t border-sidebar-border space-y-2">
             {/* Footer skeleton or placeholder */}
+            <div className="flex items-center gap-3 p-1 h-[48px]">
+                <div className="h-9 w-9 rounded-full bg-muted"></div>
+                <div className="h-9 w-24 bg-muted rounded"></div>
+            </div>
+            <div className="h-9 w-full bg-muted rounded"></div>
+            <div className="h-9 w-full bg-muted rounded"></div>
         </SidebarFooter>
         </>
     );
@@ -125,7 +140,7 @@ export function AppSidebarNav() {
   return (
     <>
       <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className={cn("flex items-center justify-between", !open && isMobile ? "" : (open ? "" : "justify-center"))}>
+        <div className={cn("flex items-center", open ? "justify-between" : "justify-center")}>
           {open && <Logo />}
           {!open && !isMobile && ( 
             <Link href="/" className="text-primary">
