@@ -70,6 +70,9 @@ const gradientStyles = [
 
 const renderCustomLegend = (props: any) => {
   const { payload } = props;
+  if (!payload || !payload.length) {
+    return null;
+  }
   return (
     <ul className="flex flex-col space-y-3 text-sm ml-2 md:ml-6">
       {payload.map((entry: any, index: number) => (
