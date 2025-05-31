@@ -9,6 +9,7 @@ import { DollarSign, Users, ShoppingBag, Archive, Activity, AlertTriangle, Users
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import type { Order, InventoryItem, StaffMember, OrderStatus, OrderType, MenuItem } from '@/types';
 import { initialMenuItems } from '@/lib/menu-item-data';
+import { cn } from '@/lib/utils';
 // useToast is removed as we simplify the success message logic for now
 
 
@@ -66,6 +67,15 @@ interface ChartDataPoint {
   name: string;
   value: number;
 }
+
+// Helper array for gradients for StatsCards
+const gradientStyles = [
+  "bg-gradient-to-br from-purple-500 to-pink-500",
+  "bg-gradient-to-br from-blue-500 to-cyan-400",
+  "bg-gradient-to-br from-orange-400 to-red-500",
+  "bg-gradient-to-br from-green-400 to-lime-500",
+];
+
 
 function DashboardContent() {
   // Removed searchParams, router, toast as they are not used for success messages now
@@ -125,14 +135,21 @@ function DashboardContent() {
       <PageHeader title="Restaurant Dashboard" description="Comprehensive overview of your restaurant's operations and performance." />
       <div className="flex-1 p-4 md:p-6 space-y-6 overflow-auto">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatsCard title="Total Sales" value={`$${totalSales.toFixed(2)}`} icon={<DollarSign className="h-5 w-5 text-muted-foreground" />} />
-          <StatsCard title="Total Orders" value={totalOrders.toString()} icon={<ShoppingBag className="h-5 w-5 text-muted-foreground" />} />
-          <StatsCard title="Avg. Order Value" value={`$${averageOrderValue.toFixed(2)}`} icon={<Activity className="h-5 w-5 text-muted-foreground" />} />
-          <StatsCard title="Menu Items" value={menuItemCount.toString()} icon={<Utensils className="h-5 w-5 text-muted-foreground" />} />
-          <StatsCard title="Total Inventory" value={inventoryItemCount.toString()} icon={<Archive className="h-5 w-5 text-muted-foreground" />} />
-          <StatsCard title="Low Stock Alerts" value={lowStockCount.toString()} icon={<AlertTriangle className="h-5 w-5 text-destructive" />} badgeText={lowStockCount > 0 ? `${lowStockCount} items` : undefined} badgeVariant={lowStockCount > 0 ? "destructive" : undefined} />
-          <StatsCard title="Active Staff" value={activeStaffCount.toString()} icon={<UsersRound className="h-5 w-5 text-muted-foreground" />} />
-           <StatsCard title="New Customers" value={newCustomers.toString()} icon={<Users className="h-5 w-5 text-muted-foreground" />} />
+          <StatsCard title="Total Sales" value={`$${totalSales.toFixed(2)}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={gradientStyles[0]} />
+          <StatsCard title="Total Orders" value={totalOrders.toString()} icon={<ShoppingBag className="h-5 w-5 text-white/70" />} className={gradientStyles[1]} />
+          <StatsCard title="Avg. Order Value" value={`$${averageOrderValue.toFixed(2)}`} icon={<Activity className="h-5 w-5 text-white/70" />} className={gradientStyles[2]} />
+          <StatsCard title="Menu Items" value={menuItemCount.toString()} icon={<Utensils className="h-5 w-5 text-white/70" />} className={gradientStyles[3]} />
+          <StatsCard title="Total Inventory" value={inventoryItemCount.toString()} icon={<Archive className="h-5 w-5 text-white/70" />} className={gradientStyles[0]} />
+          <StatsCard 
+            title="Low Stock Alerts" 
+            value={lowStockCount.toString()} 
+            icon={<AlertTriangle className="h-5 w-5 text-white" />} 
+            badgeText={lowStockCount > 0 ? `${lowStockCount} items` : undefined} 
+            badgeVariant={lowStockCount > 0 ? "destructive" : undefined} 
+            className={gradientStyles[2]}
+          />
+          <StatsCard title="Active Staff" value={activeStaffCount.toString()} icon={<UsersRound className="h-5 w-5 text-white/70" />} className={gradientStyles[1]} />
+           <StatsCard title="New Customers" value={newCustomers.toString()} icon={<Users className="h-5 w-5 text-white/70" />} className={gradientStyles[3]} />
         </div>
 
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
@@ -259,19 +276,22 @@ interface StatsCardProps {
   icon: React.ReactNode;
   badgeText?: string;
   badgeVariant?: "default" | "secondary" | "destructive" | "outline" | null | undefined;
+  className?: string; // To pass gradient and other classes
 }
 
-function StatsCard({ title, value, icon, badgeText, badgeVariant }: StatsCardProps) {
+function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: StatsCardProps) {
   return (
-    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+    <Card className={cn("shadow-lg hover:shadow-xl transition-shadow duration-300 text-white", className)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium text-white/80">{title}</CardTitle>
         {icon}
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-foreground">{value}</div>
-        {badgeText && <p className={`text-xs ${badgeVariant === 'destructive' ? 'text-destructive' : 'text-muted-foreground'} pt-1`}>{badgeText}</p>}
+        <div className="text-2xl font-bold text-white">{value}</div>
+        {badgeText && <p className={`text-xs ${badgeVariant === 'destructive' ? 'text-white font-semibold' : 'text-white/80'} pt-1`}>{badgeText}</p>}
       </CardContent>
     </Card>
   );
 }
+
+    
