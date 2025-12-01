@@ -112,19 +112,10 @@ export const getOrders = async (): Promise<Order[]> => {
 
         const items: OrderItem[] = parseProducts(productsString || '');
         
-        let orderDate = new Date(); // Default to now if date is invalid
-        if (date) {
-            // Assuming date format from sheet is DD-MM-YYYY
-            const parts = date.split('-');
-            if (parts.length === 3) {
-                // Year, Month (0-indexed), Day
-                orderDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
-            } else {
-                // Fallback for other potential formats, though may be less reliable
-                orderDate = new Date(date);
-            }
-        }
-
+        // Correctly parse the date from the sheet. new Date() is robust enough for "1 dec 2025"
+        // but we default to now() if the date is missing or invalid.
+        const orderDate = date ? new Date(date) : new Date();
+        
         // This structure is closer to a Customer/Order hybrid.
         // We'll map it to the Order type for now.
         return {

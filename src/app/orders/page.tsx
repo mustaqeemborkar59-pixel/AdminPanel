@@ -187,7 +187,9 @@ export default function OrdersPage() {
 
         doc.setFont('helvetica', 'normal');
         doc.text(order.id, 14, 40);
-        doc.text(new Date(order.timestamp).toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase(), 50, 40);
+        // Corrected Date formatting for PDF
+        const formattedDate = new Date(order.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+        doc.text(formattedDate, 50, 40);
         doc.text((order.paymentMethod || 'N/A').toUpperCase(), 86, 40);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(145, 63, 42); // Primary color
