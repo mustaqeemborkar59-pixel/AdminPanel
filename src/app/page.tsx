@@ -85,7 +85,7 @@ function DashboardContent() {
   const [totalSales, setTotalSales] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
   const [activeStaffCount, setActiveStaffCount] = useState(0);
-  const newCustomers = 45; // Placeholder data
+  const [newCustomers, setNewCustomers] = useState(0);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -113,12 +113,16 @@ function DashboardContent() {
 
       const currentTotalSales = validOrdersForRevenue.reduce((sum, order) => sum + order.totalAmount, 0);
       const currentTotalOrders = orders.length;
+      
+      const uniqueEmails = new Set(orders.map(order => order.gmail).filter(Boolean));
+      setNewCustomers(uniqueEmails.size);
 
       setTotalSales(currentTotalSales);
       setTotalOrders(currentTotalOrders);
     } else {
       setTotalSales(0);
       setTotalOrders(0);
+      setNewCustomers(0);
     }
 
     // Static data remains for now
@@ -145,7 +149,7 @@ function DashboardContent() {
           <StatsCard title="Total Revenue" value={`₹${totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={gradientStyles[0]} />
           <StatsCard title="Total Orders" value={totalOrders.toString()} icon={<ShoppingBag className="h-5 w-5 text-white/70" />} className={gradientStyles[1]} />
           <StatsCard title="Active Staff" value={activeStaffCount.toString()} icon={<UsersRound className="h-5 w-5 text-white/70" />} className={gradientStyles[1]} />
-           <StatsCard title="New Customers" value={newCustomers.toString()} icon={<Users className="h-5 w-5 text-white/70" />} className={gradientStyles[3]} />
+           <StatsCard title="New Customers" value={newCustomers.toLocaleString()} icon={<Users className="h-5 w-5 text-white/70" />} className={gradientStyles[3]} />
         </div>
 
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
@@ -265,5 +269,3 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
-
-    

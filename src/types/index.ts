@@ -28,6 +28,7 @@ export type OrderType = 'delivery' | 'takeaway' | 'dine-in';
 export interface Order {
   id: string;
   customerName?: string;
+  gmail?: string;
   items: OrderItem[];
   status: OrderStatus;
   orderType: OrderType;

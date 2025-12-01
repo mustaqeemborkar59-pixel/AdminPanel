@@ -117,6 +117,7 @@ export const getOrders = async (): Promise<Order[]> => {
         return {
           id: id,
           customerName: customerName || '',
+          gmail: gmail || '',
           items: items,
           status: (status as OrderStatus) || 'pending',
           orderType: 'delivery', // Assuming all are delivery
@@ -162,7 +163,7 @@ export const updateOrderStatus = async (orderId: string, status: OrderStatus): P
     // Fetch all of column A, including the header, to get a reliable index.
     const findResponse = await sheetsClient.spreadsheets.values.get({
       spreadsheetId,
-      range: `${sheetName}!A:A`, // Search in the ID column (from the first row)
+      range: `${sheetName}!A1:A`, // Search in the ID column (from the first row)
     });
 
     const rows = findResponse.data.values;
