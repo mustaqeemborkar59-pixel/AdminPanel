@@ -14,6 +14,7 @@ import {
   PanelLeft,
   Truck,
   LogOut,
+  Sparkles,
 } from 'lucide-react';
 import {
   SidebarHeader,
@@ -35,11 +36,11 @@ import { useToast } from '@/hooks/use-toast'; // For potential error messages
 
 const mainNavItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/products', label: 'Products', icon: Package },
   { href: '/orders', label: 'Orders', icon: ClipboardList },
-  { href: '/delivery', label: 'Delivery', icon: Truck },
-  { href: '/inventory', label: 'Inventory', icon: Archive },
   { href: '/customers', label: 'Customers', icon: Users },
+  { href: '/inventory', label: 'Inventory', icon: Archive },
+  { href: '/delivery', label: 'Delivery', icon: Truck },
+  { href: '/specials', label: 'Specials', icon: Sparkles },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 

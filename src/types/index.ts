@@ -17,10 +17,11 @@ export interface OrderItem {
   name: string;
   qty: number;
   price: number; // Price at the time of adding to cart (could be discounted)
-  imageUrl?: string; // For display in cart
+  imageUrl?: string; // For display in cart;
+  imageHint?: string;
 }
 
-export type OrderStatus = 'placed' | 'preparing' | 'ready' | 'delivered' | 'cancelled' | 'pending'; // 'preparing'/'ready' can mean 'processing'/'shipped'
+export type OrderStatus = 'placed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
 export type OrderType = 'dine-in' | 'takeaway' | 'delivery'; // These can be repurposed e.g., 'delivery' vs 'pickup'
 
 export interface Order {
@@ -32,10 +33,6 @@ export interface Order {
   tableNumber?: string; // No longer relevant
   deliveryAddress?: string; // For delivery
   totalAmount: number;
-  subTotal: number;
-  taxAmount: number;
-  discountAmount?: number; // Total discount applied to the order
-  paymentMethod?: 'cash' | 'card' | 'qr';
   timestamp: string; // ISO string
 }
 
@@ -70,4 +67,21 @@ export interface TableReservation {
   date: string; // YYYY-MM-DD
   time: string; // HH:MM
   guests: number;
+}
+
+export interface Customer {
+  id: string;
+  status: 'pending' | 'shipped' | 'delivered' | 'cancelled';
+  name: string;
+  phone: string;
+  altPhone?: string;
+  billingAddress: string;
+  pincode: string;
+  gmail: string;
+  products: { name: string; qty: number }[];
+  total: number;
+  date: string;
+  paymentDate: string;
+  trackingId?: string;
+  vendorName?: string;
 }
