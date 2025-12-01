@@ -67,9 +67,8 @@ export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemPro
                         <p className="text-xs text-muted-foreground font-body mb-1">Status</p>
                          <Select value={order.status} onValueChange={(value) => onUpdateStatus(order.id, value as OrderStatus)}>
                             <SelectTrigger className={cn(
-                                "w-full sm:w-[140px] font-body text-xs h-9 capitalize",
-                                `border-0 bg-opacity-10 dark:bg-opacity-20`,
-                                `${currentStatusInfo.color.replace('bg-','bg-/')} ${currentStatusInfo.color.replace('bg-','text-').replace('-500','-700 dark:text-white').replace('-600','-800 dark:text-white')}`
+                                "w-full sm:w-[140px] font-body text-xs h-9 capitalize border-0 text-white font-semibold",
+                                currentStatusInfo.color
                             )}>
                                 <div className="flex items-center gap-1.5">
                                     <StatusIcon className="h-3 w-3" />
