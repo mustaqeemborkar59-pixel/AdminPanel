@@ -6,6 +6,7 @@ import { type Order, type OrderStatus } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { CheckCircle, Clock, Package, Truck, XCircle, PackageSearch, ChevronDown, Archive, Loader, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -29,6 +30,8 @@ interface OrderListItemProps {
   order: Order;
   onUpdateStatus: (orderId: string, status: OrderStatus) => void;
   value: string; // For AccordionItem
+  isSelected: boolean;
+  onToggleSelect: (orderId: string) => void;
 }
 
 const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; label: string }> = {
@@ -43,7 +46,7 @@ const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; 
 };
 
 
-export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemProps) {
+export function OrderListItem({ order, onUpdateStatus, value, isSelected, onToggleSelect }: OrderListItemProps) {
   const invoiceRef = useRef(null);
   const handlePrint = useReactToPrint({
     content: () => invoiceRef.current,
@@ -59,11 +62,18 @@ export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemPro
             <CardHeader className="p-4">
                 <div className="flex justify-between items-start flex-col sm:flex-row gap-4">
                 
-                <div className="flex-grow">
-                    <CardTitle className="font-headline text-lg">{order.id}</CardTitle>
-                    <CardDescription className="font-body text-sm mt-1">
-                    {order.customerName || 'N/A'} - <span className="text-xs">{format(new Date(order.timestamp), 'PPpp')}</span>
-                    </CardDescription>
+                <div className="flex items-center flex-grow gap-4">
+                    <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => onToggleSelect(order.id)}
+                        aria-label={`Select order ${order.id}`}
+                    />
+                    <div className="flex-grow">
+                        <CardTitle className="font-headline text-lg">{order.id}</CardTitle>
+                        <CardDescription className="font-body text-sm mt-1">
+                        {order.customerName || 'N/A'} - <span className="text-xs">{format(new Date(order.timestamp), 'PPpp')}</span>
+                        </CardDescription>
+                    </div>
                 </div>
                 
                 <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
