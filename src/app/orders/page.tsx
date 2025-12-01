@@ -13,7 +13,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Accordion } from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
 
-const orderStatuses: OrderStatus[] = ['pending', 'queue', 'dispatch', 'completed', 'hold', 'failed', 'cancelled'];
+const orderStatuses: OrderStatus[] = ['pending', 'queue', 'processing', 'dispatch', 'completed', 'hold', 'failed', 'cancelled'];
 const ITEMS_PER_PAGE = 5;
 
 export default function OrdersPage() {
@@ -112,7 +112,7 @@ export default function OrdersPage() {
           />
         </div>
         <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as OrderStatus | 'all')}>
-          <TabsList className="grid w-full grid-cols-4 md:grid-cols-8">
+          <TabsList className="grid w-full grid-cols-4 md:grid-cols-9">
             <TabsTrigger value="all" className="font-body">All</TabsTrigger>
             {orderStatuses.map(status => (
               <TabsTrigger key={status} value={status} className="font-body capitalize">{status}</TabsTrigger>

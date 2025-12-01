@@ -4,7 +4,7 @@ import { type Order, type OrderStatus } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { CheckCircle, Clock, Package, Truck, XCircle, PackageSearch, ChevronDown, Archive } from 'lucide-react';
+import { CheckCircle, Clock, Package, Truck, XCircle, PackageSearch, ChevronDown, Archive, Loader } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import {
   Select,
@@ -33,6 +33,7 @@ const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; 
   failed: { icon: XCircle, color: 'bg-red-500', label: 'Failed' },
   cancelled: { icon: XCircle, color: 'bg-red-600', label: 'Cancelled' },
   queue: { icon: Clock, color: 'bg-blue-500', label: 'In Queue' },
+  processing: { icon: Loader, color: 'bg-purple-500', label: 'Processing' },
   completed: { icon: CheckCircle, color: 'bg-green-500', label: 'Completed' },
   hold: { icon: Archive, color: 'bg-orange-500', label: 'On Hold' },
   dispatch: { icon: Truck, color: 'bg-indigo-500', label: 'Dispatched' },
