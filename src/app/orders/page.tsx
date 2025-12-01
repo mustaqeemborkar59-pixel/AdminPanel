@@ -40,7 +40,7 @@ function formatDateInIST(dateInput: string | Date): string {
   const date = new Date(dateInput);
   const options: Intl.DateTimeFormatOptions = {
     year: 'numeric',
-    month: '2-digit',
+    month: 'short',
     day: '2-digit',
     timeZone: 'Asia/Kolkata'
   };
@@ -191,7 +191,7 @@ export default function OrdersPage() {
         doc.setFont('helvetica', 'normal');
         doc.text(order.id, 14, 40);
         // Corrected Date formatting for PDF
-        const formattedDate = new Date(order.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+        const formattedDate = formatDateInIST(order.timestamp).toUpperCase();
         doc.text(formattedDate, 50, 40);
         doc.text((order.paymentMethod || 'N/A').toUpperCase(), 86, 40);
         doc.setFont('helvetica', 'bold');
