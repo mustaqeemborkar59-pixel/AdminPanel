@@ -39,43 +39,32 @@ export default function OrdersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
-  const [ordersToPrint, setOrdersToPrint] = useState<Order[]>([]);
+
   const printComponentRef = useRef<HTMLDivElement>(null);
-  
-  // Ref for single invoice printing
   const singleInvoiceRef = useRef<HTMLDivElement>(null);
   const [singleOrderToPrint, setSingleOrderToPrint] = useState<Order | null>(null);
 
-
   const handlePrint = useReactToPrint({
     content: () => printComponentRef.current,
-    documentTitle: 'invoices',
-  });
-  
-  const handlePrintSingle = useReactToPrint({
-    content: () => singleInvoiceRef.current,
-    documentTitle: `invoice-${singleOrderToPrint?.id || 'order'}`,
   });
 
-  const triggerPrint = (orders: Order[]) => {
-    setOrdersToPrint(orders);
-    // Use a short timeout to allow the state to update and the component to re-render
-    setTimeout(() => {
-      handlePrint();
-    }, 100);
-  };
+  const handlePrintSingle = useReactToPrint({
+    content: () => singleInvoiceRef.current,
+  });
+
+  useEffect(() => {
+    if (singleOrderToPrint) {
+      handlePrintSingle();
+    }
+  }, [singleOrderToPrint, handlePrintSingle]);
   
-  const triggerPrintSeparate = (orders: Order[]) => {
-    orders.forEach((order, index) => {
+  const triggerPrintSeparate = (ordersToPrint: Order[]) => {
+    ordersToPrint.forEach((order, index) => {
       setTimeout(() => {
         setSingleOrderToPrint(order);
-        setTimeout(() => {
-          handlePrintSingle();
-        }, 50);
-      }, index * 500); // Stagger print dialogs
+      }, index * 200); // Stagger print dialogs to avoid browser blocking
     });
   };
-  
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -194,11 +183,13 @@ export default function OrdersPage() {
     if (type === 'selected-separate') {
       triggerPrintSeparate(ordersToExport);
     } else {
-      triggerPrint(ordersToExport);
+      // For combined print, we use the main print handler
+      handlePrint();
     }
   };
 
-  
+  const selectedOrdersToPrint = orders.filter(o => selectedOrderIds.has(o.id));
+
   return (
     <div className="flex flex-col h-full">
       <PageHeader
@@ -243,7 +234,7 @@ export default function OrdersPage() {
                 Export
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-60">
+            <DropdownMenuContent className="w-64">
               <DropdownMenuLabel>Export Options</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => handleExport('selected-combined')} disabled={selectedOrderIds.size === 0}>
@@ -325,9 +316,9 @@ export default function OrdersPage() {
         </div>
       )}
       <div className="hidden">
-        {/* For combined PDF */}
-        <OrderInvoicesForPrint ref={printComponentRef} orders={ordersToPrint} />
-        {/* For single PDF printing */}
+        {/* Component for combined printing of selected or filtered orders */}
+        <OrderInvoicesForPrint ref={printComponentRef} orders={selectedOrderIds.size > 0 ? selectedOrdersToPrint : filteredOrders} />
+        {/* Component for single invoice printing */}
         {singleOrderToPrint && <OrderInvoice ref={singleInvoiceRef} order={singleOrderToPrint} />}
       </div>
     </div>
