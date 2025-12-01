@@ -43,7 +43,6 @@ export default function OrdersPage() {
   const printComponentRef = useRef(null);
 
   const handlePrint = useReactToPrint({
-    content: () => printComponentRef.current,
     documentTitle: 'invoices',
   });
 
@@ -51,7 +50,7 @@ export default function OrdersPage() {
     setOrdersToPrint(orders);
     // Use a short timeout to allow the state to update and the component to re-render
     setTimeout(() => {
-      handlePrint();
+      handlePrint(null, () => printComponentRef.current);
     }, 100);
   };
   
@@ -259,7 +258,7 @@ export default function OrdersPage() {
           </>
         ) : (
           <div className="text-center py-12">
-            <p className="text-muted-foreground font-body">No orders found matching your criteria.</p>
+            <p className="font-body text-muted-foreground">No orders found matching your criteria.</p>
           </div>
         )}
       </div>
