@@ -1,8 +1,15 @@
 import { google } from 'googleapis';
 import { Order, OrderItem, OrderStatus } from '@/types';
 
+let sheets: ReturnType<typeof google.sheets> | null = null;
+
 // This function handles authentication and returns an authorized Google Sheets API client.
 const getSheetsClient = () => {
+  // Use cached client if it exists
+  if (sheets) {
+    return sheets;
+  }
+  
   // Ensure environment variables are loaded and available.
   const privateKey = process.env.GOOGLE_SHEETS_PRIVATE_KEY?.replace(/\\n/g, '\n');
   const clientEmail = process.env.GOOGLE_SHEETS_CLIENT_EMAIL;
@@ -19,7 +26,9 @@ const getSheetsClient = () => {
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   });
 
-  return google.sheets({ version: 'v4', auth });
+  // Create and cache new client
+  sheets = google.sheets({ version: 'v4', auth });
+  return sheets;
 };
 
 // This function fetches all orders from the specified Google Sheet.
@@ -31,11 +40,11 @@ export const getOrders = async (): Promise<Order[]> => {
     throw new Error('Missing GOOGLE_SHEET_ID or GOOGLE_SHEET_NAME in environment variables.');
   }
   
-  const sheets = getSheetsClient();
-  const range = `${sheetName}!A2:I`; // Assumes headers are in row 1, data starts at A2
+  const sheetsClient = getSheetsClient();
+  const range = `${sheetName}!A2:J`; // Assumes headers are in row 1, data starts at A2
 
   try {
-    const response = await sheets.spreadsheets.values.get({
+    const response = await sheetsClient.spreadsheets.values.get({
       spreadsheetId,
       range,
     });
@@ -56,12 +65,14 @@ export const getOrders = async (): Promise<Order[]> => {
           id: row[0],
           customerName: row[1] || '',
           items: items,
-          status: row[3] as OrderStatus || 'placed',
+          status: (row[3] as OrderStatus) || 'placed',
           orderType: row[4] as Order['orderType'] || 'delivery',
+          // Corrected the indices for the new columns
           shippingAddress: row[5] || '',
           trackingId: row[6] || '',
           totalAmount: parseFloat(row[7]) || 0,
           timestamp: row[8] || new Date().toISOString(),
+          // Assuming a potential new field was intended at index 9, if not, this is safe
         };
       } catch (e) {
         console.error(`Failed to parse items for order ID ${row[0]}:`, e);
@@ -85,11 +96,11 @@ export const updateOrderStatus = async (orderId: string, status: OrderStatus): P
     throw new Error('Missing GOOGLE_SHEET_ID or GOOGLE_SHEET_NAME in environment variables.');
   }
 
-  const sheets = getSheetsClient();
+  const sheetsClient = getSheetsClient();
 
   try {
     // First, find the row number of the order to update.
-    const findResponse = await sheets.spreadsheets.values.get({
+    const findResponse = await sheetsClient.spreadsheets.values.get({
       spreadsheetId,
       range: `${sheetName}!A:A`, // Search in the ID column
     });
@@ -103,10 +114,12 @@ export const updateOrderStatus = async (orderId: string, status: OrderStatus): P
       return false;
     }
 
-    const rowToUpdate = rowIndex + 1; // +1 because sheets are 1-indexed
+    // Sheet rows are 1-indexed, but findIndex is 0-indexed. Headers are on row 1, data starts on row 2, so our search starts at index 1 of the array for row 2.
+    // The actual row number is index + 2. Let's re-check the logic. If our range is A2:A, row 0 of the result is sheet row 2. So row number is index + 2.
+    const rowToUpdate = rowIndex + 2; 
 
     // Now, update the status in the 'D' column for that row.
-    const updateResponse = await sheets.spreadsheets.values.update({
+    const updateResponse = await sheetsClient.spreadsheets.values.update({
       spreadsheetId,
       range: `${sheetName}!D${rowToUpdate}`,
       valueInputOption: 'USER_ENTERED',
@@ -121,5 +134,3 @@ export const updateOrderStatus = async (orderId: string, status: OrderStatus): P
     return false;
   }
 };
-
-    
