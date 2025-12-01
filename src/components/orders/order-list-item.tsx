@@ -1,13 +1,12 @@
 
 "use client";
-import React, { useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
+import React from 'react';
 import { type Order, type OrderStatus } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CheckCircle, Clock, Package, Truck, XCircle, PackageSearch, ChevronDown, Archive, Loader, Download } from 'lucide-react';
+import { CheckCircle, Clock, Package, Truck, XCircle, PackageSearch, ChevronDown, Archive, Loader } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Select,
@@ -24,7 +23,6 @@ import {
 } from "@/components/ui/accordion"
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import { OrderInvoice } from './order-invoice';
 
 interface OrderListItemProps {
   order: Order;
@@ -47,7 +45,6 @@ const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; 
 
 
 export function OrderListItem({ order, onUpdateStatus, value, isSelected, onToggleSelect }: OrderListItemProps) {
-  const invoiceRef = useRef(null);
   
   const currentStatusInfo = statusInfo[order.status] || statusInfo.pending;
   const StatusIcon = currentStatusInfo.icon;
@@ -148,10 +145,6 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                 </CardContent>
             </AccordionContent>
         </Card>
-        {/* The invoice component is hidden and only used for printing */}
-        <div className="hidden">
-            <OrderInvoice ref={invoiceRef} order={order} />
-        </div>
     </AccordionItem>
   );
 }

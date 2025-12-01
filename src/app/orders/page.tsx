@@ -1,6 +1,6 @@
 
 "use client";
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { type Order, type OrderStatus } from '@/types';
 import { OrderListItem } from '@/components/orders/order-list-item';
@@ -13,18 +13,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal
 } from "@/components/ui/dropdown-menu";
 import { getOrdersFromSheet, updateOrderStatusInSheet } from './actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Search, ListFilter, Download } from 'lucide-react';
+import { Loader2, Search, ListFilter, Download, FileDown, FileText, FileSpreadsheet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Accordion } from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
-import { useReactToPrint } from 'react-to-print';
-import { OrderInvoicesForPrint } from '@/components/orders/order-invoices-for-print';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+import { format } from 'date-fns';
 
 
 const orderStatuses: OrderStatus[] = ['pending', 'queue', 'processing', 'dispatch', 'completed', 'hold', 'failed', 'cancelled'];
@@ -38,20 +44,6 @@ export default function OrdersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
-
-  const printComponentRef = useRef<HTMLDivElement>(null);
-  const [ordersForCombinedPrint, setOrdersForCombinedPrint] = useState<Order[]>([]);
-  const [isPrinting, setIsPrinting] = useState(false);
-
-  const handleAfterPrint = () => {
-    setIsPrinting(false);
-    setOrdersForCombinedPrint([]);
-  };
-
-  const handlePrint = useReactToPrint({
-    content: () => printComponentRef.current,
-    onAfterPrint: handleAfterPrint,
-  });
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -74,12 +66,6 @@ export default function OrdersPage() {
   useEffect(() => {
     setCurrentPage(1);
   }, [statusFilter, searchTerm]);
-
-  useEffect(() => {
-    if (isPrinting && ordersForCombinedPrint.length > 0) {
-      handlePrint();
-    }
-  }, [isPrinting, ordersForCombinedPrint, handlePrint]);
 
 
   const handleUpdateOrderStatus = async (orderId: string, status: OrderStatus) => {
@@ -158,34 +144,113 @@ export default function OrdersPage() {
     }
   };
   
-  const handleExport = (type: 'selected-combined' | 'selected-separate' | 'all-filtered') => {
-    let ordersToExport: Order[] = [];
-    if(type === 'selected-combined' || type === 'selected-separate') {
-        const selectedOrdersToPrint = getUniqueOrders(orders.filter(o => selectedOrderIds.has(o.id)));
-        if (selectedOrdersToPrint.length === 0) {
-            toast({
-                variant: 'destructive',
-                title: 'No Orders Selected',
-                description: 'Please select at least one order to export.',
-            });
-            return;
-        }
-        ordersToExport = selectedOrdersToPrint;
-    } else { 
-        if (filteredOrders.length === 0) {
-            toast({
-                variant: 'destructive',
-                title: 'No Orders Found',
-                description: 'There are no orders matching the current filters to export.',
-            });
-            return;
-        }
-        ordersToExport = filteredOrders;
-    }
+  const generatePdf = (ordersToExport: Order[]) => {
+    const doc = new jsPDF();
     
-    setOrdersForCombinedPrint(ordersToExport);
-    setIsPrinting(true);
+    ordersToExport.forEach((order, index) => {
+      if (index > 0) {
+        doc.addPage();
+      }
+
+      doc.setFontSize(20);
+      doc.text('Invoice', 14, 22);
+      doc.setFontSize(10);
+      doc.text(`Order ID: ${order.id}`, 14, 30);
+      doc.text(`Date: ${format(new Date(order.timestamp), 'PPpp')}`, 14, 35);
+      
+      doc.text(`Bill To: ${order.customerName || 'N/A'}`, 14, 45);
+      if(order.shippingAddress) doc.text(order.shippingAddress, 14, 50);
+
+      const tableColumn = ["Item Name", "Quantity", "Unit Price", "Total"];
+      const tableRows: (string | number)[][] = [];
+
+      order.items.forEach(item => {
+        const itemData = [
+          item.name,
+          item.qty,
+          `₹${item.price.toFixed(2)}`,
+          `₹${(item.price * item.qty).toFixed(2)}`
+        ];
+        tableRows.push(itemData);
+      });
+
+      (doc as any).autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        startY: 60,
+      });
+
+      const finalY = (doc as any).lastAutoTable.finalY;
+      doc.setFontSize(12);
+      doc.text(`Subtotal: ₹${order.subTotal.toFixed(2)}`, 14, finalY + 10);
+      doc.text(`Tax: ₹${order.taxAmount.toFixed(2)}`, 14, finalY + 17);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Total: ₹${order.totalAmount.toFixed(2)}`, 14, finalY + 25);
+    });
+
+    doc.save(`invoices-${new Date().toISOString().split('T')[0]}.pdf`);
   };
+
+  const generateExcel = (ordersToExport: Order[]) => {
+    const worksheetData = ordersToExport.flatMap(order => 
+      order.items.map(item => ({
+        "Order ID": order.id,
+        "Order Status": order.status,
+        "Customer Name": order.customerName,
+        "Customer Email": order.gmail,
+        "Order Date": format(new Date(order.timestamp), 'yyyy-MM-dd'),
+        "Product Name": item.name,
+        "Quantity": item.qty,
+        "Unit Price": item.price,
+        "Line Total": item.qty * item.price,
+        "Order Subtotal": order.subTotal,
+        "Order Tax": order.taxAmount,
+        "Order Total": order.totalAmount,
+        "Shipping Address": order.shippingAddress,
+        "Tracking ID": order.trackingId,
+        "Payment Method": order.paymentMethod,
+      }))
+    );
+
+    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
+    XLSX.writeFile(workbook, `orders-${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+  
+  const handleExport = (format: 'pdf' | 'excel', scope: 'selected' | 'all') => {
+    let ordersToExport: Order[] = [];
+
+    if (scope === 'selected') {
+      if (selectedOrderIds.size === 0) {
+        toast({
+          variant: 'destructive',
+          title: 'No Orders Selected',
+          description: 'Please select at least one order to export.',
+        });
+        return;
+      }
+      ordersToExport = getUniqueOrders(orders.filter(o => selectedOrderIds.has(o.id)));
+    } else { // 'all'
+      if (filteredOrders.length === 0) {
+        toast({
+          variant: 'destructive',
+          title: 'No Orders Found',
+          description: 'There are no orders matching the current filters to export.',
+        });
+        return;
+      }
+      ordersToExport = filteredOrders;
+    }
+
+    if (format === 'pdf') {
+      generatePdf(ordersToExport);
+    } else { // 'excel'
+      generateExcel(ordersToExport);
+    }
+  };
+
 
   return (
     <div className="flex flex-col h-full">
@@ -234,15 +299,43 @@ export default function OrdersPage() {
             <DropdownMenuContent className="w-64">
               <DropdownMenuLabel>Export Options</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleExport('selected-combined')} disabled={selectedOrderIds.size === 0}>
-                Export Selected (All in one PDF)
-              </DropdownMenuItem>
-               <DropdownMenuItem onClick={() => handleExport('selected-separate')} disabled={selectedOrderIds.size === 0}>
-                Export Selected (Separate PDFs)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('all-filtered')}>
-                Export All Filtered to PDF
-              </DropdownMenuItem>
+               <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <FileDown className="mr-2 h-4 w-4" />
+                  <span>Export Selected</span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={() => handleExport('pdf', 'selected')} disabled={selectedOrderIds.size === 0}>
+                      <FileText className="mr-2 h-4 w-4"/>
+                      <span>As PDF</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('excel', 'selected')} disabled={selectedOrderIds.size === 0}>
+                      <FileSpreadsheet className="mr-2 h-4 w-4"/>
+                      <span>As Excel</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuPortal>
+              </DropdownMenuSub>
+
+               <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <FileDown className="mr-2 h-4 w-4" />
+                  <span>Export All Filtered</span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={() => handleExport('pdf', 'all')}>
+                      <FileText className="mr-2 h-4 w-4"/>
+                      <span>As PDF</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('excel', 'all')}>
+                      <FileSpreadsheet className="mr-2 h-4 w-4"/>
+                      <span>As Excel</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuPortal>
+              </DropdownMenuSub>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -312,9 +405,6 @@ export default function OrdersPage() {
           </div>
         </div>
       )}
-      <div className="hidden">
-        <OrderInvoicesForPrint ref={printComponentRef} orders={ordersForCombinedPrint} />
-      </div>
     </div>
   );
 }

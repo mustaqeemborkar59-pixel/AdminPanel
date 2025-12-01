@@ -91,3 +91,14 @@ export interface Customer {
   trackingId?: string;
   vendorName?: string;
 }
+
+// This interface is used by the jspdf-autotable library.
+// We declare it here to satisfy TypeScript.
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+    lastAutoTable: {
+        finalY: number;
+    };
+  }
+}

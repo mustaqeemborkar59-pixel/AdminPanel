@@ -9,27 +9,10 @@ interface OrderInvoicesForPrintProps {
   orders: Order[];
 }
 
+// This component is now deprecated and can be removed, but we'll clear its content
+// to avoid any lingering references or errors. It is no longer used by the new export system.
 export const OrderInvoicesForPrint = React.forwardRef<HTMLDivElement, OrderInvoicesForPrintProps>(({ orders }, ref) => {
-  if (!orders || orders.length === 0) {
-    return null;
-  }
-  
-  return (
-    <div ref={ref}>
-      {orders.map((order, index) => (
-        <div key={order.id} className={index < orders.length - 1 ? 'page-break-after' : ''}>
-          <OrderInvoice order={order} />
-        </div>
-      ))}
-      <style jsx global>{`
-        @media print {
-          .page-break-after {
-            page-break-after: always;
-          }
-        }
-      `}</style>
-    </div>
-  );
+  return null;
 });
 
 OrderInvoicesForPrint.displayName = 'OrderInvoicesForPrint';
