@@ -23,7 +23,7 @@ export interface OrderItem {
 }
 
 export type OrderStatus = 'placed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-export type OrderType = 'delivery'; // Simplified for e-commerce
+export type OrderType = 'delivery' | 'takeaway' | 'dine-in';
 
 export interface Order {
   id: string;
@@ -34,7 +34,11 @@ export interface Order {
   shippingAddress?: string; // For delivery
   trackingId?: string; // For shipped orders
   totalAmount: number;
+  subTotal: number;
+  taxAmount: number;
   timestamp: string; // ISO string
+  paymentMethod?: 'cash' | 'card' | 'qr';
+  tableNumber?: string;
 }
 
 export interface InventoryItem {
