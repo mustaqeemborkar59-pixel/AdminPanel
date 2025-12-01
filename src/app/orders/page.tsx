@@ -41,9 +41,16 @@ export default function OrdersPage() {
 
   const printComponentRef = useRef<HTMLDivElement>(null);
   const [ordersForCombinedPrint, setOrdersForCombinedPrint] = useState<Order[]>([]);
-  
+  const [isPrinting, setIsPrinting] = useState(false);
+
+  const handleAfterPrint = () => {
+    setIsPrinting(false);
+    setOrdersForCombinedPrint([]);
+  };
+
   const handlePrint = useReactToPrint({
     content: () => printComponentRef.current,
+    onAfterPrint: handleAfterPrint,
   });
 
   useEffect(() => {
@@ -68,14 +75,12 @@ export default function OrdersPage() {
     setCurrentPage(1);
   }, [statusFilter, searchTerm]);
 
-  // This effect will run after the state is updated and the component re-renders
+  // This effect now ONLY triggers the print job when isPrinting is true
   useEffect(() => {
-    if (ordersForCombinedPrint.length > 0) {
+    if (isPrinting && ordersForCombinedPrint.length > 0) {
       handlePrint();
-      // Reset after printing
-      setOrdersForCombinedPrint([]);
     }
-  }, [ordersForCombinedPrint, handlePrint]);
+  }, [isPrinting, ordersForCombinedPrint, handlePrint]);
 
 
   const handleUpdateOrderStatus = async (orderId: string, status: OrderStatus) => {
@@ -178,15 +183,20 @@ export default function OrdersPage() {
         }
         ordersToExport = filteredOrders;
     }
+    
+    // Set the state which will trigger the useEffect for printing
+    setOrdersForCombinedPrint(ordersToExport);
 
     if (type === 'selected-separate') {
       // For separate PDFs, trigger print for each one by one.
       ordersToExport.forEach((order) => {
         setOrdersForCombinedPrint([order]);
+        setIsPrinting(true); // Trigger print for each
       });
     } else {
-       // For combined PDFs, set all at once.
+       // For combined PDFs, set all at once and trigger print.
       setOrdersForCombinedPrint(ordersToExport);
+      setIsPrinting(true);
     }
   };
 
@@ -315,7 +325,7 @@ export default function OrdersPage() {
           </div>
         </div>
       )}
-      <div style={{ display: 'none' }}>
+      <div className="hidden">
         <OrderInvoicesForPrint ref={printComponentRef} orders={ordersForCombinedPrint} />
       </div>
     </div>
