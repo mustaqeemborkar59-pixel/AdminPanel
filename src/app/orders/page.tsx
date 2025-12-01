@@ -1,49 +1,80 @@
-
 "use client";
-import { useState, type ReactNode, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
-import { Button } from '@/components/ui/button';
-import { PlusCircle, ListFilter } from 'lucide-react';
-import { type Order, type OrderStatus, type OrderType } from '@/types';
-// CreateOrderDialog and MenuItem are removed as Menu page is deleted
+import { type Order, type OrderStatus } from '@/types';
 import { OrderListItem } from '@/components/orders/order-list-item';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const initialOrders: Order[] = [
-  { id: 'ORD001', customerName: 'Alice Smith', items: [{ itemId: '1', name: 'Margherita Pizza', qty: 1, price: 12.99 }], status: 'preparing', orderType: 'dine-in', tableNumber: '5', totalAmount: 12.99, timestamp: new Date().toISOString() },
-  { id: 'ORD002', customerName: 'Bob Johnson', items: [{ itemId: '2', name: 'Spaghetti Carbonara', qty: 2, price: 15.50 }], status: 'placed', orderType: 'takeaway', totalAmount: 31.00, timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString() },
-  { id: 'ORD003', customerName: 'Carol Williams', items: [{ itemId: '3', name: 'Caesar Salad', qty: 1, price: 9.75 }, { itemId: '4', name: 'Tiramisu', qty: 1, price: 7.00 }], status: 'delivered', orderType: 'delivery', totalAmount: 16.75, timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString() },
-  { id: 'ORD004', customerName: 'David Brown', items: [{ itemId: '1', name: 'Margherita Pizza', qty: 1, price: 12.99 }, { itemId: '5', name: 'Bruschetta', qty: 1, price: 8.50 }], status: 'ready', orderType: 'dine-in', tableNumber: '2', totalAmount: 21.49, timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
+  { 
+    id: 'ORD789', 
+    customerName: 'Alice Johnson', 
+    items: [
+      { itemId: 'PROD001', name: 'Classic Leather Jacket', qty: 1, price: 250.00, imageUrl: 'https://placehold.co/100x100.png' },
+      { itemId: 'PROD002', name: 'Slim Fit Jeans', qty: 1, price: 90.00, imageUrl: 'https://placehold.co/100x100.png' }
+    ], 
+    status: 'shipped', 
+    orderType: 'delivery', 
+    totalAmount: 340.00, 
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+    shippingAddress: '456 Oak Avenue, Somecity, USA',
+    trackingId: '1Z999AA10123456789'
+  },
+  { 
+    id: 'ORD456', 
+    customerName: 'Bob Williams', 
+    items: [{ itemId: 'PROD003', name: 'The Silent Observer (Book)', qty: 2, price: 22.50, imageUrl: 'https://placehold.co/100x100.png' }], 
+    status: 'processing', 
+    orderType: 'delivery', 
+    totalAmount: 45.00, 
+    timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+    shippingAddress: '789 Pine Lane, Otherville, USA'
+  },
+  { 
+    id: 'ORD123', 
+    customerName: 'Charlie Brown', 
+    items: [{ itemId: 'PROD004', name: 'Wireless Ergonomic Mouse', qty: 1, price: 75.00, imageUrl: 'https://placehold.co/100x100.png' }], 
+    status: 'delivered', 
+    orderType: 'delivery', 
+    totalAmount: 75.00, 
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
+    shippingAddress: '101 Maple Drive, Anytown, USA',
+    trackingId: '1Z999AA10198765432'
+  },
+  { 
+    id: 'ORD111', 
+    customerName: 'Diana Prince', 
+    items: [{ itemId: 'PROD005', name: 'Yoga Mat', qty: 1, price: 40.00, imageUrl: 'https://placehold.co/100x100.png' }], 
+    status: 'placed', 
+    orderType: 'delivery', 
+    totalAmount: 40.00, 
+    timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+    shippingAddress: '222 Amazon Way, Themyscira'
+  },
+    { 
+    id: 'ORD007', 
+    customerName: 'James Bond', 
+    items: [{ itemId: 'PROD007', name: 'Cufflinks', qty: 1, price: 150.00, imageUrl: 'https://placehold.co/100x100.png' }], 
+    status: 'cancelled', 
+    orderType: 'delivery', 
+    totalAmount: 150.00, 
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+    shippingAddress: 'MI6 Headquarters, London, UK'
+  },
 ];
 
-// initialMenuItemsData removed as it was for CreateOrderDialog
 
-const orderStatuses: OrderStatus[] = ['placed', 'preparing', 'ready', 'delivered', 'cancelled'];
+const orderStatuses: OrderStatus[] = ['placed', 'processing', 'shipped', 'delivered', 'cancelled'];
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [currentTab, setCurrentTab] = useState<OrderStatus | 'all'>('all');
   const [isMounted, setIsMounted] = useState(false);
-  // menuItemsForDialog state removed
 
   useEffect(() => {
     setIsMounted(true);
     setOrders(initialOrders);
-    // setMenuItemsForDialog removed
   }, []);
-
-  const handleAddOrder = (newOrderData: Omit<Order, 'id' | 'timestamp' | 'totalAmount'>) => {
-    // This function would need a new way to be triggered if CreateOrderDialog is removed.
-    // For now, it remains, but the dialog that calls it is gone from this page's header.
-    const totalAmount = newOrderData.items.reduce((sum, item) => sum + item.qty * item.price, 0);
-    const newOrder: Order = {
-      ...newOrderData,
-      id: `ORD${String(Date.now()).slice(-4)}`,
-      timestamp: new Date().toISOString(),
-      totalAmount,
-    };
-    setOrders(prevOrders => [newOrder, ...prevOrders]);
-  };
 
   const handleUpdateOrderStatus = (orderId: string, status: OrderStatus) => {
     setOrders(prevOrders => prevOrders.map(order => order.id === orderId ? { ...order, status } : order));
@@ -61,9 +92,7 @@ export default function OrdersPage() {
     <div className="flex flex-col h-full">
       <PageHeader
         title="Order Management"
-        description="View, create, and manage customer orders."
-        // CreateOrderDialog removed from actions
-        // actions={<CreateOrderDialog menuItems={menuItemsForDialog} onAddOrder={handleAddOrder} />}
+        description="View and manage customer orders for your online shop."
       />
       <div className="px-4 md:px-6 pt-4">
         <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as OrderStatus | 'all')}>

@@ -1,4 +1,5 @@
 
+
 export interface MenuItem {
   id: string;
   name: string;
@@ -21,8 +22,8 @@ export interface OrderItem {
   imageHint?: string;
 }
 
-export type OrderStatus = 'placed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
-export type OrderType = 'dine-in' | 'takeaway' | 'delivery'; // These can be repurposed e.g., 'delivery' vs 'pickup'
+export type OrderStatus = 'placed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+export type OrderType = 'delivery'; // Simplified for e-commerce
 
 export interface Order {
   id: string;
@@ -30,8 +31,8 @@ export interface Order {
   items: OrderItem[];
   status: OrderStatus;
   orderType: OrderType;
-  tableNumber?: string; // No longer relevant
-  deliveryAddress?: string; // For delivery
+  shippingAddress?: string; // For delivery
+  trackingId?: string; // For shipped orders
   totalAmount: number;
   timestamp: string; // ISO string
 }
