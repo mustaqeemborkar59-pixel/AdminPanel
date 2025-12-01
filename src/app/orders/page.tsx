@@ -25,7 +25,6 @@ import { Accordion } from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
 import { useReactToPrint } from 'react-to-print';
 import { OrderInvoicesForPrint } from '@/components/orders/order-invoices-for-print';
-import { OrderInvoice } from '@/components/orders/order-invoice';
 
 
 const orderStatuses: OrderStatus[] = ['pending', 'queue', 'processing', 'dispatch', 'completed', 'hold', 'failed', 'cancelled'];
@@ -41,30 +40,18 @@ export default function OrdersPage() {
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
 
   const printComponentRef = useRef<HTMLDivElement>(null);
-  const singleInvoiceRef = useRef<HTMLDivElement>(null);
-  const [singleOrderToPrint, setSingleOrderToPrint] = useState<Order | null>(null);
+  const [ordersForCombinedPrint, setOrdersForCombinedPrint] = useState<Order[]>([]);
 
   const handlePrint = useReactToPrint({
     content: () => printComponentRef.current,
-  });
-
-  const handlePrintSingle = useReactToPrint({
-    content: () => singleInvoiceRef.current,
+    onAfterPrint: () => setOrdersForCombinedPrint([]), // Clear the state after printing
   });
 
   useEffect(() => {
-    if (singleOrderToPrint) {
-      handlePrintSingle();
+    if (ordersForCombinedPrint.length > 0) {
+      handlePrint();
     }
-  }, [singleOrderToPrint, handlePrintSingle]);
-  
-  const triggerPrintSeparate = (ordersToPrint: Order[]) => {
-    ordersToPrint.forEach((order, index) => {
-      setTimeout(() => {
-        setSingleOrderToPrint(order);
-      }, index * 200); // Stagger print dialogs to avoid browser blocking
-    });
-  };
+  }, [ordersForCombinedPrint, handlePrint]);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -84,20 +71,17 @@ export default function OrdersPage() {
     fetchOrders();
   }, [toast]);
   
-  // Reset to page 1 whenever the filter or search term changes
   useEffect(() => {
     setCurrentPage(1);
   }, [statusFilter, searchTerm]);
 
   const handleUpdateOrderStatus = async (orderId: string, status: OrderStatus) => {
-    // Optimistically update UI
     const originalOrders = [...orders];
     setOrders(prevOrders => prevOrders.map(order => order.id === orderId ? { ...order, status } : order));
 
     const result = await updateOrderStatusInSheet(orderId, status);
 
     if (!result.success) {
-      // Revert UI on failure
       setOrders(originalOrders);
       toast({
         variant: "destructive",
@@ -112,12 +96,23 @@ export default function OrdersPage() {
     }
   };
 
-  const filteredOrders = orders
+  const getUniqueOrders = (orderArray: Order[]): Order[] => {
+    const seen = new Set<string>();
+    return orderArray.filter(order => {
+      if (seen.has(order.id)) {
+        return false;
+      }
+      seen.add(order.id);
+      return true;
+    });
+  };
+
+  const filteredOrders = getUniqueOrders(orders
     .filter(order => statusFilter === 'all' || order.status === statusFilter)
     .filter(order => 
         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (order.customerName && order.customerName.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    ));
   
   const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -159,7 +154,7 @@ export default function OrdersPage() {
   const handleExport = (type: 'selected-combined' | 'selected-separate' | 'all-filtered') => {
     let ordersToExport: Order[] = [];
     if(type === 'selected-combined' || type === 'selected-separate') {
-        ordersToExport = orders.filter(o => selectedOrderIds.has(o.id));
+        ordersToExport = getUniqueOrders(orders.filter(o => selectedOrderIds.has(o.id)));
         if (ordersToExport.length === 0) {
             toast({
                 variant: 'destructive',
@@ -168,7 +163,7 @@ export default function OrdersPage() {
             });
             return;
         }
-    } else { // all-filtered
+    } else { 
         ordersToExport = filteredOrders;
          if (ordersToExport.length === 0) {
             toast({
@@ -181,27 +176,15 @@ export default function OrdersPage() {
     }
 
     if (type === 'selected-separate') {
-      triggerPrintSeparate(ordersToExport);
+      ordersToExport.forEach((order, index) => {
+        setTimeout(() => {
+          setOrdersForCombinedPrint([order]); // Set state with a single order to print it
+        }, index * 200); // Stagger print dialogs
+      });
     } else {
-      // For combined print, we use the main print handler
-      handlePrint();
+      setOrdersForCombinedPrint(ordersToExport);
     }
   };
-
-  // Helper to get unique orders by ID to prevent duplicate key errors
-  const getUniqueOrders = (orderArray: Order[]): Order[] => {
-    const seen = new Set<string>();
-    return orderArray.filter(order => {
-      const duplicate = seen.has(order.id);
-      seen.add(order.id);
-      return !duplicate;
-    });
-  };
-
-  const uniqueSelectedOrders = getUniqueOrders(orders.filter(o => selectedOrderIds.has(o.id)));
-  const uniqueFilteredOrders = getUniqueOrders(filteredOrders);
-  const ordersForCombinedPrint = selectedOrderIds.size > 0 ? uniqueSelectedOrders : uniqueFilteredOrders;
-
 
   return (
     <div className="flex flex-col h-full">
@@ -329,10 +312,7 @@ export default function OrdersPage() {
         </div>
       )}
       <div className="hidden">
-        {/* Component for combined printing of selected or filtered orders */}
         <OrderInvoicesForPrint ref={printComponentRef} orders={ordersForCombinedPrint} />
-        {/* Component for single invoice printing */}
-        {singleOrderToPrint && <OrderInvoice ref={singleInvoiceRef} order={singleOrderToPrint} />}
       </div>
     </div>
   );
