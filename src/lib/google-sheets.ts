@@ -83,6 +83,8 @@ export const getOrders = async (): Promise<Order[]> => {
 
 
       try {
+        const totalAsNumber = total ? parseFloat(total.replace(/,/g, '')) : 0;
+
         // Custom parser for the product string
         const parseProducts = (productStr: string): OrderItem[] => {
             if (!productStr || !productStr.includes('(x')) {
@@ -99,7 +101,7 @@ export const getOrders = async (): Promise<Order[]> => {
             
             // Assuming price is not in the string, we'll have to set it to 0 or calculate it.
             // For now, let's use a placeholder. The total amount is available.
-            const price = qty > 0 ? (parseFloat(total) || 0) / qty : 0;
+            const price = qty > 0 ? totalAsNumber / qty : 0;
 
             if (qty > 0) {
               return [{ name, qty, price, itemId: 'N/A' }];
@@ -115,11 +117,13 @@ export const getOrders = async (): Promise<Order[]> => {
           id: id,
           customerName: customerName || '',
           items: items,
-          status: (status as OrderStatus) || 'placed',
+          status: (status as OrderStatus) || 'pending',
           orderType: 'delivery', // Assuming all are delivery
           shippingAddress: billingAddress || '',
           trackingId: trackingId || '',
-          totalAmount: parseFloat(total) || 0,
+          totalAmount: totalAsNumber,
+          subTotal: totalAsNumber, // Assuming total is subtotal for now
+          taxAmount: 0, // Assuming no tax specified in sheet
           timestamp: date ? new Date(date).toISOString() : new Date().toISOString(),
           // The other fields from your spec like phone, pincode, etc., are not in the Order type,
           // but we are parsing them to avoid the crash.
