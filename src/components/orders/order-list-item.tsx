@@ -86,9 +86,9 @@ export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemPro
                 </div>
 
                 <div className="flex items-center gap-2 w-full sm:w-auto self-end sm:self-center">
-                     <AccordionTrigger className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-9 w-full p-2")}>
-                        <span className="ml-2">Details</span>
+                     <AccordionTrigger className={cn(buttonVariants({ variant: "outline", size: "icon" }), "h-9 w-9")}>
                         <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                        <span className="sr-only">View Details</span>
                     </AccordionTrigger>
                 </div>
 
@@ -111,7 +111,7 @@ export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemPro
                                 <div className="flex-grow">
                                     <p className="font-medium">{item.name}</p>
                                     <p className="text-xs text-muted-foreground">Qty: {item.qty}</p>
-                                </div>
+                               </div>
                                 <p className="font-medium">₹{(item.qty * item.price).toFixed(2)}</p>
                             </div>
                         ))}
