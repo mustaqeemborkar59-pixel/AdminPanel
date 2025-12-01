@@ -73,7 +73,7 @@ export const getOrders = async (): Promise<Order[]> => {
         billingAddress, 
         pincode, 
         gmail, 
-        productsJson, // Column I (index 8)
+        productsString, // Column I (index 8)
         total, 
         date, 
         paymentDate, 
@@ -83,8 +83,31 @@ export const getOrders = async (): Promise<Order[]> => {
 
 
       try {
-        // IMPORTANT: The 'items' are now expected in the 9th column (index 8) as a JSON string.
-        const items: OrderItem[] = JSON.parse(productsJson || '[]');
+        // Custom parser for the product string
+        const parseProducts = (productStr: string): OrderItem[] => {
+            if (!productStr || !productStr.includes('(x')) {
+                return [];
+            }
+            
+            // This is a simple parser based on the format "Product Name (xQTY, V:...)".
+            // It might need to be made more robust if the format has variations.
+            const nameMatch = productStr.match(/^(.*) \(/);
+            const qtyMatch = productStr.match(/\(x(\d+)/);
+
+            const name = nameMatch ? nameMatch[1].trim() : 'Unknown Product';
+            const qty = qtyMatch ? parseInt(qtyMatch[1], 10) : 0;
+            
+            // Assuming price is not in the string, we'll have to set it to 0 or calculate it.
+            // For now, let's use a placeholder. The total amount is available.
+            const price = qty > 0 ? (parseFloat(total) || 0) / qty : 0;
+
+            if (qty > 0) {
+              return [{ name, qty, price, itemId: 'N/A' }];
+            }
+            return [];
+        };
+
+        const items: OrderItem[] = parseProducts(productsString || '');
         
         // This structure is closer to a Customer/Order hybrid.
         // We'll map it to the Order type for now.
@@ -103,9 +126,9 @@ export const getOrders = async (): Promise<Order[]> => {
         };
       } catch (e) {
         if (e instanceof Error) {
-            console.error(`Failed to parse 'items' JSON for order ID ${id}. The content in the 'items' column was: "${productsJson}". Please ensure this column contains valid JSON. Error: ${e.message}`);
+            console.error(`Failed to parse product string for order ID ${id}. The content was: "${productsString}". Error: ${e.message}`);
         } else {
-            console.error(`Failed to parse 'items' JSON for order ID ${id}. The content in the 'items' column was: "${productsJson}".`);
+            console.error(`Failed to parse product string for order ID ${id}. The content was: "${productsString}".`);
         }
         return null;
       }
