@@ -45,11 +45,6 @@ export default function OrdersPage() {
 
   const handlePrint = useReactToPrint({
     content: () => printComponentRef.current,
-    onAfterPrint: () => {
-      // Reset state after printing is done
-      setOrdersForCombinedPrint([]);
-      setIsPrinting(false);
-    },
   });
 
   useEffect(() => {
@@ -58,6 +53,9 @@ export default function OrdersPage() {
     if (isPrinting && ordersForCombinedPrint.length > 0) {
       setTimeout(() => {
         handlePrint();
+        // Reset state after triggering print
+        setOrdersForCombinedPrint([]);
+        setIsPrinting(false);
       }, 0);
     }
   }, [isPrinting, ordersForCombinedPrint, handlePrint]);
@@ -163,8 +161,8 @@ export default function OrdersPage() {
   const handleExport = (type: 'selected-combined' | 'selected-separate' | 'all-filtered') => {
     let ordersToExport: Order[] = [];
     if(type === 'selected-combined' || type === 'selected-separate') {
-        ordersToExport = getUniqueOrders(orders.filter(o => selectedOrderIds.has(o.id)));
-        if (ordersToExport.length === 0) {
+        const selectedOrdersToPrint = getUniqueOrders(orders.filter(o => selectedOrderIds.has(o.id)));
+        if (selectedOrdersToPrint.length === 0) {
             toast({
                 variant: 'destructive',
                 title: 'No Orders Selected',
@@ -172,9 +170,9 @@ export default function OrdersPage() {
             });
             return;
         }
+        ordersToExport = selectedOrdersToPrint;
     } else { 
-        ordersToExport = filteredOrders;
-         if (ordersToExport.length === 0) {
+        if (filteredOrders.length === 0) {
             toast({
                 variant: 'destructive',
                 title: 'No Orders Found',
@@ -182,6 +180,7 @@ export default function OrdersPage() {
             });
             return;
         }
+        ordersToExport = filteredOrders;
     }
 
     if (type === 'selected-separate') {
