@@ -1,11 +1,13 @@
 
 "use client";
+import React, { useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import { type Order, type OrderStatus } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { CheckCircle, Clock, Package, Truck, XCircle, PackageSearch, ChevronDown, Archive, Loader } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { CheckCircle, Clock, Package, Truck, XCircle, PackageSearch, ChevronDown, Archive, Loader, Download } from 'lucide-react';
+import { format } from 'date-fns';
 import {
   Select,
   SelectContent,
@@ -21,6 +23,7 @@ import {
 } from "@/components/ui/accordion"
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { OrderInvoice } from './order-invoice';
 
 interface OrderListItemProps {
   order: Order;
@@ -29,18 +32,24 @@ interface OrderListItemProps {
 }
 
 const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; label: string }> = {
-  pending: { icon: PackageSearch, color: 'bg-yellow-500', label: 'Pending' },
-  failed: { icon: XCircle, color: 'bg-red-500', label: 'Failed' },
-  cancelled: { icon: XCircle, color: 'bg-red-600', label: 'Cancelled' },
-  queue: { icon: Clock, color: 'bg-blue-500', label: 'In Queue' },
-  processing: { icon: Loader, color: 'bg-purple-500', label: 'Processing' },
-  completed: { icon: CheckCircle, color: 'bg-green-500', label: 'Completed' },
-  hold: { icon: Archive, color: 'bg-orange-500', label: 'On Hold' },
-  dispatch: { icon: Truck, color: 'bg-indigo-500', label: 'Dispatched' },
+  pending: { icon: PackageSearch, color: 'bg-yellow-500/80', label: 'Pending' },
+  queue: { icon: Clock, color: 'bg-blue-500/80', label: 'In Queue' },
+  processing: { icon: Loader, color: 'bg-purple-500/80', label: 'Processing' },
+  dispatch: { icon: Truck, color: 'bg-indigo-500/80', label: 'Dispatched' },
+  completed: { icon: CheckCircle, color: 'bg-green-500/80', label: 'Completed' },
+  hold: { icon: Archive, color: 'bg-orange-500/80', label: 'On Hold' },
+  failed: { icon: XCircle, color: 'bg-red-500/80', label: 'Failed' },
+  cancelled: { icon: XCircle, color: 'bg-red-600/80', label: 'Cancelled' },
 };
 
 
 export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemProps) {
+  const invoiceRef = useRef(null);
+  const handlePrint = useReactToPrint({
+    content: () => invoiceRef.current,
+    documentTitle: `invoice-${order.id}`,
+  });
+  
   const currentStatusInfo = statusInfo[order.status] || statusInfo.pending;
   const StatusIcon = currentStatusInfo.icon;
 
@@ -53,7 +62,7 @@ export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemPro
                 <div className="flex-grow">
                     <CardTitle className="font-headline text-lg">{order.id}</CardTitle>
                     <CardDescription className="font-body text-sm mt-1">
-                    {order.customerName || 'N/A'} - <span className="text-xs">{formatDistanceToNow(new Date(order.timestamp), { addSuffix: true })}</span>
+                    {order.customerName || 'N/A'} - <span className="text-xs">{format(new Date(order.timestamp), 'PPpp')}</span>
                     </CardDescription>
                 </div>
                 
@@ -67,8 +76,9 @@ export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemPro
                         <p className="text-xs text-muted-foreground font-body mb-1">Status</p>
                          <Select value={order.status} onValueChange={(value) => onUpdateStatus(order.id, value as OrderStatus)}>
                             <SelectTrigger className={cn(
-                                "w-full sm:w-[140px] font-body text-xs h-9 capitalize border-0 text-white font-semibold",
-                                currentStatusInfo.color
+                                "w-full sm:w-[140px] font-body text-xs h-9 capitalize text-white font-semibold",
+                                currentStatusInfo.color,
+                                'border-transparent' // Make border transparent
                             )}>
                                 <div className="flex items-center gap-1.5">
                                     <StatusIcon className="h-3 w-3" />
@@ -85,8 +95,11 @@ export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemPro
                 </div>
 
                 <div className="flex items-center gap-2 w-full sm:w-auto self-end sm:self-center">
+                    <Button variant="outline" size="icon" className="h-9 w-9" onClick={handlePrint}>
+                        <Download className="h-4 w-4" />
+                        <span className="sr-only">Download Invoice</span>
+                    </Button>
                      <AccordionTrigger className={cn(buttonVariants({ variant: "outline", size: "icon" }), "h-9 w-9")}>
-                        <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
                         <span className="sr-only">View Details</span>
                     </AccordionTrigger>
                 </div>
@@ -132,6 +145,10 @@ export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemPro
                 </CardContent>
             </AccordionContent>
         </Card>
+        {/* The invoice component is hidden and only used for printing */}
+        <div className="hidden">
+            <OrderInvoice ref={invoiceRef} order={order} />
+        </div>
     </AccordionItem>
   );
 }
