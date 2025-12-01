@@ -45,7 +45,6 @@ export default function OrdersPage() {
   const handlePrint = useReactToPrint({
     content: () => printComponentRef.current,
     documentTitle: 'invoices',
-    onAfterPrint: () => setOrdersToPrint([]), // Clear the orders to print after printing
   });
 
   const triggerPrint = (orders: Order[]) => {
@@ -298,5 +297,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
