@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
@@ -9,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Accordion } from '@/components/ui/accordion';
 
 const orderStatuses: OrderStatus[] = ['placed', 'processing', 'shipped', 'delivered', 'cancelled'];
 const ITEMS_PER_PAGE = 5;
@@ -109,11 +111,11 @@ export default function OrdersPage() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : paginatedOrders.length > 0 ? (
-          <div className="space-y-4">
+          <Accordion type="single" collapsible className="space-y-4">
             {paginatedOrders.map((order, index) => (
-              <OrderListItem key={`${order.id}-${startIndex + index}`} order={order} onUpdateStatus={handleUpdateOrderStatus} />
+              <OrderListItem key={`${order.id}-${startIndex + index}`} order={order} onUpdateStatus={handleUpdateOrderStatus} value={`${order.id}-${startIndex + index}`} />
             ))}
-          </div>
+          </Accordion>
         ) : (
           <div className="text-center py-12">
             <p className="text-muted-foreground font-body">No orders found for this status.</p>
