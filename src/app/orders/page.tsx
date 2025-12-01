@@ -38,14 +38,10 @@ const ITEMS_PER_PAGE = 10;
 // New timezone-aware formatting function
 function formatDateInIST(dateInput: string | Date): string {
   const date = new Date(dateInput);
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat('en-GB', {
     year: 'numeric',
     month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    second: 'numeric',
-    hour12: true,
+    day: '2-digit',
     timeZone: 'Asia/Kolkata' // Explicitly set the timezone to IST
   }).format(date);
 }
