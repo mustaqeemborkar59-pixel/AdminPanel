@@ -188,7 +188,20 @@ export default function OrdersPage() {
     }
   };
 
-  const selectedOrdersToPrint = orders.filter(o => selectedOrderIds.has(o.id));
+  // Helper to get unique orders by ID to prevent duplicate key errors
+  const getUniqueOrders = (orderArray: Order[]): Order[] => {
+    const seen = new Set<string>();
+    return orderArray.filter(order => {
+      const duplicate = seen.has(order.id);
+      seen.add(order.id);
+      return !duplicate;
+    });
+  };
+
+  const uniqueSelectedOrders = getUniqueOrders(orders.filter(o => selectedOrderIds.has(o.id)));
+  const uniqueFilteredOrders = getUniqueOrders(filteredOrders);
+  const ordersForCombinedPrint = selectedOrderIds.size > 0 ? uniqueSelectedOrders : uniqueFilteredOrders;
+
 
   return (
     <div className="flex flex-col h-full">
@@ -317,7 +330,7 @@ export default function OrdersPage() {
       )}
       <div className="hidden">
         {/* Component for combined printing of selected or filtered orders */}
-        <OrderInvoicesForPrint ref={printComponentRef} orders={selectedOrderIds.size > 0 ? selectedOrdersToPrint : filteredOrders} />
+        <OrderInvoicesForPrint ref={printComponentRef} orders={ordersForCombinedPrint} />
         {/* Component for single invoice printing */}
         {singleOrderToPrint && <OrderInvoice ref={singleInvoiceRef} order={singleOrderToPrint} />}
       </div>
