@@ -146,47 +146,122 @@ export default function OrdersPage() {
   
   const generatePdf = (ordersToExport: Order[]) => {
     const doc = new jsPDF();
-    
+    const companyDetails = {
+      name: "COMPANY",
+      address: "Main Street, 00 City, Country 222541",
+      phone: "561 123 123",
+      email: "yourname@mail.com"
+    };
+
     ordersToExport.forEach((order, index) => {
-      if (index > 0) {
-        doc.addPage();
-      }
+        if (index > 0) {
+            doc.addPage();
+        }
 
-      doc.setFontSize(20);
-      doc.text('Invoice', 14, 22);
-      doc.setFontSize(10);
-      doc.text(`Order ID: ${order.id}`, 14, 30);
-      doc.text(`Date: ${format(new Date(order.timestamp), 'PPpp')}`, 14, 35);
-      
-      doc.text(`Bill To: ${order.customerName || 'N/A'}`, 14, 45);
-      if(order.shippingAddress) doc.text(order.shippingAddress, 14, 50);
+        // Header
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.text('INVOICE', 14, 20);
 
-      const tableColumn = ["Item Name", "Quantity", "Unit Price", "Total"];
-      const tableRows: (string | number)[][] = [];
+        // Sub-header details
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.text('N. INVOICE', 14, 35);
+        doc.text('DATE', 50, 35);
+        doc.text('PAYMENT METHOD', 86, 35);
+        doc.text('AMOUNT DUE', 140, 35);
 
-      order.items.forEach(item => {
-        const itemData = [
-          item.name,
-          item.qty,
-          `₹${item.price.toFixed(2)}`,
-          `₹${(item.price * item.qty).toFixed(2)}`
+        doc.setFont('helvetica', 'normal');
+        doc.text(order.id, 14, 40);
+        doc.text(format(new Date(order.timestamp), 'dd MMMM yyyy').toUpperCase(), 50, 40);
+        doc.text((order.paymentMethod || 'N/A').toUpperCase(), 86, 40);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(145, 63, 42); // Primary color
+        doc.text(`₹${order.totalAmount.toFixed(2)}`, 140, 40);
+        doc.setTextColor(0, 0, 0); // Reset color
+
+
+        // Bill From/To
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.text('BILL TO:', 14, 55);
+        doc.text('BILL FROM:', 86, 55);
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        const billTo = [
+            order.customerName || 'N/A',
+            order.shippingAddress || 'No address',
+            order.gmail || 'No email'
         ];
-        tableRows.push(itemData);
-      });
+        const billFrom = [
+            companyDetails.name,
+            companyDetails.address,
+            companyDetails.email
+        ];
+        doc.text(billTo, 14, 60);
+        doc.text(billFrom, 86, 60);
+        
+        // Table
+        const tableColumn = ["Items", "Quantity", "Price", "Total Amount"];
+        const tableRows: (string | number)[][] = [];
 
-      (doc as any).autoTable({
-        head: [tableColumn],
-        body: tableRows,
-        startY: 60,
-      });
+        order.items.forEach(item => {
+            const itemData = [
+            item.name,
+            item.qty,
+            `₹${item.price.toFixed(2)}`,
+            `₹${(item.price * item.qty).toFixed(2)}`
+            ];
+            tableRows.push(itemData);
+        });
 
-      const finalY = (doc as any).lastAutoTable.finalY;
-      doc.setFontSize(12);
-      doc.text(`Subtotal: ₹${order.subTotal.toFixed(2)}`, 14, finalY + 10);
-      doc.text(`Tax: ₹${order.taxAmount.toFixed(2)}`, 14, finalY + 17);
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`Total: ₹${order.totalAmount.toFixed(2)}`, 14, finalY + 25);
+        (doc as any).autoTable({
+            head: [tableColumn],
+            body: tableRows,
+            startY: 85,
+            theme: 'plain',
+            headStyles: {
+                fillColor: [255, 255, 255],
+                textColor: [0, 0, 0],
+                fontStyle: 'bold',
+                lineWidth: { bottom: 0.5 },
+                lineColor: [200, 200, 200]
+            },
+            bodyStyles: {
+                lineWidth: { bottom: 0.5 },
+                lineColor: [220, 220, 220]
+            },
+        });
+
+        // Totals
+        const finalY = (doc as any).lastAutoTable.finalY + 15;
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        
+        const subtotalX = 140;
+        const totalX = 140;
+        const textX = 170;
+
+        doc.text('SUBTOTAL', subtotalX, finalY);
+        doc.text(`₹${order.subTotal.toFixed(2)}`, textX, finalY, { align: 'right' });
+        
+        doc.text('TAX (10%)', subtotalX, finalY + 7);
+        doc.text(`₹${order.taxAmount.toFixed(2)}`, textX, finalY + 7, { align: 'right' });
+        
+        doc.line(subtotalX - 5, finalY + 12, textX, finalY + 12);
+        
+        doc.setFont('helvetica', 'bold');
+        doc.text('TOTAL', totalX, finalY + 18);
+        doc.text(`₹${order.totalAmount.toFixed(2)}`, textX, finalY + 18, { align: 'right' });
+
+        // Footer
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('THANK YOU!', 14, doc.internal.pageSize.height - 30);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text("The star charts represent the position of the stars as we see them from Earth; however, the stars in\neach constellation may not be close to each other, as some we perceive to be brighter", 14, doc.internal.pageSize.height - 25);
     });
 
     doc.save(`invoices-${new Date().toISOString().split('T')[0]}.pdf`);
