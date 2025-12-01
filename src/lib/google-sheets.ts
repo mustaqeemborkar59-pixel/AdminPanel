@@ -112,9 +112,22 @@ export const getOrders = async (): Promise<Order[]> => {
 
         const items: OrderItem[] = parseProducts(productsString || '');
         
-        // Correctly parse the date from the sheet. new Date() is robust enough for "1 dec 2025"
-        // but we default to now() if the date is missing or invalid.
-        const orderDate = date ? new Date(date) : new Date();
+        // Correctly parse the DD/MM/YYYY date from the sheet.
+        const parseDate = (dateStr: string): Date => {
+            if (!dateStr) return new Date(); // Default to now if date is missing
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                const day = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+                const year = parseInt(parts[2], 10);
+                return new Date(year, month, day);
+            }
+            // Fallback for other formats
+            const parsed = new Date(dateStr);
+            return isNaN(parsed.getTime()) ? new Date() : parsed;
+        };
+
+        const orderDate = parseDate(date);
         
         // This structure is closer to a Customer/Order hybrid.
         // We'll map it to the Order type for now.
@@ -136,9 +149,9 @@ export const getOrders = async (): Promise<Order[]> => {
         };
       } catch (e) {
         if (e instanceof Error) {
-            console.error(`Failed to parse product string for order ID ${id}. The content was: "${productsString}". Error: ${e.message}`);
+            console.error(`Failed to parse row for order ID ${id}. Error: ${e.message}`);
         } else {
-            console.error(`Failed to parse product string for order ID ${id}. The content was: "${productsString}".`);
+            console.error(`An unknown error occurred while parsing row for order ID ${id}.`);
         }
         return null;
       }
