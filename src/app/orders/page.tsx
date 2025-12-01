@@ -85,8 +85,8 @@ export default function OrdersPage() {
           </div>
         ) : filteredOrders.length > 0 ? (
           <div className="space-y-4">
-            {filteredOrders.map(order => (
-              <OrderListItem key={order.id} order={order} onUpdateStatus={handleUpdateOrderStatus} />
+            {filteredOrders.map((order, index) => (
+              <OrderListItem key={`${order.id}-${index}`} order={order} onUpdateStatus={handleUpdateOrderStatus} />
             ))}
           </div>
         ) : (
@@ -98,5 +98,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
