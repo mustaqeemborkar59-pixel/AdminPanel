@@ -44,12 +44,13 @@ export default function OrdersPage() {
 
   const handlePrint = useReactToPrint({
     content: () => printComponentRef.current,
-    onAfterPrint: () => setOrdersForCombinedPrint([]), // Clear the state after printing
   });
 
   useEffect(() => {
     if (ordersForCombinedPrint.length > 0) {
       handlePrint();
+      // Clear state after triggering print to prevent re-triggering
+      setOrdersForCombinedPrint([]); 
     }
   }, [ordersForCombinedPrint, handlePrint]);
 
@@ -317,3 +318,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
