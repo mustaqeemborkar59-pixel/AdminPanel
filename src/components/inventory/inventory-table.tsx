@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Edit, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface InventoryTableProps {
   items: InventoryItem[];
@@ -70,8 +72,3 @@ export function InventoryTable({ items, onEditItem, onDeleteItem }: InventoryTab
     </Card>
   );
 }
-
-// Added Card import from ui, as it's used now
-import { Card } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
-
