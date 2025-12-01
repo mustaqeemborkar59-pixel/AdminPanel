@@ -48,10 +48,6 @@ const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; 
 
 export function OrderListItem({ order, onUpdateStatus, value, isSelected, onToggleSelect }: OrderListItemProps) {
   const invoiceRef = useRef(null);
-  const handlePrint = useReactToPrint({
-    content: () => invoiceRef.current,
-    documentTitle: `invoice-${order.id}`,
-  });
   
   const currentStatusInfo = statusInfo[order.status] || statusInfo.pending;
   const StatusIcon = currentStatusInfo.icon;
@@ -105,10 +101,6 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                 </div>
 
                 <div className="flex items-center gap-2 w-full sm:w-auto self-end sm:self-center">
-                    <Button variant="outline" size="icon" className="h-9 w-9" onClick={handlePrint}>
-                        <Download className="h-4 w-4" />
-                        <span className="sr-only">Download Invoice</span>
-                    </Button>
                      <AccordionTrigger className={cn(buttonVariants({ variant: "outline", size: "icon" }), "h-9 w-9")}>
                         <span className="sr-only">View Details</span>
                     </AccordionTrigger>
