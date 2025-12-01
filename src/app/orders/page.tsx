@@ -25,6 +25,7 @@ import { Accordion } from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
 import { useReactToPrint } from 'react-to-print';
 import { OrderInvoicesForPrint } from '@/components/orders/order-invoices-for-print';
+import { OrderInvoice } from '@/components/orders/order-invoice';
 
 
 const orderStatuses: OrderStatus[] = ['pending', 'queue', 'processing', 'dispatch', 'completed', 'hold', 'failed', 'cancelled'];
@@ -39,12 +40,21 @@ export default function OrdersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
   const [ordersToPrint, setOrdersToPrint] = useState<Order[]>([]);
-  
   const printComponentRef = useRef<HTMLDivElement>(null);
+  
+  // Ref for single invoice printing
+  const singleInvoiceRef = useRef<HTMLDivElement>(null);
+  const [singleOrderToPrint, setSingleOrderToPrint] = useState<Order | null>(null);
+
 
   const handlePrint = useReactToPrint({
     content: () => printComponentRef.current,
     documentTitle: 'invoices',
+  });
+  
+  const handlePrintSingle = useReactToPrint({
+    content: () => singleInvoiceRef.current,
+    documentTitle: `invoice-${singleOrderToPrint?.id || 'order'}`,
   });
 
   const triggerPrint = (orders: Order[]) => {
@@ -53,6 +63,17 @@ export default function OrdersPage() {
     setTimeout(() => {
       handlePrint();
     }, 100);
+  };
+  
+  const triggerPrintSeparate = (orders: Order[]) => {
+    orders.forEach((order, index) => {
+      setTimeout(() => {
+        setSingleOrderToPrint(order);
+        setTimeout(() => {
+          handlePrintSingle();
+        }, 50);
+      }, index * 500); // Stagger print dialogs
+    });
   };
   
 
@@ -146,30 +167,37 @@ export default function OrdersPage() {
     }
   };
   
-  const handleExportSelected = () => {
-    const selectedOrders = orders.filter(o => selectedOrderIds.has(o.id));
-    if (selectedOrders.length > 0) {
-      triggerPrint(selectedOrders);
+  const handleExport = (type: 'selected-combined' | 'selected-separate' | 'all-filtered') => {
+    let ordersToExport: Order[] = [];
+    if(type === 'selected-combined' || type === 'selected-separate') {
+        ordersToExport = orders.filter(o => selectedOrderIds.has(o.id));
+        if (ordersToExport.length === 0) {
+            toast({
+                variant: 'destructive',
+                title: 'No Orders Selected',
+                description: 'Please select at least one order to export.',
+            });
+            return;
+        }
+    } else { // all-filtered
+        ordersToExport = filteredOrders;
+         if (ordersToExport.length === 0) {
+            toast({
+                variant: 'destructive',
+                title: 'No Orders Found',
+                description: 'There are no orders matching the current filters to export.',
+            });
+            return;
+        }
+    }
+
+    if (type === 'selected-separate') {
+      triggerPrintSeparate(ordersToExport);
     } else {
-      toast({
-        variant: 'destructive',
-        title: 'No Orders Selected',
-        description: 'Please select at least one order to export.',
-      });
+      triggerPrint(ordersToExport);
     }
   };
 
-  const handleExportAllFiltered = () => {
-    if (filteredOrders.length > 0) {
-      triggerPrint(filteredOrders);
-    } else {
-      toast({
-        variant: 'destructive',
-        title: 'No Orders Found',
-        description: 'There are no orders matching the current filters to export.',
-      });
-    }
-  };
   
   return (
     <div className="flex flex-col h-full">
@@ -215,11 +243,16 @@ export default function OrdersPage() {
                 Export
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56">
-              <DropdownMenuItem onClick={handleExportSelected} disabled={selectedOrderIds.size === 0}>
-                Export Selected to PDF
+            <DropdownMenuContent className="w-60">
+              <DropdownMenuLabel>Export Options</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleExport('selected-combined')} disabled={selectedOrderIds.size === 0}>
+                Export Selected (All in one PDF)
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleExportAllFiltered}>
+               <DropdownMenuItem onClick={() => handleExport('selected-separate')} disabled={selectedOrderIds.size === 0}>
+                Export Selected (Separate PDFs)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('all-filtered')}>
                 Export All Filtered to PDF
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -292,7 +325,10 @@ export default function OrdersPage() {
         </div>
       )}
       <div className="hidden">
+        {/* For combined PDF */}
         <OrderInvoicesForPrint ref={printComponentRef} orders={ordersToPrint} />
+        {/* For single PDF printing */}
+        {singleOrderToPrint && <OrderInvoice ref={singleInvoiceRef} order={singleOrderToPrint} />}
       </div>
     </div>
   );
