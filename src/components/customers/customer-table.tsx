@@ -68,7 +68,7 @@ export function CustomerTable({ customers }: CustomerTableProps) {
               <TableCell>
                 {customer.products.map(p => `${p.name} (x${p.qty})`).join(', ')}
               </TableCell>
-              <TableCell>${customer.total.toFixed(2)}</TableCell>
+              <TableCell>₹{customer.total.toFixed(2)}</TableCell>
               <TableCell>{customer.date}</TableCell>
               <TableCell>{customer.paymentDate}</TableCell>
               <TableCell>{customer.trackingId || 'N/A'}</TableCell>
@@ -80,3 +80,5 @@ export function CustomerTable({ customers }: CustomerTableProps) {
     </Card>
   );
 }
+
+    

@@ -122,7 +122,7 @@ export function CurrentOrderSheet({
                   </div>
                   <div className="flex-grow">
                     <p className="text-sm font-medium leading-tight">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">${item.price.toFixed(2)} each</p>
+                    <p className="text-xs text-muted-foreground">₹{item.price.toFixed(2)} each</p>
                      <div className="flex items-center gap-2 mt-1">
                       <Button
                         variant="outline" size="icon"
@@ -143,7 +143,7 @@ export function CurrentOrderSheet({
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold">${(item.price * item.qty).toFixed(2)}</p>
+                    <p className="text-sm font-semibold">₹{(item.price * item.qty).toFixed(2)}</p>
                     <Button variant="ghost" size="icon" className="h-7 w-7 mt-1 text-destructive hover:text-destructive/80" onClick={() => onRemoveItem(item.itemId)}>
                         <Trash2 className="h-3.5 w-3.5"/>
                     </Button>
@@ -172,16 +172,16 @@ export function CurrentOrderSheet({
             <div className="p-4 space-y-1 border-t">
                 <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Sub Total</span>
-                <span>${subTotal.toFixed(2)}</span>
+                <span>₹{subTotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Tax ({(TAX_RATE * 100).toFixed(0)}%)</span>
-                <span>${taxAmount.toFixed(2)}</span>
+                <span>₹{taxAmount.toFixed(2)}</span>
                 </div>
                 <Separator className="my-1" />
                 <div className="flex justify-between text-base font-semibold">
                 <span>Total Amount</span>
-                <span>${totalAmount.toFixed(2)}</span>
+                <span>₹{totalAmount.toFixed(2)}</span>
                 </div>
             </div>
             
@@ -225,3 +225,4 @@ export function CurrentOrderSheet({
   );
 }
 
+    

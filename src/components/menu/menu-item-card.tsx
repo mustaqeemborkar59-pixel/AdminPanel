@@ -77,9 +77,9 @@ export function MenuItemCard({
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-baseline gap-1 flex-grow justify-between"> 
               <div className="flex items-baseline gap-3"> 
-                <span className="text-sm font-bold text-primary">${displayPrice.toFixed(2)}</span>
+                <span className="text-sm font-bold text-primary">₹{displayPrice.toFixed(2)}</span>
                 {item.discount && (
-                  <span className="text-xs text-muted-foreground line-through">${item.price.toFixed(2)}</span>
+                  <span className="text-xs text-muted-foreground line-through">₹{item.price.toFixed(2)}</span>
                 )}
               </div>
               {item.isVegetarian ? <VegIcon /> : <NonVegIcon />}
@@ -155,3 +155,4 @@ export function MenuItemCard({
   );
 }
 
+    

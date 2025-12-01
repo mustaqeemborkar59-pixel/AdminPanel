@@ -29,7 +29,7 @@ export function CurrencySettings() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
             <Label htmlFor="defaultCurrency" className="font-body">Default Currency</Label>
-            <Select defaultValue="USD">
+            <Select defaultValue="INR">
               <SelectTrigger id="defaultCurrency" className="font-body">
                 <SelectValue placeholder="Select currency" />
               </SelectTrigger>
@@ -49,8 +49,8 @@ export function CurrencySettings() {
                     <SelectValue placeholder="Select symbol position" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="before">Before amount (e.g., $100)</SelectItem>
-                    <SelectItem value="after">After amount (e.g., 100$)</SelectItem>
+                    <SelectItem value="before">Before amount (e.g., ₹100)</SelectItem>
+                    <SelectItem value="after">After amount (e.g., 100₹)</SelectItem>
                 </SelectContent>
             </Select>
           </div>
@@ -60,3 +60,5 @@ export function CurrencySettings() {
     </Card>
   );
 }
+
+    

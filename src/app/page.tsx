@@ -14,11 +14,11 @@ import { cn } from '@/lib/utils';
 
 // --- Initial Data (adapted for e-commerce) ---
 const initialOrdersData: Order[] = [
-  { id: 'ORD001', customerName: 'Alice Smith', items: [{ itemId: '1', name: 'Laptop Pro', qty: 1, price: 1299.00, imageUrl: 'https://placehold.co/100x100.png' }], status: 'preparing', orderType: 'delivery', totalAmount: 1299.00, subTotal: 1299.00, taxAmount: 0, timestamp: new Date().toISOString() },
-  { id: 'ORD002', customerName: 'Bob Johnson', items: [{ itemId: '2', name: 'Wireless Mouse', qty: 2, price: 55.50, imageUrl: 'https://placehold.co/100x100.png' }], status: 'placed', orderType: 'delivery', totalAmount: 111.00, subTotal: 111.00, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString() },
-  { id: 'ORD003', customerName: 'Carol Williams', items: [{ itemId: '3', name: 'USB-C Hub', qty: 1, price: 39.75, imageUrl: 'https://placehold.co/100x100.png' }, { itemId: '4', name: 'Keyboard', qty: 1, price: 70.00, imageUrl: 'https://placehold.co/100x100.png' }], status: 'delivered', orderType: 'delivery', totalAmount: 109.75, subTotal: 109.75, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString() },
-  { id: 'ORD004', customerName: 'David Brown', items: [{ itemId: '1', name: 'Laptop Pro', qty: 1, price: 1299.00, imageUrl: 'https://placehold.co/100x100.png' }, { itemId: '5', name: 'Laptop Stand', qty: 1, price: 48.50, imageUrl: 'https://placehold.co/100x100.png' }], status: 'ready', orderType: 'delivery', totalAmount: 1347.50, subTotal: 1347.50, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
-  { id: 'ORD005', customerName: 'Eva Green', items: [{ itemId: '2', name: 'Wireless Mouse', qty: 1, price: 55.50, imageUrl: 'https://placehold.co/100x100.png' }], status: 'placed', orderType: 'takeaway', totalAmount: 55.50, subTotal: 55.50, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString() },
+  { id: 'ORD001', customerName: 'Alice Smith', items: [{ itemId: '1', name: 'Laptop Pro', qty: 1, price: 1299.00, imageUrl: 'https://placehold.co/100x100.png' }], status: 'queue', orderType: 'delivery', totalAmount: 1299.00, subTotal: 1299.00, taxAmount: 0, timestamp: new Date().toISOString() },
+  { id: 'ORD002', customerName: 'Bob Johnson', items: [{ itemId: '2', name: 'Wireless Mouse', qty: 2, price: 55.50, imageUrl: 'https://placehold.co/100x100.png' }], status: 'pending', orderType: 'delivery', totalAmount: 111.00, subTotal: 111.00, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString() },
+  { id: 'ORD003', customerName: 'Carol Williams', items: [{ itemId: '3', name: 'USB-C Hub', qty: 1, price: 39.75, imageUrl: 'https://placehold.co/100x100.png' }, { itemId: '4', name: 'Keyboard', qty: 1, price: 70.00, imageUrl: 'https://placehold.co/100x100.png' }], status: 'completed', orderType: 'delivery', totalAmount: 109.75, subTotal: 109.75, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString() },
+  { id: 'ORD004', customerName: 'David Brown', items: [{ itemId: '1', name: 'Laptop Pro', qty: 1, price: 1299.00, imageUrl: 'https://placehold.co/100x100.png' }, { itemId: '5', name: 'Laptop Stand', qty: 1, price: 48.50, imageUrl: 'https://placehold.co/100x100.png' }], status: 'dispatch', orderType: 'delivery', totalAmount: 1347.50, subTotal: 1347.50, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
+  { id: 'ORD005', customerName: 'Eva Green', items: [{ itemId: '2', name: 'Wireless Mouse', qty: 1, price: 55.50, imageUrl: 'https://placehold.co/100x100.png' }], status: 'pending', orderType: 'takeaway', totalAmount: 55.50, subTotal: 55.50, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString() },
 ];
 
 
@@ -114,9 +114,9 @@ function DashboardContent() {
       <PageHeader title="Shop Dashboard" description="Comprehensive overview of your online store's operations and performance." />
       <div className="flex-1 p-4 md:p-6 space-y-6 overflow-auto">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatsCard title="Total Revenue" value={`$${totalSales.toFixed(2)}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={gradientStyles[0]} />
+          <StatsCard title="Total Revenue" value={`₹${totalSales.toFixed(2)}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={gradientStyles[0]} />
           <StatsCard title="Total Orders" value={totalOrders.toString()} icon={<ShoppingBag className="h-5 w-5 text-white/70" />} className={gradientStyles[1]} />
-          <StatsCard title="Avg. Order Value" value={`$${averageOrderValue.toFixed(2)}`} icon={<Activity className="h-5 w-5 text-white/70" />} className={gradientStyles[2]} />
+          <StatsCard title="Avg. Order Value" value={`₹${averageOrderValue.toFixed(2)}`} icon={<Activity className="h-5 w-5 text-white/70" />} className={gradientStyles[2]} />
           <StatsCard title="Total Products" value={productCount.toString()} icon={<Package className="h-5 w-5 text-white/70" />} className={gradientStyles[3]} />
           <StatsCard title="Total Inventory" value={inventoryItemCount.toString()} icon={<Archive className="h-5 w-5 text-white/70" />} className={gradientStyles[0]} />
           <StatsCard 
@@ -248,3 +248,5 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
+
+    

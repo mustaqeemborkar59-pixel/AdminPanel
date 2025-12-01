@@ -59,7 +59,7 @@ export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemPro
                 <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
                     <div className="flex-1">
                          <p className="text-xs text-muted-foreground font-body">Total</p>
-                         <p className="font-semibold text-lg text-foreground">${order.totalAmount.toFixed(2)}</p>
+                         <p className="font-semibold text-lg text-foreground">₹{order.totalAmount.toFixed(2)}</p>
                     </div>
 
                     <div className="flex-1">
@@ -111,7 +111,7 @@ export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemPro
                                     <p className="font-medium">{item.name}</p>
                                     <p className="text-xs text-muted-foreground">Qty: {item.qty}</p>
                                 </div>
-                                <p className="font-medium">${(item.qty * item.price).toFixed(2)}</p>
+                                <p className="font-medium">₹{(item.qty * item.price).toFixed(2)}</p>
                             </div>
                         ))}
                     </div>
@@ -135,3 +135,5 @@ export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemPro
     </AccordionItem>
   );
 }
+
+    
