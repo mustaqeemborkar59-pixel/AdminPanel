@@ -84,10 +84,6 @@ function DashboardContent() {
 
   const [totalSales, setTotalSales] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
-  const [averageOrderValue, setAverageOrderValue] = useState(0);
-  const [inventoryItemCount, setInventoryItemCount] = useState(0);
-  const [lowStockCount, setLowStockCount] = useState(0);
-  const [productCount, setProductCount] = useState(0);
   const [activeStaffCount, setActiveStaffCount] = useState(0);
   const newCustomers = 45; // Placeholder data
 
@@ -120,19 +116,12 @@ function DashboardContent() {
 
       setTotalSales(currentTotalSales);
       setTotalOrders(currentTotalOrders);
-      
-      const successfulOrdersCount = validOrdersForRevenue.length;
-      setAverageOrderValue(successfulOrdersCount > 0 ? currentTotalSales / successfulOrdersCount : 0);
     } else {
       setTotalSales(0);
       setTotalOrders(0);
-      setAverageOrderValue(0);
     }
 
     // Static data remains for now
-    setInventoryItemCount(initialInventoryItemsData.length);
-    setLowStockCount(initialInventoryItemsData.filter(item => item.quantity <= item.alertLevel).length);
-    setProductCount(initialMenuItems.length);
     setActiveStaffCount(initialStaffData.filter(staff => staff.status === 'on-duty').length);
   }, [orders]);
 
@@ -155,17 +144,6 @@ function DashboardContent() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatsCard title="Total Revenue" value={`₹${totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={gradientStyles[0]} />
           <StatsCard title="Total Orders" value={totalOrders.toString()} icon={<ShoppingBag className="h-5 w-5 text-white/70" />} className={gradientStyles[1]} />
-          <StatsCard title="Avg. Order Value" value={`₹${averageOrderValue.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`} icon={<Activity className="h-5 w-5 text-white/70" />} className={gradientStyles[2]} />
-          <StatsCard title="Total Products" value={productCount.toString()} icon={<Package className="h-5 w-5 text-white/70" />} className={gradientStyles[3]} />
-          <StatsCard title="Total Inventory" value={inventoryItemCount.toString()} icon={<Archive className="h-5 w-5 text-white/70" />} className={gradientStyles[0]} />
-          <StatsCard 
-            title="Low Stock Alerts" 
-            value={lowStockCount.toString()} 
-            icon={<AlertTriangle className="h-5 w-5 text-white" />} 
-            badgeText={lowStockCount > 0 ? `${lowStockCount} items` : undefined} 
-            badgeVariant={lowStockCount > 0 ? "destructive" : undefined} 
-            className={gradientStyles[2]}
-          />
           <StatsCard title="Active Staff" value={activeStaffCount.toString()} icon={<UsersRound className="h-5 w-5 text-white/70" />} className={gradientStyles[1]} />
            <StatsCard title="New Customers" value={newCustomers.toString()} icon={<Users className="h-5 w-5 text-white/70" />} className={gradientStyles[3]} />
         </div>
@@ -287,3 +265,5 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
+
+    
