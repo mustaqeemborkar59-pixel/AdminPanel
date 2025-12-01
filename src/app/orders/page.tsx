@@ -154,6 +154,7 @@ export default function OrdersPage() {
     };
 
     ordersToExport.forEach((order, index) => {
+        const orderDate = new Date(order.timestamp);
         if (index > 0) {
             doc.addPage();
         }
@@ -173,7 +174,7 @@ export default function OrdersPage() {
 
         doc.setFont('helvetica', 'normal');
         doc.text(order.id, 14, 40);
-        doc.text(format(new Date(order.timestamp), 'dd MMMM yyyy').toUpperCase(), 50, 40);
+        doc.text(format(orderDate, 'dd MMMM yyyy').toUpperCase(), 50, 40);
         doc.text((order.paymentMethod || 'N/A').toUpperCase(), 86, 40);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(145, 63, 42); // Primary color
@@ -483,7 +484,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
-
-    

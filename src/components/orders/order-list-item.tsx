@@ -48,6 +48,7 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
   
   const currentStatusInfo = statusInfo[order.status] || statusInfo.pending;
   const StatusIcon = currentStatusInfo.icon;
+  const orderDate = new Date(order.timestamp);
 
   return (
     <AccordionItem value={value} className="border-b-0">
@@ -64,7 +65,7 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                     <div className="flex-grow">
                         <CardTitle className="font-headline text-lg">{order.id}</CardTitle>
                         <CardDescription className="font-body text-sm mt-1">
-                        {order.customerName || 'N/A'} - <span className="text-xs">{format(new Date(order.timestamp), 'PPpp')}</span>
+                        {order.customerName || 'N/A'} - <span className="text-xs">{format(orderDate, 'PPpp')}</span>
                         </CardDescription>
                     </div>
                 </div>
