@@ -103,9 +103,9 @@ export const getOrders = async (): Promise<Order[]> => {
         };
       } catch (e) {
         if (e instanceof Error) {
-            console.error(`Failed to parse 'items' JSON for order ID ${id}. Content was: "${productsJson}". Error: ${e.message}`);
+            console.error(`Failed to parse 'items' JSON for order ID ${id}. The content in the 'items' column was: "${productsJson}". Please ensure this column contains valid JSON. Error: ${e.message}`);
         } else {
-            console.error(`Failed to parse 'items' JSON for order ID ${id}. Content was: "${productsJson}".`);
+            console.error(`Failed to parse 'items' JSON for order ID ${id}. The content in the 'items' column was: "${productsJson}".`);
         }
         return null;
       }
