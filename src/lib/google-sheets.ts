@@ -1,5 +1,5 @@
 import { google } from 'googleapis';
-import { Order, OrderItem, OrderStatus } from '@/types';
+import { Order, OrderItem, OrderStatus, Customer } from '@/types';
 
 let sheets: ReturnType<typeof google.sheets> | null = null;
 
@@ -41,7 +41,8 @@ export const getOrders = async (): Promise<Order[]> => {
   }
   
   const sheetsClient = getSheetsClient();
-  const range = `${sheetName}!A2:J`; // Assumes headers are in row 1, data starts at A2
+  // Fetching a wider range to accommodate all customer columns
+  const range = `${sheetName}!A2:N`; 
 
   try {
     const response = await sheetsClient.spreadsheets.values.get({
@@ -57,25 +58,51 @@ export const getOrders = async (): Promise<Order[]> => {
     // Maps the spreadsheet rows to Order objects.
     const orders: Order[] = rows.map((row): Order | null => {
       // Basic validation to skip empty or malformed rows.
-      if (!row[0]) return null;
+      if (!row || !row[0]) return null;
+      
+      const [
+        id, 
+        status, 
+        customerName, 
+        phone, 
+        altPhone, 
+        billingAddress, 
+        pincode, 
+        gmail, 
+        productsJson, // Column I (index 8)
+        total, 
+        date, 
+        paymentDate, 
+        trackingId, 
+        vendorName
+      ] = row;
+
 
       try {
-        const items: OrderItem[] = JSON.parse(row[2] || '[]');
+        // IMPORTANT: The 'items' are now expected in the 9th column (index 8) as a JSON string.
+        const items: OrderItem[] = JSON.parse(productsJson || '[]');
+        
+        // This structure is closer to a Customer/Order hybrid.
+        // We'll map it to the Order type for now.
         return {
-          id: row[0],
-          customerName: row[1] || '',
+          id: id,
+          customerName: customerName || '',
           items: items,
-          status: (row[3] as OrderStatus) || 'placed',
-          orderType: row[4] as Order['orderType'] || 'delivery',
-          // Corrected the indices for the new columns
-          shippingAddress: row[5] || '',
-          trackingId: row[6] || '',
-          totalAmount: parseFloat(row[7]) || 0,
-          timestamp: row[8] || new Date().toISOString(),
-          // Assuming a potential new field was intended at index 9, if not, this is safe
+          status: (status as OrderStatus) || 'placed',
+          orderType: 'delivery', // Assuming all are delivery
+          shippingAddress: billingAddress || '',
+          trackingId: trackingId || '',
+          totalAmount: parseFloat(total) || 0,
+          timestamp: date ? new Date(date).toISOString() : new Date().toISOString(),
+          // The other fields from your spec like phone, pincode, etc., are not in the Order type,
+          // but we are parsing them to avoid the crash.
         };
       } catch (e) {
-        console.error(`Failed to parse items for order ID ${row[0]}:`, e);
+        if (e instanceof Error) {
+            console.error(`Failed to parse 'items' JSON for order ID ${id}. Content was: "${productsJson}". Error: ${e.message}`);
+        } else {
+            console.error(`Failed to parse 'items' JSON for order ID ${id}. Content was: "${productsJson}".`);
+        }
         return null;
       }
     }).filter((order): order is Order => order !== null); // Filter out any null (malformed) orders
@@ -114,14 +141,18 @@ export const updateOrderStatus = async (orderId: string, status: OrderStatus): P
       return false;
     }
 
-    // Sheet rows are 1-indexed, but findIndex is 0-indexed. Headers are on row 1, data starts on row 2, so our search starts at index 1 of the array for row 2.
-    // The actual row number is index + 2. Let's re-check the logic. If our range is A2:A, row 0 of the result is sheet row 2. So row number is index + 2.
-    const rowToUpdate = rowIndex + 2; 
+    // Assuming headers are on row 1, data starts on row 2.
+    // If our search range starts from A1, rowIndex is the correct 0-based index.
+    // The sheet row number is rowIndex + 1.
+    const rowToUpdate = rowIndex + 1;
+    
+    // Status is now in the second column (B)
+    const columnToUpdate = 'B';
 
-    // Now, update the status in the 'D' column for that row.
+    // Now, update the status in the 'B' column for that row.
     const updateResponse = await sheetsClient.spreadsheets.values.update({
       spreadsheetId,
-      range: `${sheetName}!D${rowToUpdate}`,
+      range: `${sheetName}!${columnToUpdate}${rowToUpdate}`,
       valueInputOption: 'USER_ENTERED',
       requestBody: {
         values: [[status]],
