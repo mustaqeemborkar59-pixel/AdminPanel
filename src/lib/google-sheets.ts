@@ -51,6 +51,10 @@ export const getOrders = async (): Promise<Order[]> => {
     });
 
     const rows = response.data.values;
+    
+    // Log the raw data from the sheet for debugging
+    console.log('Raw data from Google Sheet:', JSON.stringify(rows, null, 2));
+
     if (!rows || rows.length === 0) {
       return [];
     }
@@ -143,8 +147,8 @@ export const updateOrderStatus = async (orderId: string, status: OrderStatus): P
 
     // Assuming headers are on row 1, data starts on row 2.
     // If our search range starts from A1, rowIndex is the correct 0-based index.
-    // The sheet row number is rowIndex + 1.
-    const rowToUpdate = rowIndex + 1;
+    // The sheet row number is rowIndex + 1. But since we started from A2, rowIndex + 2
+    const rowToUpdate = rowIndex + 2;
     
     // Status is now in the second column (B)
     const columnToUpdate = 'B';
