@@ -135,5 +135,3 @@ export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemPro
     </AccordionItem>
   );
 }
-
-    
