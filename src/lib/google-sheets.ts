@@ -1,3 +1,4 @@
+
 import { google } from 'googleapis';
 import { Order, OrderItem, OrderStatus, Customer } from '@/types';
 
@@ -53,7 +54,7 @@ export const getOrders = async (): Promise<Order[]> => {
     const rows = response.data.values;
     
     // Log the raw data from the sheet for debugging
-    console.log('Raw data from Google Sheet:', JSON.stringify(rows, null, 2));
+    // console.log('Raw data from Google Sheet:', JSON.stringify(rows, null, 2));
 
     if (!rows || rows.length === 0) {
       return [];
@@ -158,26 +159,27 @@ export const updateOrderStatus = async (orderId: string, status: OrderStatus): P
 
   try {
     // First, find the row number of the order to update.
+    // Fetch all of column A, including the header, to get a reliable index.
     const findResponse = await sheetsClient.spreadsheets.values.get({
       spreadsheetId,
-      range: `${sheetName}!A:A`, // Search in the ID column
+      range: `${sheetName}!A:A`, // Search in the ID column (from the first row)
     });
 
     const rows = findResponse.data.values;
     if (!rows) return false;
 
+    // Find the 0-based index of the row containing our orderId.
     const rowIndex = rows.findIndex(row => row[0] === orderId);
+
     if (rowIndex === -1) {
       console.error(`Order ID ${orderId} not found in sheet.`);
       return false;
     }
-
-    // Assuming headers are on row 1, data starts on row 2.
-    // If our search range starts from A1, rowIndex is the correct 0-based index.
-    // The sheet row number is rowIndex + 1. But since we started from A2, rowIndex + 2
-    const rowToUpdate = rowIndex + 2;
     
-    // Status is now in the second column (B)
+    // The actual sheet row number is the 0-based index + 1.
+    const rowToUpdate = rowIndex + 1;
+    
+    // Status is in the second column (B).
     const columnToUpdate = 'B';
 
     // Now, update the status in the 'B' column for that row.
