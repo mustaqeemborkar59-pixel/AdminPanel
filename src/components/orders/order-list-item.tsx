@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CheckCircle, Clock, Package, Truck, XCircle, PackageSearch, ChevronDown, Archive, Loader } from 'lucide-react';
-import { format } from 'date-fns';
+
 import {
   Select,
   SelectContent,
@@ -30,6 +30,7 @@ interface OrderListItemProps {
   value: string; // For AccordionItem
   isSelected: boolean;
   onToggleSelect: (orderId: string) => void;
+  formatDate: (date: string | Date) => string;
 }
 
 const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; label: string }> = {
@@ -44,12 +45,11 @@ const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; 
 };
 
 
-export function OrderListItem({ order, onUpdateStatus, value, isSelected, onToggleSelect }: OrderListItemProps) {
+export function OrderListItem({ order, onUpdateStatus, value, isSelected, onToggleSelect, formatDate }: OrderListItemProps) {
   
   const currentStatusInfo = statusInfo[order.status] || statusInfo.pending;
   const StatusIcon = currentStatusInfo.icon;
-  const orderDate = new Date(order.timestamp);
-
+  
   return (
     <AccordionItem value={value} className="border-b-0">
         <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
@@ -65,7 +65,7 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                     <div className="flex-grow">
                         <CardTitle className="font-headline text-lg">{order.id}</CardTitle>
                         <CardDescription className="font-body text-sm mt-1">
-                        {order.customerName || 'N/A'} - <span className="text-xs">{format(orderDate, 'PPpp')}</span>
+                        {order.customerName || 'N/A'} - <span className="text-xs">{formatDate(order.timestamp)}</span>
                         </CardDescription>
                     </div>
                 </div>

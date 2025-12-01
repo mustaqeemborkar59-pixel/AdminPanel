@@ -30,11 +30,25 @@ import { Input } from '@/components/ui/input';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-import { format } from 'date-fns';
 
 
 const orderStatuses: OrderStatus[] = ['pending', 'queue', 'processing', 'dispatch', 'completed', 'hold', 'failed', 'cancelled'];
 const ITEMS_PER_PAGE = 10;
+
+// New timezone-aware formatting function
+function formatDateInIST(dateInput: string | Date): string {
+  const date = new Date(dateInput);
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: true,
+    timeZone: 'Asia/Kolkata' // Explicitly set the timezone to IST
+  }).format(date);
+}
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -154,7 +168,6 @@ export default function OrdersPage() {
     };
 
     ordersToExport.forEach((order, index) => {
-        const orderDate = new Date(order.timestamp);
         if (index > 0) {
             doc.addPage();
         }
@@ -174,7 +187,7 @@ export default function OrdersPage() {
 
         doc.setFont('helvetica', 'normal');
         doc.text(order.id, 14, 40);
-        doc.text(format(orderDate, 'dd MMMM yyyy').toUpperCase(), 50, 40);
+        doc.text(new Date(order.timestamp).toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase(), 50, 40);
         doc.text((order.paymentMethod || 'N/A').toUpperCase(), 86, 40);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(145, 63, 42); // Primary color
@@ -275,7 +288,7 @@ export default function OrdersPage() {
         "Order Status": order.status,
         "Customer Name": order.customerName,
         "Customer Email": order.gmail,
-        "Order Date": format(new Date(order.timestamp), 'yyyy-MM-dd'),
+        "Order Date": formatDateInIST(order.timestamp),
         "Product Name": item.name,
         "Quantity": item.qty,
         "Unit Price": item.price,
@@ -443,6 +456,7 @@ export default function OrdersPage() {
                   value={`${order.id}-${startIndex + index}`}
                   isSelected={selectedOrderIds.has(order.id)}
                   onToggleSelect={toggleSelectOrder}
+                  formatDate={formatDateInIST}
                 />
               ))}
             </Accordion>
