@@ -7,10 +7,11 @@ import { OrderListItem } from '@/components/orders/order-list-item';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getOrdersFromSheet, updateOrderStatusInSheet } from './actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Accordion } from '@/components/ui/accordion';
+import { Input } from '@/components/ui/input';
 
 const orderStatuses: OrderStatus[] = ['pending', 'queue', 'dispatch', 'completed', 'hold', 'failed', 'cancelled'];
 const ITEMS_PER_PAGE = 5;
@@ -21,6 +22,7 @@ export default function OrdersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -40,10 +42,10 @@ export default function OrdersPage() {
     fetchOrders();
   }, [toast]);
   
-  // Reset to page 1 whenever the tab changes
+  // Reset to page 1 whenever the tab or search term changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [currentTab]);
+  }, [currentTab, searchTerm]);
 
   const handleUpdateOrderStatus = async (orderId: string, status: OrderStatus) => {
     // Optimistically update UI
@@ -68,9 +70,12 @@ export default function OrdersPage() {
     }
   };
 
-  const filteredOrders = currentTab === 'all'
-    ? orders
-    : orders.filter(order => order.status === currentTab);
+  const filteredOrders = orders
+    .filter(order => currentTab === 'all' || order.status === currentTab)
+    .filter(order => 
+        order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (order.customerName && order.customerName.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
   
   const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -95,7 +100,17 @@ export default function OrdersPage() {
         title="Order Management"
         description="View and manage customer orders for your online shop from Google Sheets."
       />
-      <div className="px-4 md:px-6 pt-4">
+      <div className="px-4 md:px-6 pt-4 space-y-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search by Order ID or Customer Name..."
+            className="pl-10 w-full md:max-w-sm"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
         <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as OrderStatus | 'all')}>
           <TabsList className="grid w-full grid-cols-4 md:grid-cols-8">
             <TabsTrigger value="all" className="font-body">All</TabsTrigger>
@@ -118,7 +133,7 @@ export default function OrdersPage() {
           </Accordion>
         ) : (
           <div className="text-center py-12">
-            <p className="text-muted-foreground font-body">No orders found for this status.</p>
+            <p className="text-muted-foreground font-body">No orders found.</p>
           </div>
         )}
       </div>
