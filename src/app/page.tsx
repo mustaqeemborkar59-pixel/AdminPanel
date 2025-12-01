@@ -111,11 +111,18 @@ function DashboardContent() {
   
   useEffect(() => {
     if (orders.length > 0) {
-      const currentTotalSales = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+      const validOrdersForRevenue = orders.filter(order => 
+        !['pending', 'failed', 'cancelled'].includes(order.status)
+      );
+
+      const currentTotalSales = validOrdersForRevenue.reduce((sum, order) => sum + order.totalAmount, 0);
       const currentTotalOrders = orders.length;
+
       setTotalSales(currentTotalSales);
       setTotalOrders(currentTotalOrders);
-      setAverageOrderValue(currentTotalOrders > 0 ? currentTotalSales / currentTotalOrders : 0);
+      
+      const successfulOrdersCount = validOrdersForRevenue.length;
+      setAverageOrderValue(successfulOrdersCount > 0 ? currentTotalSales / successfulOrdersCount : 0);
     } else {
       setTotalSales(0);
       setTotalOrders(0);
@@ -281,4 +288,5 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
   );
 }
 
+    
     
