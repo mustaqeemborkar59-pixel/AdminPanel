@@ -112,6 +112,19 @@ export const getOrders = async (): Promise<Order[]> => {
 
         const items: OrderItem[] = parseProducts(productsString || '');
         
+        let orderDate = new Date(); // Default to now if date is invalid
+        if (date) {
+            // Assuming date format from sheet is DD-MM-YYYY
+            const parts = date.split('-');
+            if (parts.length === 3) {
+                // Year, Month (0-indexed), Day
+                orderDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+            } else {
+                // Fallback for other potential formats, though may be less reliable
+                orderDate = new Date(date);
+            }
+        }
+
         // This structure is closer to a Customer/Order hybrid.
         // We'll map it to the Order type for now.
         return {
@@ -126,7 +139,7 @@ export const getOrders = async (): Promise<Order[]> => {
           totalAmount: totalAsNumber,
           subTotal: totalAsNumber, // Assuming total is subtotal for now
           taxAmount: 0, // Assuming no tax specified in sheet
-          timestamp: date ? new Date(date).toISOString() : new Date().toISOString(),
+          timestamp: orderDate.toISOString(),
           // The other fields from your spec like phone, pincode, etc., are not in the Order type,
           // but we are parsing them to avoid the crash.
         };
