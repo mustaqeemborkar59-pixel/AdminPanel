@@ -121,9 +121,9 @@ export default function OrdersPage() {
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full sm:w-auto capitalize">
               <ListFilter className="mr-2 h-4 w-4" />
-              Filter by Status
+              {statusFilter === 'all' ? 'Filter by Status' : statusFilter}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
