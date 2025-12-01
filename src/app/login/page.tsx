@@ -14,7 +14,7 @@ export default function LoginPage() {
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-headline text-primary">Welcome Back!</CardTitle>
           <CardDescription className="text-muted-foreground font-body pt-1">
-            Sign in to access your GastroFlow dashboard.
+            Sign in to access your shop dashboard.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">

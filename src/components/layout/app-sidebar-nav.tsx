@@ -6,15 +6,12 @@ import { usePathname, useRouter } from 'next/navigation'; // Added useRouter
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
-  Utensils,
+  Package,
   ClipboardList,
   Archive,
-  Sparkles,
-  UsersRound,
+  Users,
   Settings,
   PanelLeft,
-  SquareStack,
-  CalendarCheck,
   Truck,
   LogOut,
 } from 'lucide-react';
@@ -38,14 +35,11 @@ import { useToast } from '@/hooks/use-toast'; // For potential error messages
 
 const mainNavItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/menu', label: 'Menu', icon: Utensils },
+  { href: '/products', label: 'Products', icon: Package },
   { href: '/orders', label: 'Orders', icon: ClipboardList },
-  { href: '/tables', label: 'Table Services', icon: SquareStack },
-  { href: '/reservations', label: 'Reservation', icon: CalendarCheck },
   { href: '/delivery', label: 'Delivery', icon: Truck },
   { href: '/inventory', label: 'Inventory', icon: Archive },
-  { href: '/specials', label: 'Specials', icon: Sparkles },
-  { href: '/staff', label: 'Staff', icon: UsersRound },
+  { href: '/customers', label: 'Customers', icon: Users },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 

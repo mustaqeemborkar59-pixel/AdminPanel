@@ -5,38 +5,36 @@ import { useState, useEffect, ReactNode, Suspense } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { DollarSign, Users, ShoppingBag, Archive, Activity, AlertTriangle, UsersRound, Utensils, ChevronDown } from 'lucide-react';
+import { DollarSign, Users, ShoppingBag, Archive, Activity, AlertTriangle, UsersRound, Package, ChevronDown } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label, LabelList } from 'recharts';
 import type { Order, InventoryItem, StaffMember, OrderStatus, OrderType, MenuItem } from '@/types';
 import { initialMenuItems } from '@/lib/menu-item-data';
 import { cn } from '@/lib/utils';
 
 
-// --- Initial Data (copied from other pages for demonstration) ---
+// --- Initial Data (adapted for e-commerce) ---
 const initialOrdersData: Order[] = [
-  { id: 'ORD001', customerName: 'Alice Smith', items: [{ itemId: '1', name: 'Margherita Pizza', qty: 1, price: 12.99, imageUrl: 'https://placehold.co/100x100.png' }], status: 'preparing', orderType: 'dine-in', tableNumber: '5', totalAmount: 12.99, subTotal: 12.99, taxAmount: 0, timestamp: new Date().toISOString() },
-  { id: 'ORD002', customerName: 'Bob Johnson', items: [{ itemId: '2', name: 'Spaghetti Carbonara', qty: 2, price: 15.50, imageUrl: 'https://placehold.co/100x100.png' }], status: 'placed', orderType: 'takeaway', totalAmount: 31.00, subTotal: 31.00, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString() },
-  { id: 'ORD003', customerName: 'Carol Williams', items: [{ itemId: '3', name: 'Caesar Salad', qty: 1, price: 9.75, imageUrl: 'https://placehold.co/100x100.png' }, { itemId: '4', name: 'Tiramisu', qty: 1, price: 7.00, imageUrl: 'https://placehold.co/100x100.png' }], status: 'delivered', orderType: 'delivery', totalAmount: 16.75, subTotal: 16.75, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString() },
-  { id: 'ORD004', customerName: 'David Brown', items: [{ itemId: '1', name: 'Margherita Pizza', qty: 1, price: 12.99, imageUrl: 'https://placehold.co/100x100.png' }, { itemId: '5', name: 'Bruschetta', qty: 1, price: 8.50, imageUrl: 'https://placehold.co/100x100.png' }], status: 'ready', orderType: 'dine-in', tableNumber: '2', totalAmount: 21.49, subTotal: 21.49, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
-  { id: 'ORD005', customerName: 'Eva Green', items: [{ itemId: '2', name: 'Spaghetti Carbonara', qty: 1, price: 15.50, imageUrl: 'https://placehold.co/100x100.png' }], status: 'placed', orderType: 'takeaway', totalAmount: 15.50, subTotal: 15.50, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString() },
+  { id: 'ORD001', customerName: 'Alice Smith', items: [{ itemId: '1', name: 'Laptop Pro', qty: 1, price: 1299.00, imageUrl: 'https://placehold.co/100x100.png' }], status: 'preparing', orderType: 'delivery', totalAmount: 1299.00, subTotal: 1299.00, taxAmount: 0, timestamp: new Date().toISOString() },
+  { id: 'ORD002', customerName: 'Bob Johnson', items: [{ itemId: '2', name: 'Wireless Mouse', qty: 2, price: 55.50, imageUrl: 'https://placehold.co/100x100.png' }], status: 'placed', orderType: 'delivery', totalAmount: 111.00, subTotal: 111.00, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString() },
+  { id: 'ORD003', customerName: 'Carol Williams', items: [{ itemId: '3', name: 'USB-C Hub', qty: 1, price: 39.75, imageUrl: 'https://placehold.co/100x100.png' }, { itemId: '4', name: 'Keyboard', qty: 1, price: 70.00, imageUrl: 'https://placehold.co/100x100.png' }], status: 'delivered', orderType: 'delivery', totalAmount: 109.75, subTotal: 109.75, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString() },
+  { id: 'ORD004', customerName: 'David Brown', items: [{ itemId: '1', name: 'Laptop Pro', qty: 1, price: 1299.00, imageUrl: 'https://placehold.co/100x100.png' }, { itemId: '5', name: 'Laptop Stand', qty: 1, price: 48.50, imageUrl: 'https://placehold.co/100x100.png' }], status: 'ready', orderType: 'delivery', totalAmount: 1347.50, subTotal: 1347.50, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
+  { id: 'ORD005', customerName: 'Eva Green', items: [{ itemId: '2', name: 'Wireless Mouse', qty: 1, price: 55.50, imageUrl: 'https://placehold.co/100x100.png' }], status: 'placed', orderType: 'takeaway', totalAmount: 55.50, subTotal: 55.50, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString() },
 ];
 
 
 const initialInventoryItemsData: InventoryItem[] = [
-  { id: 'INV001', name: 'Tomatoes', quantity: 50, unit: 'kg', alertLevel: 10, vendor: 'Fresh Farms Co.' },
-  { id: 'INV002', name: 'Pasta', quantity: 100, unit: 'kg', alertLevel: 20, vendor: 'Italian Imports' },
-  { id: 'INV003', name: 'Olive Oil', quantity: 20, unit: 'liters', alertLevel: 5, vendor: 'Organic Oils Ltd.' },
-  { id: 'INV004', name: 'Chicken Breast', quantity: 3, unit: 'kg', alertLevel: 10, vendor: 'Local Butchers' },
-  { id: 'INV005', name: 'Mozzarella Cheese', quantity: 15, unit: 'kg', alertLevel: 5, vendor: 'Dairy Best' },
-  { id: 'INV006', name: 'Flour', quantity: 2, unit: 'kg', alertLevel: 5, vendor: 'Bulk Goods Inc.' },
+  { id: 'INV001', name: 'Laptop Pro', quantity: 50, unit: 'pcs', alertLevel: 10, vendor: 'Tech Supply Co.' },
+  { id: 'INV002', name: 'Wireless Mouse', quantity: 100, unit: 'pcs', alertLevel: 20, vendor: 'Gadget Imports' },
+  { id: 'INV003', name: 'USB-C Hub', quantity: 20, unit: 'pcs', alertLevel: 5, vendor: 'Accessories Ltd.' },
+  { id: 'INV004', name: 'Keyboard', quantity: 3, unit: 'pcs', alertLevel: 10, vendor: 'Local Electronics' },
+  { id: 'INV005', name: 'Webcam', quantity: 15, unit: 'pcs', alertLevel: 5, vendor: 'Vision Best' },
+  { id: 'INV006', name: 'Monitor', quantity: 2, unit: 'pcs', alertLevel: 5, vendor: 'Displays Inc.' },
 ];
 
 const initialStaffData: StaffMember[] = [
-  { id: 'STAFF001', name: 'John Doe', role: 'Chef', shift: '9 AM - 5 PM', status: 'on-duty' },
-  { id: 'STAFF002', name: 'Jane Smith', role: 'Waiter', shift: '12 PM - 8 PM', status: 'on-duty' },
-  { id: 'STAFF003', name: 'Mike Brown', role: 'Delivery Driver', shift: '10 AM - 6 PM', status: 'off-duty' },
-  { id: 'STAFF004', name: 'Emily White', role: 'Manager', shift: '8 AM - 4 PM', status: 'on-leave' },
-  { id: 'STAFF005', name: 'Chris Green', role: 'Waiter', shift: '5 PM - 1 AM', status: 'on-duty' },
+    { id: 'STAFF001', name: 'John Doe', role: 'Fulfillment', shift: '9 AM - 5 PM', status: 'on-duty' },
+    { id: 'STAFF002', name: 'Jane Smith', role: 'Support', shift: '12 PM - 8 PM', status: 'on-duty' },
+    { id: 'STAFF003', name: 'Mike Brown', role: 'Marketing', shift: '10 AM - 6 PM', status: 'off-duty' },
 ];
 // --- End Initial Data ---
 
@@ -93,7 +91,7 @@ function DashboardContent() {
   const [averageOrderValue, setAverageOrderValue] = useState(0);
   const [inventoryItemCount, setInventoryItemCount] = useState(0);
   const [lowStockCount, setLowStockCount] = useState(0);
-  const [menuItemCount, setMenuItemCount] = useState(0);
+  const [productCount, setProductCount] = useState(0);
   const [activeStaffCount, setActiveStaffCount] = useState(0);
   const newCustomers = 45; // Placeholder data
 
@@ -106,20 +104,20 @@ function DashboardContent() {
 
     setInventoryItemCount(initialInventoryItemsData.length);
     setLowStockCount(initialInventoryItemsData.filter(item => item.quantity <= item.alertLevel).length);
-    setMenuItemCount(initialMenuItems.length);
+    setProductCount(initialMenuItems.length);
     setActiveStaffCount(initialStaffData.filter(staff => staff.status === 'on-duty').length);
   }, []);
 
 
   return (
     <div className="flex flex-col h-full">
-      <PageHeader title="Restaurant Dashboard" description="Comprehensive overview of your restaurant's operations and performance." />
+      <PageHeader title="Shop Dashboard" description="Comprehensive overview of your online store's operations and performance." />
       <div className="flex-1 p-4 md:p-6 space-y-6 overflow-auto">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatsCard title="Total Sales" value={`$${totalSales.toFixed(2)}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={gradientStyles[0]} />
+          <StatsCard title="Total Revenue" value={`$${totalSales.toFixed(2)}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={gradientStyles[0]} />
           <StatsCard title="Total Orders" value={totalOrders.toString()} icon={<ShoppingBag className="h-5 w-5 text-white/70" />} className={gradientStyles[1]} />
           <StatsCard title="Avg. Order Value" value={`$${averageOrderValue.toFixed(2)}`} icon={<Activity className="h-5 w-5 text-white/70" />} className={gradientStyles[2]} />
-          <StatsCard title="Menu Items" value={menuItemCount.toString()} icon={<Utensils className="h-5 w-5 text-white/70" />} className={gradientStyles[3]} />
+          <StatsCard title="Total Products" value={productCount.toString()} icon={<Package className="h-5 w-5 text-white/70" />} className={gradientStyles[3]} />
           <StatsCard title="Total Inventory" value={inventoryItemCount.toString()} icon={<Archive className="h-5 w-5 text-white/70" />} className={gradientStyles[0]} />
           <StatsCard 
             title="Low Stock Alerts" 
@@ -250,5 +248,3 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
-
-    

@@ -14,7 +14,7 @@ export default function SignupPage() {
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-headline text-primary">Create Your Account</CardTitle>
           <CardDescription className="text-muted-foreground font-body pt-1">
-            Join GastroFlow to manage your restaurant efficiently.
+            Join to manage your online shop efficiently.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">

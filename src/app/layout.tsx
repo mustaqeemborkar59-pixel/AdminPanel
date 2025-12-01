@@ -7,8 +7,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 
 export const metadata: Metadata = {
-  title: 'SW Software Solutions POS',
-  description: 'Restaurant Management & POS System by SW Software Solutions',
+  title: 'E-commerce Dashboard',
+  description: 'Online Shop Management System',
 };
 
 export default function RootLayout({
