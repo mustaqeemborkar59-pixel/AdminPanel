@@ -4,7 +4,7 @@ import { type Order, type OrderStatus } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { CheckCircle, Clock, Package, Truck, XCircle, PackageCheck, PackageSearch, ChevronDown } from 'lucide-react';
+import { CheckCircle, Clock, Package, Truck, XCircle, PackageSearch, ChevronDown, Archive } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import {
   Select,
@@ -29,16 +29,18 @@ interface OrderListItemProps {
 }
 
 const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; label: string }> = {
-  placed: { icon: Clock, color: 'bg-blue-500', label: 'Placed' },
-  processing: { icon: PackageSearch, color: 'bg-yellow-500', label: 'Processing' },
-  shipped: { icon: PackageCheck, color: 'bg-indigo-500', label: 'Shipped' },
-  delivered: { icon: Truck, color: 'bg-green-500', label: 'Delivered' },
-  cancelled: { icon: XCircle, color: 'bg-red-500', label: 'Cancelled' },
+  pending: { icon: PackageSearch, color: 'bg-yellow-500', label: 'Pending' },
+  failed: { icon: XCircle, color: 'bg-red-500', label: 'Failed' },
+  cancelled: { icon: XCircle, color: 'bg-red-600', label: 'Cancelled' },
+  queue: { icon: Clock, color: 'bg-blue-500', label: 'In Queue' },
+  completed: { icon: CheckCircle, color: 'bg-green-500', label: 'Completed' },
+  hold: { icon: Archive, color: 'bg-orange-500', label: 'On Hold' },
+  dispatch: { icon: Truck, color: 'bg-indigo-500', label: 'Dispatched' },
 };
 
 
 export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemProps) {
-  const currentStatusInfo = statusInfo[order.status] || statusInfo.placed;
+  const currentStatusInfo = statusInfo[order.status] || statusInfo.pending;
   const StatusIcon = currentStatusInfo.icon;
 
   return (
@@ -66,7 +68,7 @@ export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemPro
                             <SelectTrigger className={cn(
                                 "w-full sm:w-[140px] font-body text-xs h-9 capitalize",
                                 `border-0 bg-opacity-10 dark:bg-opacity-20`,
-                                `${currentStatusInfo.color.replace('bg-','bg-/')} ${currentStatusInfo.color.replace('bg-','text-').replace('-500','-700 dark:text-white')}`
+                                `${currentStatusInfo.color.replace('bg-','bg-/')} ${currentStatusInfo.color.replace('bg-','text-').replace('-500','-700 dark:text-white').replace('-600','-800 dark:text-white')}`
                             )}>
                                 <div className="flex items-center gap-1.5">
                                     <StatusIcon className="h-3 w-3" />
@@ -82,10 +84,10 @@ export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemPro
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 w-full sm:w-auto self-end">
+                <div className="flex items-center gap-2 w-full sm:w-auto self-end sm:self-center">
                      <AccordionTrigger className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-9 w-full p-2")}>
                         <span className="ml-2">Details</span>
-                        <ChevronDown className="h-4 w-4 transition-transform duration-200" />
+                        <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
                     </AccordionTrigger>
                 </div>
 

@@ -22,7 +22,7 @@ export interface OrderItem {
   imageHint?: string;
 }
 
-export type OrderStatus = 'placed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+export type OrderStatus = 'pending' | 'failed' | 'cancelled' | 'queue' | 'completed' | 'hold' | 'dispatch';
 export type OrderType = 'delivery' | 'takeaway' | 'dine-in';
 
 export interface Order {
