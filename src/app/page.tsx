@@ -5,23 +5,15 @@ import { useState, useEffect, ReactNode, Suspense } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { DollarSign, Users, ShoppingBag, Archive, Activity, AlertTriangle, UsersRound, Package, ChevronDown } from 'lucide-react';
+import { DollarSign, Users, ShoppingBag, Archive, Activity, AlertTriangle, UsersRound, Package, ChevronDown, Loader2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label, LabelList } from 'recharts';
 import type { Order, InventoryItem, StaffMember, OrderStatus, OrderType, MenuItem } from '@/types';
 import { initialMenuItems } from '@/lib/menu-item-data';
 import { cn } from '@/lib/utils';
-
+import { getOrdersFromSheet } from '@/app/orders/actions';
+import { useToast } from '@/hooks/use-toast';
 
 // --- Initial Data (adapted for e-commerce) ---
-const initialOrdersData: Order[] = [
-  { id: 'ORD001', customerName: 'Alice Smith', items: [{ itemId: '1', name: 'Laptop Pro', qty: 1, price: 1299.00, imageUrl: 'https://placehold.co/100x100.png' }], status: 'queue', orderType: 'delivery', totalAmount: 1299.00, subTotal: 1299.00, taxAmount: 0, timestamp: new Date().toISOString() },
-  { id: 'ORD002', customerName: 'Bob Johnson', items: [{ itemId: '2', name: 'Wireless Mouse', qty: 2, price: 55.50, imageUrl: 'https://placehold.co/100x100.png' }], status: 'pending', orderType: 'delivery', totalAmount: 111.00, subTotal: 111.00, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString() },
-  { id: 'ORD003', customerName: 'Carol Williams', items: [{ itemId: '3', name: 'USB-C Hub', qty: 1, price: 39.75, imageUrl: 'https://placehold.co/100x100.png' }, { itemId: '4', name: 'Keyboard', qty: 1, price: 70.00, imageUrl: 'https://placehold.co/100x100.png' }], status: 'completed', orderType: 'delivery', totalAmount: 109.75, subTotal: 109.75, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString() },
-  { id: 'ORD004', customerName: 'David Brown', items: [{ itemId: '1', name: 'Laptop Pro', qty: 1, price: 1299.00, imageUrl: 'https://placehold.co/100x100.png' }, { itemId: '5', name: 'Laptop Stand', qty: 1, price: 48.50, imageUrl: 'https://placehold.co/100x100.png' }], status: 'dispatch', orderType: 'delivery', totalAmount: 1347.50, subTotal: 1347.50, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
-  { id: 'ORD005', customerName: 'Eva Green', items: [{ itemId: '2', name: 'Wireless Mouse', qty: 1, price: 55.50, imageUrl: 'https://placehold.co/100x100.png' }], status: 'pending', orderType: 'takeaway', totalAmount: 55.50, subTotal: 55.50, taxAmount: 0, timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString() },
-];
-
-
 const initialInventoryItemsData: InventoryItem[] = [
   { id: 'INV001', name: 'Laptop Pro', quantity: 50, unit: 'pcs', alertLevel: 10, vendor: 'Tech Supply Co.' },
   { id: 'INV002', name: 'Wireless Mouse', quantity: 100, unit: 'pcs', alertLevel: 20, vendor: 'Gadget Imports' },
@@ -86,6 +78,10 @@ const renderCustomLegend = (props: any) => {
 
 
 function DashboardContent() {
+  const { toast } = useToast();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [totalSales, setTotalSales] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
   const [averageOrderValue, setAverageOrderValue] = useState(0);
@@ -96,18 +92,54 @@ function DashboardContent() {
   const newCustomers = 45; // Placeholder data
 
   useEffect(() => {
-    const currentTotalSales = initialOrdersData.reduce((sum, order) => sum + order.totalAmount, 0);
-    const currentTotalOrders = initialOrdersData.length;
-    setTotalSales(currentTotalSales);
-    setTotalOrders(currentTotalOrders);
-    setAverageOrderValue(currentTotalOrders > 0 ? currentTotalSales / currentTotalOrders : 0);
+    const fetchOrders = async () => {
+      setIsLoading(true);
+      const result = await getOrdersFromSheet();
+      if (result.success && result.data) {
+        setOrders(result.data);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Failed to load dashboard data",
+          description: result.error || "Could not fetch order data from Google Sheet.",
+        });
+      }
+      setIsLoading(false);
+    };
+    fetchOrders();
+  }, [toast]);
+  
+  useEffect(() => {
+    if (orders.length > 0) {
+      const currentTotalSales = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+      const currentTotalOrders = orders.length;
+      setTotalSales(currentTotalSales);
+      setTotalOrders(currentTotalOrders);
+      setAverageOrderValue(currentTotalOrders > 0 ? currentTotalSales / currentTotalOrders : 0);
+    } else {
+      setTotalSales(0);
+      setTotalOrders(0);
+      setAverageOrderValue(0);
+    }
 
+    // Static data remains for now
     setInventoryItemCount(initialInventoryItemsData.length);
     setLowStockCount(initialInventoryItemsData.filter(item => item.quantity <= item.alertLevel).length);
     setProductCount(initialMenuItems.length);
     setActiveStaffCount(initialStaffData.filter(staff => staff.status === 'on-duty').length);
-  }, []);
+  }, [orders]);
 
+
+  if (isLoading) {
+    return (
+        <div className="flex flex-col h-full">
+            <PageHeader title="Shop Dashboard" description="Comprehensive overview of your online store's operations and performance." />
+            <div className="flex-1 flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full">
