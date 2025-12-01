@@ -34,7 +34,7 @@ import { format } from 'date-fns';
 
 
 const orderStatuses: OrderStatus[] = ['pending', 'queue', 'processing', 'dispatch', 'completed', 'hold', 'failed', 'cancelled'];
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 10;
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -408,5 +408,7 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
 
     
