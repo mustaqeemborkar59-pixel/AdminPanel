@@ -75,7 +75,6 @@ export default function OrdersPage() {
     setCurrentPage(1);
   }, [statusFilter, searchTerm]);
 
-  // This effect now ONLY triggers the print job when isPrinting is true
   useEffect(() => {
     if (isPrinting && ordersForCombinedPrint.length > 0) {
       handlePrint();
@@ -184,20 +183,8 @@ export default function OrdersPage() {
         ordersToExport = filteredOrders;
     }
     
-    // Set the state which will trigger the useEffect for printing
     setOrdersForCombinedPrint(ordersToExport);
-
-    if (type === 'selected-separate') {
-      // For separate PDFs, trigger print for each one by one.
-      ordersToExport.forEach((order) => {
-        setOrdersForCombinedPrint([order]);
-        setIsPrinting(true); // Trigger print for each
-      });
-    } else {
-       // For combined PDFs, set all at once and trigger print.
-      setOrdersForCombinedPrint(ordersToExport);
-      setIsPrinting(true);
-    }
+    setIsPrinting(true);
   };
 
   return (
@@ -270,12 +257,12 @@ export default function OrdersPage() {
             <div className="flex items-center gap-2 px-1 py-2">
                 <Checkbox
                     id="select-all"
-                    checked={selectedOrderIds.size > 0 && selectedOrderIds.size === paginatedOrders.length}
+                    checked={selectedOrderIds.size > 0 && selectedOrderIds.size === paginatedOrders.length && paginatedOrders.length > 0}
                     onCheckedChange={toggleSelectAll}
                     aria-label="Select all orders on this page"
                 />
                 <Label htmlFor="select-all" className="text-sm font-medium text-muted-foreground">
-                    Select All
+                    Select All on Page
                 </Label>
             </div>
             <Accordion type="single" collapsible className="space-y-4">
@@ -331,3 +318,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
