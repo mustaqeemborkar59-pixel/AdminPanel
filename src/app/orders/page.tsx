@@ -41,24 +41,10 @@ export default function OrdersPage() {
 
   const printComponentRef = useRef<HTMLDivElement>(null);
   const [ordersForCombinedPrint, setOrdersForCombinedPrint] = useState<Order[]>([]);
-  const [isPrinting, setIsPrinting] = useState(false);
-
+  
   const handlePrint = useReactToPrint({
     content: () => printComponentRef.current,
   });
-
-  useEffect(() => {
-    // This effect triggers the print dialog once React has rendered the content.
-    // The setTimeout ensures it runs after the current execution stack is clear.
-    if (isPrinting && ordersForCombinedPrint.length > 0) {
-      setTimeout(() => {
-        handlePrint();
-        // Reset state after triggering print
-        setOrdersForCombinedPrint([]);
-        setIsPrinting(false);
-      }, 0);
-    }
-  }, [isPrinting, ordersForCombinedPrint, handlePrint]);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -81,6 +67,16 @@ export default function OrdersPage() {
   useEffect(() => {
     setCurrentPage(1);
   }, [statusFilter, searchTerm]);
+
+  // This effect will run after the state is updated and the component re-renders
+  useEffect(() => {
+    if (ordersForCombinedPrint.length > 0) {
+      handlePrint();
+      // Reset after printing
+      setOrdersForCombinedPrint([]);
+    }
+  }, [ordersForCombinedPrint, handlePrint]);
+
 
   const handleUpdateOrderStatus = async (orderId: string, status: OrderStatus) => {
     const originalOrders = [...orders];
@@ -184,15 +180,13 @@ export default function OrdersPage() {
     }
 
     if (type === 'selected-separate') {
+      // For separate PDFs, trigger print for each one by one.
       ordersToExport.forEach((order) => {
-        // For separate prints, we set one order at a time and trigger print
         setOrdersForCombinedPrint([order]);
-        setIsPrinting(true);
       });
     } else {
-       // For combined prints, set all orders at once
+       // For combined PDFs, set all at once.
       setOrdersForCombinedPrint(ordersToExport);
-      setIsPrinting(true); // This will trigger the useEffect to print
     }
   };
 
@@ -321,11 +315,9 @@ export default function OrdersPage() {
           </div>
         </div>
       )}
-      <div className="hidden">
+      <div style={{ display: 'none' }}>
         <OrderInvoicesForPrint ref={printComponentRef} orders={ordersForCombinedPrint} />
       </div>
     </div>
   );
 }
-
-    

@@ -22,21 +22,9 @@ export const OrderInvoicesForPrint = React.forwardRef<HTMLDivElement, OrderInvoi
         </div>
       ))}
       <style jsx global>{`
-        .page-break-after {
-          page-break-after: always;
-        }
         @media print {
-          body * {
-            visibility: hidden;
-          }
-          .printable-area, .printable-area * {
-            visibility: visible;
-          }
-          .printable-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
+          .page-break-after {
+            page-break-after: always;
           }
         }
       `}</style>
