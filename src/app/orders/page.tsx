@@ -38,12 +38,19 @@ const ITEMS_PER_PAGE = 10;
 // New timezone-aware formatting function
 function formatDateInIST(dateInput: string | Date): string {
   const date = new Date(dateInput);
-  return new Intl.DateTimeFormat('en-GB', {
+  const options: Intl.DateTimeFormatOptions = {
     year: 'numeric',
-    month: 'short',
+    month: '2-digit',
     day: '2-digit',
-    timeZone: 'Asia/Kolkata' // Explicitly set the timezone to IST
-  }).format(date);
+    timeZone: 'Asia/Kolkata'
+  };
+  
+  const formattedParts = new Intl.DateTimeFormat('en-GB', options).formatToParts(date);
+  const day = formattedParts.find(p => p.type === 'day')?.value;
+  const month = formattedParts.find(p => p.type === 'month')?.value;
+  const year = formattedParts.find(p => p.type === 'year')?.value;
+
+  return `${day} ${month}, ${year}`;
 }
 
 export default function OrdersPage() {
@@ -496,3 +503,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
