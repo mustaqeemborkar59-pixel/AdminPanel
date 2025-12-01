@@ -41,18 +41,26 @@ export default function OrdersPage() {
 
   const printComponentRef = useRef<HTMLDivElement>(null);
   const [ordersForCombinedPrint, setOrdersForCombinedPrint] = useState<Order[]>([]);
+  const [isPrinting, setIsPrinting] = useState(false);
 
   const handlePrint = useReactToPrint({
     content: () => printComponentRef.current,
+    onAfterPrint: () => {
+      // Reset state after printing is done
+      setOrdersForCombinedPrint([]);
+      setIsPrinting(false);
+    },
   });
 
   useEffect(() => {
-    if (ordersForCombinedPrint.length > 0) {
-      handlePrint();
-      // Clear state after triggering print to prevent re-triggering
-      setOrdersForCombinedPrint([]); 
+    // This effect triggers the print dialog once React has rendered the content.
+    // The setTimeout ensures it runs after the current execution stack is clear.
+    if (isPrinting && ordersForCombinedPrint.length > 0) {
+      setTimeout(() => {
+        handlePrint();
+      }, 0);
     }
-  }, [ordersForCombinedPrint, handlePrint]);
+  }, [isPrinting, ordersForCombinedPrint, handlePrint]);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -177,13 +185,15 @@ export default function OrdersPage() {
     }
 
     if (type === 'selected-separate') {
-      ordersToExport.forEach((order, index) => {
-        setTimeout(() => {
-          setOrdersForCombinedPrint([order]); // Set state with a single order to print it
-        }, index * 200); // Stagger print dialogs
+      ordersToExport.forEach((order) => {
+        // For separate prints, we set one order at a time and trigger print
+        setOrdersForCombinedPrint([order]);
+        setIsPrinting(true);
       });
     } else {
+       // For combined prints, set all orders at once
       setOrdersForCombinedPrint(ordersToExport);
+      setIsPrinting(true); // This will trigger the useEffect to print
     }
   };
 
