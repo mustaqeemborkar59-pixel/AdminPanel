@@ -29,7 +29,8 @@ const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; 
 
 
 export function OrderListItem({ order, onUpdateStatus }: OrderListItemProps) {
-  const StatusIcon = statusInfo[order.status].icon;
+  const currentStatusInfo = statusInfo[order.status] || statusInfo.placed;
+  const StatusIcon = currentStatusInfo.icon;
 
   return (
     <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
@@ -41,9 +42,9 @@ export function OrderListItem({ order, onUpdateStatus }: OrderListItemProps) {
               {order.customerName || 'N/A'} - {formatDistanceToNow(new Date(order.timestamp), { addSuffix: true })}
             </CardDescription>
           </div>
-          <Badge variant="outline" className={`capitalize font-body text-xs px-2 py-1 flex items-center ${statusInfo[order.status].color.replace('bg-', 'border-').replace('-500', '-600')} ${statusInfo[order.status].color.replace('bg-', 'text-').replace('-500', '-700')} bg-opacity-10`}>
+          <Badge variant="outline" className={`capitalize font-body text-xs px-2 py-1 flex items-center ${currentStatusInfo.color.replace('bg-', 'border-').replace('-500', '-600')} ${currentStatusInfo.color.replace('bg-', 'text-').replace('-500', '-700')} bg-opacity-10`}>
             <StatusIcon className="h-3 w-3 mr-1.5" />
-            {statusInfo[order.status].label}
+            {currentStatusInfo.label}
           </Badge>
         </div>
       </CardHeader>
