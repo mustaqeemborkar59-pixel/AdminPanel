@@ -78,7 +78,7 @@ export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemPro
                             </SelectTrigger>
                             <SelectContent>
                                 {Object.keys(statusInfo).map(s => (
-                                <SelectItem key={s} value={s} className="font-body capitalize text-xs">{(statusInfo as any)[s].label}</SelectItem>
+                                <SelectItem key={s} value={s} className="font-body capitalize text-xs">{statusInfo[s as OrderStatus].label}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
