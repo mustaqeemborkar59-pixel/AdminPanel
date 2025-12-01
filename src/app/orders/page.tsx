@@ -40,9 +40,10 @@ export default function OrdersPage() {
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
   const [ordersToPrint, setOrdersToPrint] = useState<Order[]>([]);
   
-  const printComponentRef = useRef(null);
+  const printComponentRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
+    content: () => printComponentRef.current,
     documentTitle: 'invoices',
   });
 
@@ -50,7 +51,7 @@ export default function OrdersPage() {
     setOrdersToPrint(orders);
     // Use a short timeout to allow the state to update and the component to re-render
     setTimeout(() => {
-      handlePrint(null, () => printComponentRef.current);
+      handlePrint();
     }, 100);
   };
   
