@@ -7,15 +7,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getOrdersFromSheet, updateOrderStatusInSheet } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const orderStatuses: OrderStatus[] = ['placed', 'processing', 'shipped', 'delivered', 'cancelled'];
+const ITEMS_PER_PAGE = 5;
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [currentTab, setCurrentTab] = useState<OrderStatus | 'all'>('all');
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -34,6 +37,11 @@ export default function OrdersPage() {
     };
     fetchOrders();
   }, [toast]);
+  
+  // Reset to page 1 whenever the tab changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [currentTab]);
 
   const handleUpdateOrderStatus = async (orderId: string, status: OrderStatus) => {
     // Optimistically update UI
@@ -62,6 +70,23 @@ export default function OrdersPage() {
     ? orders
     : orders.filter(order => order.status === currentTab);
   
+  const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+  
   return (
     <div className="flex flex-col h-full">
       <PageHeader
@@ -83,10 +108,10 @@ export default function OrdersPage() {
           <div className="flex justify-center items-center h-full">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : filteredOrders.length > 0 ? (
+        ) : paginatedOrders.length > 0 ? (
           <div className="space-y-4">
-            {filteredOrders.map((order, index) => (
-              <OrderListItem key={`${order.id}-${index}`} order={order} onUpdateStatus={handleUpdateOrderStatus} />
+            {paginatedOrders.map((order, index) => (
+              <OrderListItem key={`${order.id}-${startIndex + index}`} order={order} onUpdateStatus={handleUpdateOrderStatus} />
             ))}
           </div>
         ) : (
@@ -95,6 +120,34 @@ export default function OrdersPage() {
           </div>
         )}
       </div>
+
+       {totalPages > 1 && (
+        <div className="flex items-center justify-center p-4 border-t">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Previous
+            </Button>
+            <span className="text-sm font-medium text-muted-foreground">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+            >
+              Next
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
