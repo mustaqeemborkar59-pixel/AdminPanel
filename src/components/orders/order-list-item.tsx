@@ -102,6 +102,7 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
 
                 <div className="flex items-center gap-2 w-full sm:w-auto self-end sm:self-center">
                      <AccordionTrigger className={cn(buttonVariants({ variant: "outline", size: "icon" }), "h-9 w-9")}>
+                        <ChevronDown className="h-4 w-4 transition-transform duration-200" />
                         <span className="sr-only">View Details</span>
                     </AccordionTrigger>
                 </div>
