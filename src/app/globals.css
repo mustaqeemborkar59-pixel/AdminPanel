@@ -49,8 +49,8 @@ body {
     --sidebar-background: 0 0% 100%; /* White */
     --sidebar-foreground: 240 10% 3.9%; /* Dark text */
 
-    --sidebar-accent: 210 40% 90%; /* Hover background (light gray-blue) */
-    --sidebar-accent-foreground: 222.2 47.4% 11.2%; /* Hover text color (dark) */
+    --sidebar-accent: 145 58% 52%; /* Hover background (light gray-blue) */
+    --sidebar-accent-foreground: 0 0% 100%; /* Hover text color (dark) */
 
     --sidebar-border: 214.3 31.8% 91.4%; /* Light gray border */
     --sidebar-ring: 145 63% 42%; /* Green for focus rings */
