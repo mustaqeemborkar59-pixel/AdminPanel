@@ -61,25 +61,28 @@ export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemPro
                     </div>
 
                     <div className="flex-1">
-                        <p className="text-xs text-muted-foreground font-body">Status</p>
-                        <Badge variant="outline" className={`capitalize font-body text-xs px-2 py-1 flex items-center w-full justify-center sm:w-auto ${currentStatusInfo.color.replace('bg-', 'border-').replace('-500', '-600')} ${currentStatusInfo.color.replace('bg-', 'text-').replace('-500', '-700')} bg-opacity-10`}>
-                            <StatusIcon className="h-3 w-3 mr-1.5" />
-                            {currentStatusInfo.label}
-                        </Badge>
+                        <p className="text-xs text-muted-foreground font-body mb-1">Status</p>
+                         <Select value={order.status} onValueChange={(value) => onUpdateStatus(order.id, value as OrderStatus)}>
+                            <SelectTrigger className={cn(
+                                "w-full sm:w-[140px] font-body text-xs h-9 capitalize",
+                                `border-0 bg-opacity-10 dark:bg-opacity-20`,
+                                `${currentStatusInfo.color.replace('bg-','bg-/')} ${currentStatusInfo.color.replace('bg-','text-').replace('-500','-700 dark:text-white')}`
+                            )}>
+                                <div className="flex items-center gap-1.5">
+                                    <StatusIcon className="h-3 w-3" />
+                                    <SelectValue placeholder="Update status" />
+                                </div>
+                            </SelectTrigger>
+                            <SelectContent>
+                                {Object.keys(statusInfo).map(s => (
+                                <SelectItem key={s} value={s} className="font-body capitalize text-xs">{(statusInfo as any)[s].label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Select value={order.status} onValueChange={(value) => onUpdateStatus(order.id, value as OrderStatus)}>
-                        <SelectTrigger className="w-full sm:w-[160px] font-body text-xs h-9">
-                            <SelectValue placeholder="Update status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {Object.keys(statusInfo).map(s => (
-                            <SelectItem key={s} value={s} className="font-body capitalize text-xs">{(statusInfo as any)[s].label}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                <div className="flex items-center gap-2 w-full sm:w-auto self-end">
                      <AccordionTrigger className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-9 w-full p-2")}>
                         <span className="ml-2">Details</span>
                         <ChevronDown className="h-4 w-4 transition-transform duration-200" />
@@ -130,4 +133,3 @@ export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemPro
     </AccordionItem>
   );
 }
-
