@@ -3,7 +3,7 @@
 import { type Order, type OrderStatus } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { CheckCircle, Clock, Package, Truck, XCircle, PackageCheck, PackageSearch, ChevronDown } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -20,6 +20,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 interface OrderListItemProps {
   order: Order;
@@ -79,11 +80,9 @@ export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemPro
                             ))}
                         </SelectContent>
                     </Select>
-                     <AccordionTrigger className="p-0">
-                        <Button variant="outline" size="sm" className="h-9 w-full">
-                           <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                           <span className="ml-2">Details</span>
-                        </Button>
+                     <AccordionTrigger className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-9 w-full p-2")}>
+                        <span className="ml-2">Details</span>
+                        <ChevronDown className="h-4 w-4 transition-transform duration-200" />
                     </AccordionTrigger>
                 </div>
 
@@ -131,3 +130,4 @@ export function OrderListItem({ order, onUpdateStatus, value }: OrderListItemPro
     </AccordionItem>
   );
 }
+
