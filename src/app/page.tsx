@@ -121,7 +121,8 @@ function DashboardContent() {
       // Filter orders for the last 7 days and with valid status
       const recentValidOrders = orders.filter(order => {
         const orderDate = new Date(order.timestamp);
-        const isValidStatus = !['pending', 'failed', 'cancelled'].includes(order.status);
+        const validStatusesForChart: OrderStatus[] = ['processing', 'queue', 'completed', 'hold', 'dispatch'];
+        const isValidStatus = validStatusesForChart.includes(order.status);
         return orderDate >= sixDaysAgo && orderDate <= new Date() && isValidStatus;
       });
 
@@ -297,5 +298,7 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
+
+    
 
     
