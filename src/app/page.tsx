@@ -118,14 +118,10 @@ function DashboardContent() {
       const sixDaysAgoIST = new Date(nowInIST);
       sixDaysAgoIST.setDate(nowInIST.getDate() - 6);
 
-      const recentValidOrders = orders.filter(order => {
+      const recentOrders = orders.filter(order => {
           const orderDate = new Date(order.timestamp);
-          const validStatusesForChart: OrderStatus[] = ['processing', 'queue', 'completed', 'hold', 'dispatch'];
-          const isValidStatus = validStatusesForChart.includes(order.status);
-          
           const orderDateInIST = new Date(orderDate.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-
-          return orderDateInIST >= sixDaysAgoIST && orderDateInIST <= nowInIST && isValidStatus;
+          return orderDateInIST >= sixDaysAgoIST && orderDateInIST <= nowInIST;
       });
       
       const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -133,7 +129,6 @@ function DashboardContent() {
           const date = new Date(nowInIST);
           date.setDate(nowInIST.getDate() - i);
           
-          // Use a timezone-safe method to get YYYY-MM-DD
           const year = date.getFullYear();
           const month = String(date.getMonth() + 1).padStart(2, '0');
           const day = String(date.getDate()).padStart(2, '0');
@@ -145,7 +140,7 @@ function DashboardContent() {
           };
       }).reverse();
 
-      recentValidOrders.forEach(order => {
+      recentOrders.forEach(order => {
           const orderDate = new Date(order.timestamp);
           const orderDateInIST = new Date(orderDate.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
           
@@ -311,6 +306,8 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
+
+    
 
     
 
