@@ -111,19 +111,41 @@ function DashboardContent() {
       setTotalSales(currentTotalSales);
       setTotalOrders(currentTotalOrders);
       
-      // Process order data for chart
-      const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const orderCountsByDay = Array(7).fill(0).map((_, i) => ({ name: daysOfWeek[i], orders: 0 }));
+      // --- Chart Data Processing ---
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Normalize to start of day
 
-      orders.forEach(order => {
-        try {
-          const orderDate = new Date(order.timestamp);
-          const dayIndex = orderDate.getDay(); // 0 for Sunday, 1 for Monday, etc.
-          orderCountsByDay[dayIndex].orders += 1;
-        } catch (e) {
-          console.error("Invalid date format for order:", order.id, order.timestamp);
-        }
+      const sixDaysAgo = new Date(today);
+      sixDaysAgo.setDate(today.getDate() - 6);
+
+      // Filter orders for the last 7 days and with valid status
+      const recentValidOrders = orders.filter(order => {
+        const orderDate = new Date(order.timestamp);
+        const isValidStatus = !['pending', 'failed', 'cancelled'].includes(order.status);
+        return orderDate >= sixDaysAgo && orderDate <= new Date() && isValidStatus;
       });
+
+      // Prepare data structure for the last 7 days
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const orderCountsByDay = Array.from({ length: 7 }, (_, i) => {
+          const date = new Date(today);
+          date.setDate(today.getDate() - i);
+          return {
+              name: days[date.getDay()],
+              date: date.toISOString().split('T')[0], // YYYY-MM-DD
+              orders: 0
+          };
+      }).reverse();
+
+      // Populate order counts
+      recentValidOrders.forEach(order => {
+          const orderDateStr = new Date(order.timestamp).toISOString().split('T')[0];
+          const dayData = orderCountsByDay.find(d => d.date === orderDateStr);
+          if (dayData) {
+              dayData.orders += 1;
+          }
+      });
+      
       setWeeklyOrderData(orderCountsByDay);
 
     } else {
