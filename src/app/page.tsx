@@ -31,13 +31,6 @@ const initialStaffData: StaffMember[] = [
 ];
 // --- End Initial Data ---
 
-const salesDetailsData = [
-  { name: 'Total Order', value: 35 },
-  { name: 'Running order', value: 22 },
-  { name: 'Customer Growth', value: 26 },
-  { name: 'Total Revenue', value: 17 },
-];
-
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
 // Helper array for gradients for StatsCards
@@ -47,25 +40,6 @@ const gradientStyles = [
   "bg-gradient-to-br from-orange-400 to-red-500",
   "bg-gradient-to-br from-green-400 to-lime-500",
 ];
-
-const renderCustomLegend = (props: any) => {
-  const { payload } = props;
-  if (!payload || !payload.length) {
-    return null;
-  }
-  return (
-    <ul className="flex flex-col space-y-3 text-sm ml-2 md:ml-6">
-      {payload.map((entry: any, index: number) => (
-        <li key={`item-${index}`} className="flex items-center">
-          <span style={{ backgroundColor: entry.color, width: '10px', height: '10px', borderRadius: '2px', marginRight: '10px', display: 'inline-block' }}></span>
-          <span className="text-muted-foreground mr-1">{entry.payload.name}:</span>
-          <span className="font-semibold text-foreground">{entry.payload.value}%</span>
-        </li>
-      ))}
-    </ul>
-  );
-};
-
 
 function DashboardContent() {
   const { toast } = useToast();
@@ -77,6 +51,7 @@ function DashboardContent() {
   const [activeStaffCount, setActiveStaffCount] = useState(0);
   const [newCustomers, setNewCustomers] = useState(0);
   const [weeklyOrderData, setWeeklyOrderData] = useState<{name: string, orders: number}[]>([]);
+  const [salesDetailsData, setSalesDetailsData] = useState<{name: string, value: number}[]>([]);
 
 
   useEffect(() => {
@@ -114,11 +89,11 @@ function DashboardContent() {
       
       // --- Chart Data Processing ---
       const nowInIST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-      nowInIST.setHours(23, 59, 59, 999); // Set to the end of the current day
+      nowInIST.setHours(23, 59, 59, 999); 
 
       const sixDaysAgoIST = new Date(nowInIST);
       sixDaysAgoIST.setDate(nowInIST.getDate() - 6);
-      sixDaysAgoIST.setHours(0, 0, 0, 0); // Set to the beginning of that day
+      sixDaysAgoIST.setHours(0, 0, 0, 0); 
 
       const recentOrders = orders.filter(order => {
           if (!order.paymentDate) {
@@ -146,7 +121,6 @@ function DashboardContent() {
 
       recentOrders.forEach(order => {
           const orderDate = new Date(order.timestamp);
-          // We need to get the date parts based on IST timezone for correct bucketing
           const orderDateInIST = new Date(orderDate.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
           
           const year = orderDateInIST.getFullYear();
@@ -162,12 +136,29 @@ function DashboardContent() {
       
       setWeeklyOrderData(orderCountsByDay);
 
+      // --- Sales Details Chart Data Processing ---
+      const statusCounts: {[key in OrderStatus]?: number} = {};
+      orders.forEach(order => {
+        statusCounts[order.status] = (statusCounts[order.status] || 0) + 1;
+      });
+      
+      const salesData = Object.entries(statusCounts)
+        .map(([name, value]) => ({ 
+          name: name.charAt(0).toUpperCase() + name.slice(1), 
+          value 
+        }))
+        .sort((a,b) => b.value - a.value); // Sort for better visualization
+      
+      setSalesDetailsData(salesData);
+
+
     } else {
       setTotalSales(0);
       setTotalOrders(0);
       setNewCustomers(0);
        const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
        setWeeklyOrderData(Array(7).fill(0).map((_, i) => ({ name: daysOfWeek[i], orders: 0 })));
+       setSalesDetailsData([]);
     }
 
     // Static data remains for now
@@ -197,61 +188,49 @@ function DashboardContent() {
            <StatsCard title="New Customers" value={newCustomers.toLocaleString()} icon={<Users className="h-5 w-5 text-white/70" />} className={gradientStyles[3]} />
         </div>
 
-        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-          <Card>
+        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-5">
+          <Card className="lg:col-span-2">
             <CardHeader className="flex-row items-center justify-between">
               <div>
                 <CardTitle className="font-headline text-xl">Sales Details</CardTitle>
-                <CardDescription className="text-xs text-muted-foreground mt-1">February, 2023</CardDescription>
+                <CardDescription className="text-xs text-muted-foreground mt-1">Breakdown by order status</CardDescription>
               </div>
-              <Button variant="outline" size="sm" className="ml-auto h-8 text-xs">
-                Monthly <ChevronDown className="ml-2 h-3 w-3 text-muted-foreground" />
-              </Button>
             </CardHeader>
-            <CardContent className="flex flex-col md:flex-row items-center pt-4">
-              <ResponsiveContainer width="50%" height={250} className="min-w-[150px] md:min-w-[200px]">
-                <PieChart>
-                  <Pie
-                    data={salesDetailsData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={85}
-                    innerRadius={55} 
-                    fill="#8884d8"
-                    dataKey="value"
-                    strokeWidth={2}
-                    stroke="hsl(var(--background))" 
-                  >
-                    {salesDetailsData.map((entry, index) => (
-                      <Cell key={`cell-sales-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                     <Label
-                        value="100%"
-                        position="center"
-                        className="fill-foreground text-2xl font-bold"
-                        dy={-5}
-                      />
-                  </Pie>
-                  <Tooltip
-                     contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)'}}
-                     labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
-                     itemStyle={{ color: 'hsl(var(--foreground))' }}
-                     formatter={(value, name) => [`${value}%`, name]}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="w-full mt-4 md:mt-0 md:w-1/2">
-                <Legend content={renderCustomLegend} verticalAlign="middle" align="right" layout="vertical" />
-              </div>
+            <CardContent className="pt-4">
+                <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={salesDetailsData} layout="vertical" margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" horizontal={false}/>
+                        <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} />
+                        <YAxis 
+                          type="category" 
+                          dataKey="name"
+                          stroke="hsl(var(--muted-foreground))" 
+                          fontSize={12} 
+                          axisLine={false} 
+                          tickLine={false}
+                          width={80}
+                        />
+                        <Tooltip
+                            contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)'}}
+                            labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
+                            itemStyle={{ color: 'hsl(var(--foreground))' }}
+                            cursor={{fill: 'hsl(var(--muted)/0.3)'}}
+                        />
+                        <Bar dataKey="value" name="Orders" barSize={20} radius={[0, 4, 4, 0]}>
+                           {salesDetailsData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="lg:col-span-3">
              <CardHeader className="flex-row items-center justify-between">
-              <CardTitle className="font-headline text-xl">Order Chart</CardTitle>
+              <CardTitle className="font-headline text-xl">Weekly Order Chart</CardTitle>
                <Button variant="outline" size="sm" className="ml-auto h-8 text-xs">
-                Weekly <ChevronDown className="ml-2 h-3 w-3 text-muted-foreground" />
+                Last 7 Days
               </Button>
             </CardHeader>
             <CardContent className="pt-4">
@@ -259,14 +238,17 @@ function DashboardContent() {
                 <BarChart data={weeklyOrderData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" vertical={false} />
                   <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} allowDecimals={false} />
                   <Tooltip
                     contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }}
                     labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
                     itemStyle={{ color: 'hsl(var(--foreground))' }}
                     cursor={{fill: 'hsl(var(--muted)/0.3)'}}
                   />
-                  <Bar dataKey="orders" name="Orders" radius={[4, 4, 0, 0]} fill="hsl(var(--primary)/0.6)">
+                  <Bar dataKey="orders" name="Orders" radius={[4, 4, 0, 0]}>
+                     {weeklyOrderData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
