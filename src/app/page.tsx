@@ -121,8 +121,10 @@ function DashboardContent() {
       sixDaysAgoIST.setHours(0, 0, 0, 0); // Set to the beginning of that day
 
       const recentOrders = orders.filter(order => {
+          if (!order.paymentDate) {
+            return false;
+          }
           const orderDate = new Date(order.timestamp);
-          // No need to convert orderDate again as it's already a Date object
           return orderDate >= sixDaysAgoIST && orderDate <= nowInIST;
       });
       

@@ -40,6 +40,7 @@ export interface Order {
   timestamp: string; // ISO string
   paymentMethod?: 'cash' | 'card' | 'qr';
   tableNumber?: string;
+  paymentDate?: string | null;
 }
 
 export interface InventoryItem {

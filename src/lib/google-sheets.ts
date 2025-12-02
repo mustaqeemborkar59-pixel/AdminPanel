@@ -144,6 +144,7 @@ export const getOrders = async (): Promise<Order[]> => {
           subTotal: totalAsNumber, // Assuming total is subtotal for now
           taxAmount: 0, // Assuming no tax specified in sheet
           timestamp: orderDate.toISOString(),
+          paymentDate: paymentDate || null,
           // The other fields from your spec like phone, pincode, etc., are not in the Order type,
           // but we are parsing them to avoid the crash.
         };
