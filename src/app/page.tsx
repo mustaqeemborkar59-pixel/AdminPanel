@@ -112,35 +112,48 @@ function DashboardContent() {
       setTotalOrders(currentTotalOrders);
       
       // --- Chart Data Processing ---
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); // Normalize to start of day
+      const nowInIST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+      nowInIST.setHours(0, 0, 0, 0);
 
-      const sixDaysAgo = new Date(today);
-      sixDaysAgo.setDate(today.getDate() - 6);
+      const sixDaysAgoIST = new Date(nowInIST);
+      sixDaysAgoIST.setDate(nowInIST.getDate() - 6);
 
-      // Filter orders for the last 7 days and with valid status
       const recentValidOrders = orders.filter(order => {
-        const orderDate = new Date(order.timestamp);
-        const validStatusesForChart: OrderStatus[] = ['processing', 'queue', 'completed', 'hold', 'dispatch'];
-        const isValidStatus = validStatusesForChart.includes(order.status);
-        return orderDate >= sixDaysAgo && orderDate <= new Date() && isValidStatus;
-      });
+          const orderDate = new Date(order.timestamp);
+          const validStatusesForChart: OrderStatus[] = ['processing', 'queue', 'completed', 'hold', 'dispatch'];
+          const isValidStatus = validStatusesForChart.includes(order.status);
+          
+          const orderDateInIST = new Date(orderDate.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
 
-      // Prepare data structure for the last 7 days
+          return orderDateInIST >= sixDaysAgoIST && orderDateInIST <= nowInIST && isValidStatus;
+      });
+      
       const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       const orderCountsByDay = Array.from({ length: 7 }, (_, i) => {
-          const date = new Date(today);
-          date.setDate(today.getDate() - i);
+          const date = new Date(nowInIST);
+          date.setDate(nowInIST.getDate() - i);
+          
+          // Use a timezone-safe method to get YYYY-MM-DD
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+
           return {
               name: days[date.getDay()],
-              date: date.toISOString().split('T')[0], // YYYY-MM-DD
+              date: `${year}-${month}-${day}`, // YYYY-MM-DD
               orders: 0
           };
       }).reverse();
 
-      // Populate order counts
       recentValidOrders.forEach(order => {
-          const orderDateStr = new Date(order.timestamp).toISOString().split('T')[0];
+          const orderDate = new Date(order.timestamp);
+          const orderDateInIST = new Date(orderDate.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+          
+          const year = orderDateInIST.getFullYear();
+          const month = String(orderDateInIST.getMonth() + 1).padStart(2, '0');
+          const day = String(orderDateInIST.getDate()).padStart(2, '0');
+          const orderDateStr = `${year}-${month}-${day}`;
+
           const dayData = orderCountsByDay.find(d => d.date === orderDateStr);
           if (dayData) {
               dayData.orders += 1;
@@ -298,6 +311,8 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
+
+    
 
     
 
