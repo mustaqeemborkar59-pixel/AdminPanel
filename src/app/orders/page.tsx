@@ -235,8 +235,11 @@ export default function OrdersPage() {
         const billTo = [
             order.customerName || 'N/A',
             order.shippingAddress || 'No address provided',
-            order.gmail || 'No email'
-        ];
+            order.pincode || '',
+            `Phone: ${order.phone || 'N/A'}`,
+            `Email: ${order.gmail || 'N/A'}`,
+            order.altPhone ? `Alt Phone: ${order.altPhone}` : null
+        ].filter(line => line !== null) as string[];
         doc.text(billTo, 20, 76);
         
         // Table
@@ -256,7 +259,7 @@ export default function OrdersPage() {
         (doc as any).autoTable({
             head: [tableColumn],
             body: tableRows,
-            startY: 95,
+            startY: (doc as any).lastAutoTable.finalY ? (doc as any).lastAutoTable.finalY + 20 : 105,
             theme: 'striped',
             headStyles: {
                 fillColor: [52, 73, 94], // Dark blue-gray
@@ -558,3 +561,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
