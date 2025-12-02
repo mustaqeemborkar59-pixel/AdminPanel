@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getOrdersFromSheet, updateOrderStatusInSheet } from './actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Search, ListFilter, Download, FileDown, FileText, FileSpreadsheet } from 'lucide-react';
+import { Loader2, Search, ListFilter, Download, FileDown, FileText, FileSpreadsheet, Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -30,6 +30,10 @@ import { Input } from '@/components/ui/input';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { addDays, format, type DateRange } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 
 const orderStatuses: OrderStatus[] = ['pending', 'queue', 'processing', 'dispatch', 'completed', 'hold', 'failed', 'cancelled'];
@@ -61,6 +65,7 @@ export default function OrdersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -82,7 +87,7 @@ export default function OrdersPage() {
   
   useEffect(() => {
     setCurrentPage(1);
-  }, [statusFilter, searchTerm]);
+  }, [statusFilter, searchTerm, dateRange]);
 
 
   const handleUpdateOrderStatus = async (orderId: string, status: OrderStatus) => {
@@ -119,6 +124,19 @@ export default function OrdersPage() {
 
   const filteredOrders = getUniqueOrders(orders
     .filter(order => statusFilter === 'all' || order.status === statusFilter)
+    .filter(order => {
+      if (!dateRange) return true;
+      const orderDate = new Date(order.timestamp);
+      let fromDate = dateRange.from ? new Date(dateRange.from) : null;
+      let toDate = dateRange.to ? new Date(dateRange.to) : null;
+
+      if(fromDate) fromDate.setHours(0,0,0,0);
+      if(toDate) toDate.setHours(23,59,59,999);
+
+      if (fromDate && !toDate) return orderDate >= fromDate;
+      if (fromDate && toDate) return orderDate >= fromDate && orderDate <= toDate;
+      return true;
+    })
     .filter(order => 
         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (order.customerName && order.customerName.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -361,6 +379,43 @@ export default function OrdersPage() {
           />
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                id="date"
+                variant={"outline"}
+                className={cn(
+                  "w-full sm:w-[260px] justify-start text-left font-normal",
+                  !dateRange && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateRange?.from ? (
+                  dateRange.to ? (
+                    <>
+                      {format(dateRange.from, "LLL dd, y")} -{" "}
+                      {format(dateRange.to, "LLL dd, y")}
+                    </>
+                  ) : (
+                    format(dateRange.from, "LLL dd, y")
+                  )
+                ) : (
+                  <span>Pick a date range</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={dateRange?.from}
+                selected={dateRange}
+                onSelect={setDateRange}
+                numberOfMonths={2}
+              />
+            </PopoverContent>
+          </Popover>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="w-full sm:w-auto capitalize">
@@ -500,8 +555,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
-
-    
-
