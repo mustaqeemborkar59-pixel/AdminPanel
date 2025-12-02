@@ -30,17 +30,6 @@ const initialStaffData: StaffMember[] = [
 ];
 // --- End Initial Data ---
 
-
-const weeklyOrderData = [
-  { name: 'Sat', sales: 180 },
-  { name: 'Sun', sales: 240 },
-  { name: 'Mon', sales: 220 },
-  { name: 'Tue', sales: 265 }, // Highlighted
-  { name: 'Wed', sales: 200 },
-  { name: 'Thu', sales: 150 },
-  { name: 'Fri', sales: 120 },
-];
-
 const salesDetailsData = [
   { name: 'Total Order', value: 35 },
   { name: 'Running order', value: 22 },
@@ -86,6 +75,8 @@ function DashboardContent() {
   const [totalOrders, setTotalOrders] = useState(0);
   const [activeStaffCount, setActiveStaffCount] = useState(0);
   const [newCustomers, setNewCustomers] = useState(0);
+  const [weeklyOrderData, setWeeklyOrderData] = useState<{name: string, orders: number}[]>([]);
+
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -119,10 +110,28 @@ function DashboardContent() {
 
       setTotalSales(currentTotalSales);
       setTotalOrders(currentTotalOrders);
+      
+      // Process order data for chart
+      const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const orderCountsByDay = Array(7).fill(0).map((_, i) => ({ name: daysOfWeek[i], orders: 0 }));
+
+      orders.forEach(order => {
+        try {
+          const orderDate = new Date(order.timestamp);
+          const dayIndex = orderDate.getDay(); // 0 for Sunday, 1 for Monday, etc.
+          orderCountsByDay[dayIndex].orders += 1;
+        } catch (e) {
+          console.error("Invalid date format for order:", order.id, order.timestamp);
+        }
+      });
+      setWeeklyOrderData(orderCountsByDay);
+
     } else {
       setTotalSales(0);
       setTotalOrders(0);
       setNewCustomers(0);
+       const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+       setWeeklyOrderData(Array(7).fill(0).map((_, i) => ({ name: daysOfWeek[i], orders: 0 })));
     }
 
     // Static data remains for now
@@ -221,10 +230,7 @@ function DashboardContent() {
                     itemStyle={{ color: 'hsl(var(--foreground))' }}
                     cursor={{fill: 'hsl(var(--muted)/0.3)'}}
                   />
-                  <Bar dataKey="sales" name="Orders" radius={[4, 4, 0, 0]}>
-                    {weeklyOrderData.map((entry, index) => (
-                        <Cell key={`cell-order-${index}`} fill={entry.name === 'Tue' ? 'hsl(var(--chart-5))' : 'hsl(var(--primary)/0.6)'} />
-                    ))}
+                  <Bar dataKey="orders" name="Orders" radius={[4, 4, 0, 0]} fill="hsl(var(--primary)/0.6)">
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -269,3 +275,5 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
+
+    
