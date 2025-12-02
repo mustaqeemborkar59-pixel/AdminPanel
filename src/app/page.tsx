@@ -113,15 +113,16 @@ function DashboardContent() {
       
       // --- Chart Data Processing ---
       const nowInIST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-      nowInIST.setHours(0, 0, 0, 0);
+      nowInIST.setHours(23, 59, 59, 999); // Set to the end of the current day
 
       const sixDaysAgoIST = new Date(nowInIST);
       sixDaysAgoIST.setDate(nowInIST.getDate() - 6);
+      sixDaysAgoIST.setHours(0, 0, 0, 0); // Set to the beginning of that day
 
       const recentOrders = orders.filter(order => {
           const orderDate = new Date(order.timestamp);
-          const orderDateInIST = new Date(orderDate.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-          return orderDateInIST >= sixDaysAgoIST && orderDateInIST <= nowInIST;
+          // No need to convert orderDate again as it's already a Date object
+          return orderDate >= sixDaysAgoIST && orderDate <= nowInIST;
       });
       
       const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -142,6 +143,7 @@ function DashboardContent() {
 
       recentOrders.forEach(order => {
           const orderDate = new Date(order.timestamp);
+          // We need to get the date parts based on IST timezone for correct bucketing
           const orderDateInIST = new Date(orderDate.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
           
           const year = orderDateInIST.getFullYear();
@@ -306,6 +308,8 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
+
+    
 
     
 
