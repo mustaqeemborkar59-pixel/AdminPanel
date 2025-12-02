@@ -239,8 +239,8 @@ export default function OrdersPage() {
             `Phone: ${order.phone || 'N/A'}`,
             `Email: ${order.gmail || 'N/A'}`,
             order.altPhone ? `Alt Phone: ${order.altPhone}` : null
-        ].filter(line => line !== null) as string[];
-        doc.text(billTo, 20, 76);
+        ].filter(line => line) as string[];
+        doc.text(billTo.join('\n'), 20, 76);
         
         // Table
         const tableColumn = ["ITEM", "QUANTITY", "PRICE", "TOTAL"];
@@ -277,26 +277,32 @@ export default function OrdersPage() {
         });
 
         // Totals at the bottom
-        const finalY = pageHeight - 45;
+        let finalY = (doc as any).lastAutoTable.finalY || 105;
+        if (finalY > pageHeight - 60) {
+            doc.addPage();
+            finalY = 20;
+        }
+
         const subtotalX = pageWidth - 80;
         const textX = pageWidth - 20;
+        const totalY = finalY + 20;
 
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
         
-        doc.text('Subtotal:', subtotalX, finalY, { align: 'right' });
-        doc.text(`₹${order.subTotal.toFixed(2)}`, textX, finalY, { align: 'right' });
+        doc.text('Subtotal:', subtotalX, totalY, { align: 'right' });
+        doc.text(`₹${order.subTotal.toFixed(2)}`, textX, totalY, { align: 'right' });
         
-        doc.text(`Tax (${(0.1 * 100).toFixed(0)}%):`, subtotalX, finalY + 7, { align: 'right' });
-        doc.text(`₹${order.taxAmount.toFixed(2)}`, textX, finalY + 7, { align: 'right' });
+        doc.text(`Tax (${(order.taxAmount / order.subTotal * 100 || 0).toFixed(0)}%):`, subtotalX, totalY + 7, { align: 'right' });
+        doc.text(`₹${order.taxAmount.toFixed(2)}`, textX, totalY + 7, { align: 'right' });
         
         doc.setDrawColor(40, 40, 40);
-        doc.line(subtotalX - 5, finalY + 12, textX, finalY + 12);
+        doc.line(subtotalX - 5, totalY + 12, textX, totalY + 12);
         
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        doc.text('TOTAL:', subtotalX, finalY + 18, { align: 'right' });
-        doc.text(`₹${order.totalAmount.toFixed(2)}`, textX, finalY + 18, { align: 'right' });
+        doc.text('TOTAL:', subtotalX, totalY + 18, { align: 'right' });
+        doc.text(`₹${order.totalAmount.toFixed(2)}`, textX, totalY + 18, { align: 'right' });
 
         // Footer
         doc.setFontSize(10);

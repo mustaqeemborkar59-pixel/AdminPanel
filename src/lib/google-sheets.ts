@@ -129,11 +129,12 @@ export const getOrders = async (): Promise<Order[]> => {
 
         const orderDate = parseDate(date);
         
-        // This structure is closer to a Customer/Order hybrid.
-        // We'll map it to the Order type for now.
         return {
           id: id,
           customerName: customerName || '',
+          phone: phone || '',
+          altPhone: altPhone || '',
+          pincode: pincode || '',
           gmail: gmail || '',
           items: items,
           status: (status as OrderStatus) || 'pending',
@@ -145,8 +146,6 @@ export const getOrders = async (): Promise<Order[]> => {
           taxAmount: 0, // Assuming no tax specified in sheet
           timestamp: orderDate.toISOString(),
           paymentDate: paymentDate || null,
-          // The other fields from your spec like phone, pincode, etc., are not in the Order type,
-          // but we are parsing them to avoid the crash.
         };
       } catch (e) {
         if (e instanceof Error) {
