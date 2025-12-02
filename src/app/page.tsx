@@ -33,6 +33,17 @@ const initialStaffData: StaffMember[] = [
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
+const STATUS_COLORS: Record<string, string> = {
+  Pending: '#FBBF24', // yellow-400
+  Queue: '#A78BFA',   // violet-400 (purple)
+  Processing: '#60A5FA', // blue-400
+  Dispatch: '#3B82F6',   // blue-600
+  Completed: '#34D399', // emerald-400 (green)
+  Hold: '#F97316',      // orange-500
+  Failed: '#EF4444',    // red-500
+  Cancelled: '#DC2626', // red-600
+};
+
 // Helper array for gradients for StatsCards
 const gradientStyles = [
   "bg-gradient-to-br from-purple-500 to-pink-500",
@@ -218,7 +229,7 @@ function DashboardContent() {
                         />
                         <Bar dataKey="value" name="Orders" barSize={20} radius={[0, 4, 4, 0]}>
                            {salesDetailsData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name] || COLORS[index % COLORS.length]} />
                           ))}
                         </Bar>
                     </BarChart>
