@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, ReactNode, Suspense } from 'react';
@@ -308,13 +309,3 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
-
-    
-
-    
-
-    
-
-    
-
-    
