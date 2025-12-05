@@ -64,18 +64,34 @@ export const getOrders = async (): Promise<Order[]> => {
   }
   
   try {
-    const response = await api.get("orders", {
-      per_page: 50, // Fetch up to 50 orders
-      orderby: 'date',
-      order: 'desc',
-    });
+    let allWCOrders: any[] = [];
+    let page = 1;
+    const perPage = 100; // Max per_page is 100
+    let keepFetching = true;
 
-    if (response.status !== 200) {
-      throw new Error(`Failed to fetch orders: ${response.statusText}`);
+    while (keepFetching) {
+      const response = await api.get("orders", {
+        per_page: perPage,
+        page: page,
+        orderby: 'date',
+        order: 'desc',
+      });
+
+       if (response.status !== 200) {
+        throw new Error(`Failed to fetch orders on page ${page}: ${response.statusText}`);
+      }
+
+      const fetchedOrders = response.data;
+      allWCOrders = allWCOrders.concat(fetchedOrders);
+
+      if (fetchedOrders.length < perPage) {
+        keepFetching = false;
+      } else {
+        page++;
+      }
     }
     
-    const wcOrders = response.data;
-    const orders: Order[] = wcOrders.map(mapWCOrderToAppOrder);
+    const orders: Order[] = allWCOrders.map(mapWCOrderToAppOrder);
     return orders;
 
   } catch (error) {
