@@ -122,8 +122,6 @@ export default function OrdersPage() {
     });
   };
 
-  const isFilterActive = statusFilter !== 'all' || !!dateRange || searchTerm.trim() !== '';
-
   const filteredOrders = getUniqueOrders(orders
     .filter(order => statusFilter === 'all' || order.status === statusFilter)
     .filter(order => {
@@ -144,10 +142,10 @@ export default function OrdersPage() {
         (order.customerName && order.customerName.toLowerCase().includes(searchTerm.toLowerCase()))
     ));
   
-  const totalPages = isFilterActive ? 1 : Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedOrders = isFilterActive ? filteredOrders : filteredOrders.slice(startIndex, endIndex);
+  const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
 
 
   const handleNextPage = () => {
@@ -567,3 +565,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
