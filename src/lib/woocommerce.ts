@@ -2,16 +2,28 @@
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 import { Order, OrderItem, OrderStatus } from '@/types';
 
-if (!process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL || !process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_KEY || !process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_SECRET) {
-    throw new Error('WooCommerce environment variables are not set.');
+// Check if the required environment variables are available at runtime.
+const isWooCommerceConfigured = () => {
+  return (
+    process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL &&
+    process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL !== 'https://your-store-url.com' &&
+    process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_KEY &&
+    process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_SECRET
+  );
+};
+
+
+let api: WooCommerceRestApi | undefined;
+
+if (isWooCommerceConfigured()) {
+  api = new WooCommerceRestApi({
+    url: process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL!,
+    consumerKey: process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_KEY!,
+    consumerSecret: process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_SECRET!,
+    version: "wc/v3"
+  });
 }
 
-const api = new WooCommerceRestApi({
-  url: process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL,
-  consumerKey: process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_KEY,
-  consumerSecret: process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_SECRET,
-  version: "wc/v3"
-});
 
 const mapWCOrderToAppOrder = (wcOrder: any): Order => {
   const items: OrderItem[] = wcOrder.line_items.map((item: any) => ({
@@ -46,6 +58,11 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
 };
 
 export const getOrders = async (): Promise<Order[]> => {
+  if (!api) {
+    // Throw an error that will be caught by the server action and displayed to the user.
+    throw new Error('WooCommerce environment variables are not set correctly. Please check your .env file and ensure NEXT_PUBLIC_WOOCOMMERCE_STORE_URL is set to your store\'s URL.');
+  }
+  
   try {
     const response = await api.get("orders", {
       per_page: 50, // Fetch up to 50 orders
@@ -63,15 +80,19 @@ export const getOrders = async (): Promise<Order[]> => {
 
   } catch (error) {
     console.error("Error fetching data from WooCommerce:", error);
-    if (error instanceof Error && error.message.includes('getaddrinfo ENOTFOUND')) {
+    if (error instanceof Error && (error.message.includes('getaddrinfo ENOTFOUND') || error.message.includes('Failed to parse URL'))) {
       throw new Error('Could not connect to WooCommerce store. Please check the store URL in your .env file.');
     }
-    throw new Error('Failed to communicate with WooCommerce API.');
+    throw new Error('Failed to communicate with WooCommerce API. Verify store URL, keys, and network connection.');
   }
 };
 
 
 export const updateOrderStatus = async (orderId: string, status: OrderStatus): Promise<boolean> => {
+   if (!api) {
+    console.error('WooCommerce API is not configured. Cannot update order status.');
+    return false;
+  }
    try {
     const response = await api.put(`orders/${orderId}`, {
       status: status
