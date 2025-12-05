@@ -49,6 +49,7 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
   
   const currentStatusInfo = statusInfo[order.status] || statusInfo.pending;
   const StatusIcon = currentStatusInfo.icon;
+  const displayAddress = (order.shippingAddress && order.shippingAddress.trim() !== ',') ? order.shippingAddress : order.billingAddress;
   
   return (
     <AccordionItem value={value} className="border-b-0">
@@ -130,10 +131,10 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                         ))}
                     </div>
                     <div className="border-t pt-3 space-y-2 text-sm text-muted-foreground">
-                        {order.shippingAddress && (
+                        {displayAddress && (
                             <div className="flex justify-between">
                                 <span>Shipping To:</span>
-                                <span className="text-right font-medium text-foreground">{order.shippingAddress}</span>
+                                <span className="text-right font-medium text-foreground">{displayAddress}</span>
                             </div>
                         )}
                         {order.trackingId && (
@@ -149,5 +150,3 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
     </AccordionItem>
   );
 }
-
-    
