@@ -64,11 +64,16 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
   const billingAddress = formatAddress(wcOrder.billing);
   const shippingAddress = formatAddress(wcOrder.shipping);
 
+  // Find alternate phone from meta data, assuming the key is '_billing_phone_2'
+  const altPhoneMeta = wcOrder.meta_data.find((m: any) => m.key === '_billing_phone_2');
+  const altPhone = altPhoneMeta ? altPhoneMeta.value : '';
+
+
   return {
     id: String(wcOrder.id),
     customerName: `${wcOrder.billing.first_name} ${wcOrder.billing.last_name}`,
     phone: wcOrder.billing.phone,
-    altPhone: '', // Not available in standard WC orders
+    altPhone: altPhone, // Assign the found alternate phone number
     pincode: wcOrder.billing.postcode,
     gmail: wcOrder.billing.email,
     items: items,
@@ -150,5 +155,3 @@ export const updateOrderStatus = async (orderId: string, status: OrderStatus): P
     return false;
   }
 };
-
-    
