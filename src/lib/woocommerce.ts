@@ -40,13 +40,24 @@ const formatAddress = (address: any): string => {
 };
 
 const mapWCOrderToAppOrder = (wcOrder: any): Order => {
-  const items: OrderItem[] = wcOrder.line_items.map((item: any) => ({
-    itemId: String(item.product_id),
-    name: item.name,
-    qty: item.quantity,
-    price: parseFloat(item.price),
-    imageUrl: item.image?.src || '',
-  }));
+  let vendorName: string | undefined = undefined;
+
+  const items: OrderItem[] = wcOrder.line_items.map((item: any) => {
+    // Extract vendor code from SKU (e.g., "ST_TF-TAJREED-BUKHARI" -> "ST_TF")
+    if (item.sku && typeof item.sku === 'string' && item.sku.includes('-')) {
+      const skuVendor = item.sku.split('-')[0];
+      if (!vendorName) {
+        vendorName = skuVendor;
+      }
+    }
+    return {
+      itemId: String(item.product_id),
+      name: item.name,
+      qty: item.quantity,
+      price: parseFloat(item.price),
+      imageUrl: item.image?.src || '',
+    };
+  });
 
   const subTotal = parseFloat(wcOrder.total) - parseFloat(wcOrder.total_tax);
   const billingAddress = formatAddress(wcOrder.billing);
@@ -71,6 +82,7 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
     timestamp: wcOrder.date_created_gmt + 'Z',
     paymentMethod: wcOrder.payment_method_title,
     paymentDate: wcOrder.date_paid_gmt ? wcOrder.date_paid_gmt + 'Z' : null,
+    vendorName: vendorName
   };
 };
 

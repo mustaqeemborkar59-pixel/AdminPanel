@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getOrdersFromWooCommerce, updateOrderStatusInWooCommerce } from './actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Search, ListFilter, Download, FileDown, FileText, FileSpreadsheet, Calendar as CalendarIcon } from 'lucide-react';
+import { Loader2, Search, ListFilter, Download, FileDown, FileText, FileSpreadsheet, Calendar as CalendarIcon, Building } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -60,12 +60,14 @@ function formatDateInIST(dateInput: string | Date): string {
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
+  const [vendorFilter, setVendorFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [allVendors, setAllVendors] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -73,6 +75,9 @@ export default function OrdersPage() {
       const result = await getOrdersFromWooCommerce();
       if (result.success && result.data) {
         setOrders(result.data);
+        // Extract unique vendors from all orders
+        const vendors = new Set(result.data.map(order => order.vendorName).filter(Boolean) as string[]);
+        setAllVendors(Array.from(vendors));
       } else {
         toast({
           variant: "destructive",
@@ -87,7 +92,7 @@ export default function OrdersPage() {
   
   useEffect(() => {
     setCurrentPage(1);
-  }, [statusFilter, searchTerm, dateRange]);
+  }, [statusFilter, searchTerm, dateRange, vendorFilter]);
 
 
   const handleUpdateOrderStatus = async (orderId: string, status: OrderStatus) => {
@@ -124,6 +129,7 @@ export default function OrdersPage() {
 
   const filteredOrders = getUniqueOrders(orders
     .filter(order => statusFilter === 'all' || order.status === statusFilter)
+    .filter(order => vendorFilter === 'all' || order.vendorName === vendorFilter)
     .filter(order => {
       if (!dateRange) return true;
       const orderDate = new Date(order.timestamp);
@@ -449,6 +455,25 @@ export default function OrdersPage() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-full sm:w-auto" disabled={allVendors.length === 0}>
+                <Building className="mr-2 h-4 w-4" />
+                {vendorFilter === 'all' ? 'Filter by Vendor' : vendorFilter}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuLabel>Vendor</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuRadioGroup value={vendorFilter} onValueChange={setVendorFilter}>
+                <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
+                {allVendors.map(vendor => (
+                  <DropdownMenuRadioItem key={vendor} value={vendor}>{vendor}</DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button variant="outline" className="w-full sm:w-auto">
                 <Download className="mr-2 h-4 w-4" />
                 Export
@@ -567,7 +592,5 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
 
     

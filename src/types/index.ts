@@ -45,6 +45,7 @@ export interface Order {
   paymentMethod?: 'cash' | 'card' | 'qr';
   tableNumber?: string;
   paymentDate?: string | null;
+  vendorName?: string;
 }
 
 export interface InventoryItem {
