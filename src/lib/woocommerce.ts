@@ -1,6 +1,6 @@
 
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
-import { Order, OrderItem, OrderStatus } from '@/types';
+import { Order, OrderItem, OrderStatus, type UpdateOrderAddressPayload } from '@/types';
 
 // Check if the required environment variables are available at runtime.
 const isWooCommerceConfigured = () => {
@@ -152,6 +152,35 @@ export const updateOrderStatus = async (orderId: string, status: OrderStatus): P
     return response.status === 200;
   } catch (error) {
     console.error(`Failed to update order ${orderId} status in WooCommerce:`, error);
+    return false;
+  }
+};
+
+export const updateOrderAddress = async (orderId: string, payload: UpdateOrderAddressPayload): Promise<boolean> => {
+  if (!api) {
+    console.error('WooCommerce API is not configured. Cannot update order address.');
+    return false;
+  }
+  try {
+    const data: { billing: Partial<UpdateOrderAddressPayload> } = {
+      billing: {}
+    };
+    if (payload.postcode) {
+      data.billing.postcode = payload.postcode;
+    }
+    if (payload.address_1) {
+      data.billing.address_1 = payload.address_1;
+    }
+
+    if(Object.keys(data.billing).length === 0) {
+      console.log("No address data to update.");
+      return true; // Nothing to update, so we can consider it successful.
+    }
+    
+    const response = await api.put(`orders/${orderId}`, data);
+    return response.status === 200;
+  } catch (error) {
+    console.error(`Failed to update order ${orderId} address in WooCommerce:`, error);
     return false;
   }
 };

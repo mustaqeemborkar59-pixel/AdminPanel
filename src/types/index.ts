@@ -49,6 +49,12 @@ export interface Order {
   vendorName?: string;
 }
 
+export interface UpdateOrderAddressPayload {
+  postcode?: string;
+  address_1?: string;
+}
+
+
 export interface InventoryItem {
   id: string;
   name: string;

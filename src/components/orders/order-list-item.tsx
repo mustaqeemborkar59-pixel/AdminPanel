@@ -1,12 +1,16 @@
 
 "use client";
-import React from 'react';
-import { type Order, type OrderStatus } from '@/types';
+import React, { useState } from 'react';
+import { type Order, type OrderStatus, type UpdateOrderAddressPayload } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CheckCircle, Clock, Package, Truck, XCircle, PackageSearch, ChevronDown, Archive, Loader } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { updateOrderAddressInWooCommerce } from '@/app/orders/actions';
+import { CheckCircle, Clock, Package, Truck, XCircle, PackageSearch, ChevronDown, Archive, Loader, Edit } from 'lucide-react';
 
 import {
   Select,
@@ -46,11 +50,48 @@ const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; 
 
 
 export function OrderListItem({ order, onUpdateStatus, value, isSelected, onToggleSelect, formatDate }: OrderListItemProps) {
+  const { toast } = useToast();
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [pincode, setPincode] = useState(order.pincode || '');
+  const [address1, setAddress1] = useState(order.billingAddress?.split(',')[0] || '');
   
   const currentStatusInfo = statusInfo[order.status] || statusInfo.pending;
   const StatusIcon = currentStatusInfo.icon;
   const displayAddress = (order.shippingAddress && order.shippingAddress.trim() !== ',') ? order.shippingAddress : order.billingAddress;
   
+  const handleAddressUpdate = async () => {
+    const payload: UpdateOrderAddressPayload = {};
+    if (pincode !== order.pincode) {
+      payload.postcode = pincode;
+    }
+    const originalAddress1 = order.billingAddress?.split(',')[0] || '';
+    if(address1 !== originalAddress1) {
+        payload.address_1 = address1;
+    }
+
+    if(Object.keys(payload).length === 0) {
+        setIsEditingAddress(false);
+        return;
+    }
+
+    const result = await updateOrderAddressInWooCommerce(order.id, payload);
+
+    if(result.success) {
+      toast({
+        title: "Address Updated",
+        description: `Address for order ${order.id} has been updated.`,
+      });
+      setIsEditingAddress(false);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Update Failed",
+        description: result.error || "Could not update the address.",
+      });
+    }
+  };
+
+
   return (
     <AccordionItem value={value} className="border-b-0">
         <Card className="shadow-md hover:shadow-lg transition-shadow duration-300">
@@ -130,13 +171,46 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                             </div>
                         ))}
                     </div>
-                    <div className="border-t pt-3 space-y-2 text-sm text-muted-foreground">
-                        {displayAddress && (
-                            <div className="flex justify-between">
-                                <span>Shipping To:</span>
-                                <span className="text-right font-medium text-foreground">{displayAddress}</span>
+                     <div className="border-t pt-3 space-y-2 text-sm text-muted-foreground">
+                        {isEditingAddress ? (
+                            <div className="space-y-3 p-2 rounded-md border bg-background">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                     <div>
+                                        <Label htmlFor={`address-${order.id}`} className="text-xs">Address Line 1</Label>
+                                        <Input
+                                            id={`address-${order.id}`}
+                                            value={address1}
+                                            onChange={(e) => setAddress1(e.target.value)}
+                                            className="h-8 text-sm mt-1"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor={`pincode-${order.id}`} className="text-xs">Pincode</Label>
+                                        <Input
+                                            id={`pincode-${order.id}`}
+                                            value={pincode}
+                                            onChange={(e) => setPincode(e.target.value)}
+                                            className="h-8 text-sm mt-1"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex justify-end gap-2 mt-2">
+                                    <Button variant="ghost" size="sm" onClick={() => setIsEditingAddress(false)}>Cancel</Button>
+                                    <Button size="sm" onClick={handleAddressUpdate}>Save</Button>
+                                </div>
+                            </div>
+                        ) : (
+                             <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                    <span className="font-medium text-foreground">Shipping To:</span>
+                                    <p className="text-foreground/80 text-xs break-words">{displayAddress}</p>
+                                </div>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsEditingAddress(true)}>
+                                    <Edit className="h-4 w-4" />
+                                </Button>
                             </div>
                         )}
+
                         {order.trackingId && (
                             <div className="flex justify-between">
                                 <span>Tracking ID:</span>
