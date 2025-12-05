@@ -236,18 +236,19 @@ export default function OrdersPage() {
 
         const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
         const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+        const margin = 20;
 
         // Header
         doc.setFontSize(28);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(40, 40, 40);
-        doc.text('INVOICE', pageWidth - 20, 30, { align: 'right' });
+        doc.text('INVOICE', pageWidth - margin, 30, { align: 'right' });
 
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text(companyDetails.name, 20, 30);
-        doc.text(companyDetails.address, 20, 36);
-        doc.text(companyDetails.city, 20, 42);
+        doc.text(companyDetails.name, margin, 30);
+        doc.text(companyDetails.address, margin, 36);
+        doc.text(companyDetails.city, margin, 42);
 
         // Invoice Details
         doc.setFontSize(10);
@@ -257,30 +258,32 @@ export default function OrdersPage() {
         doc.text('Status:', pageWidth - 60, 59, { align: 'left' });
 
         doc.setFont('helvetica', 'normal');
-        doc.text(order.id, pageWidth - 20, 45, { align: 'right' });
-        doc.text(formatDateInIST(order.timestamp), pageWidth - 20, 52, { align: 'right' });
-        doc.text(order.status, pageWidth-20, 59, {align: 'right'})
+        doc.text(order.id, pageWidth - margin, 45, { align: 'right' });
+        doc.text(formatDateInIST(order.timestamp), pageWidth - margin, 52, { align: 'right' });
+        doc.text(order.status, pageWidth-margin, 59, {align: 'right'})
         
         // Line Separator
         doc.setDrawColor(200, 200, 200);
-        doc.line(20, 65, pageWidth - 20, 65);
+        doc.line(margin, 65, pageWidth - margin, 65);
 
-        // Bill From/To
+        // Bill To
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
-        doc.text('BILL TO:', 20, 75);
+        doc.text('BILL TO:', margin, 75);
         
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        const billTo = [
-            `Name: ${order.customerName || 'N/A'}`,
-            `Address: ${order.billingAddress || 'No address provided'}`,
+        const billToLines = [
+            order.customerName || 'N/A',
+            order.billingAddress || 'No address provided',
             `Pincode: ${order.pincode || ''}`,
             `Phone: ${order.phone || 'N/A'}`,
             order.altPhone ? `Alt Phone: ${order.altPhone}` : null,
             `Email: ${order.gmail || 'N/A'}`,
         ].filter(line => line) as string[];
-        doc.text(billTo.join('\n'), 20, 81);
+        
+        // Use text with maxWidth for address wrapping
+        doc.text(billToLines.join('\n'), margin, 81, { maxWidth: pageWidth / 2 - margin });
         
         // Table
         const tableColumn = ["ITEM", "QUANTITY", "PRICE", "TOTAL"];
@@ -313,7 +316,7 @@ export default function OrdersPage() {
                 font: 'helvetica',
                 fontSize: 10,
             },
-            margin: { left: 20, right: 20 }
+            margin: { left: margin, right: margin }
         });
 
         // Totals at the bottom
@@ -324,7 +327,7 @@ export default function OrdersPage() {
         }
 
         const subtotalX = pageWidth - 80;
-        const textX = pageWidth - 20;
+        const textX = pageWidth - margin;
         const totalY = finalY + 20;
 
         doc.setFontSize(10);
@@ -347,7 +350,7 @@ export default function OrdersPage() {
         // Footer
         doc.setFontSize(10);
         doc.setTextColor(150);
-        doc.text('Thank you for your business!', 20, pageHeight - 20);
+        doc.text('Thank you for your business!', margin, pageHeight - 20);
     });
 
     doc.save(`invoices-${new Date().toISOString().split('T')[0]}.pdf`);
@@ -628,6 +631,8 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
 
     
 
