@@ -1,8 +1,8 @@
 
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
-import { type Order, type OrderStatus } from '@/types';
+import { type Order, type OrderItem, type OrderStatus } from '@/types';
 import { OrderListItem } from '@/components/orders/order-list-item';
 import {
   DropdownMenu,
@@ -75,8 +75,9 @@ export default function OrdersPage() {
       const result = await getOrdersFromWooCommerce();
       if (result.success && result.data) {
         setOrders(result.data);
-        // Extract unique vendors from all orders
-        const vendors = new Set(result.data.map(order => order.vendorName).filter(Boolean) as string[]);
+        const vendors = new Set(
+          result.data.flatMap(order => order.items.map(item => item.vendorName).filter(Boolean) as string[])
+        );
         setAllVendors(Array.from(vendors));
       } else {
         toast({
@@ -127,9 +128,19 @@ export default function OrdersPage() {
     });
   };
 
-  const filteredOrders = getUniqueOrders(orders
+  const filteredOrders = useMemo(() => {
+    return getUniqueOrders(orders
     .filter(order => statusFilter === 'all' || order.status === statusFilter)
-    .filter(order => vendorFilter === 'all' || order.vendorName === vendorFilter)
+    .filter(order => {
+        if (vendorFilter === 'all') return true;
+        return order.items.some(item => item.vendorName === vendorFilter);
+    })
+    .map(order => {
+        if (vendorFilter === 'all') return order;
+        // If a vendor is selected, filter the items within the order
+        const vendorItems = order.items.filter(item => item.vendorName === vendorFilter);
+        return { ...order, items: vendorItems };
+    })
     .filter(order => {
       if (!dateRange) return true;
       const orderDate = new Date(order.timestamp);
@@ -147,6 +158,7 @@ export default function OrdersPage() {
         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (order.customerName && order.customerName.toLowerCase().includes(searchTerm.toLowerCase()))
     ));
+  }, [orders, statusFilter, vendorFilter, dateRange, searchTerm]);
   
   const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -331,6 +343,7 @@ export default function OrdersPage() {
         "Quantity": item.qty,
         "Unit Price": item.price,
         "Line Total": item.qty * item.price,
+        "Vendor": item.vendorName || 'N/A', // Added Vendor
         "Order Subtotal": order.subTotal,
         "Order Tax": order.taxAmount,
         "Order Total": order.totalAmount,

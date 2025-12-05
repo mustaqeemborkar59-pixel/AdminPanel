@@ -40,14 +40,14 @@ const formatAddress = (address: any): string => {
 };
 
 const mapWCOrderToAppOrder = (wcOrder: any): Order => {
-  let vendorName: string | undefined = undefined;
+  let primaryVendorName: string | undefined = undefined;
 
   const items: OrderItem[] = wcOrder.line_items.map((item: any) => {
-    // Extract vendor code from SKU (e.g., "ST_TF-TAJREED-BUKHARI" -> "ST_TF")
+    let itemVendorName: string | undefined = undefined;
     if (item.sku && typeof item.sku === 'string' && item.sku.includes('-')) {
-      const skuVendor = item.sku.split('-')[0];
-      if (!vendorName) {
-        vendorName = skuVendor;
+      itemVendorName = item.sku.split('-')[0];
+      if (!primaryVendorName) {
+        primaryVendorName = itemVendorName;
       }
     }
     return {
@@ -56,6 +56,7 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
       qty: item.quantity,
       price: parseFloat(item.price),
       imageUrl: item.image?.src || '',
+      vendorName: itemVendorName,
     };
   });
 
@@ -82,7 +83,7 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
     timestamp: wcOrder.date_created_gmt + 'Z',
     paymentMethod: wcOrder.payment_method_title,
     paymentDate: wcOrder.date_paid_gmt ? wcOrder.date_paid_gmt + 'Z' : null,
-    vendorName: vendorName
+    vendorName: primaryVendorName
   };
 };
 

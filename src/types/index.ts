@@ -20,6 +20,7 @@ export interface OrderItem {
   price: number; // Price at the time of adding to cart (could be discounted)
   imageUrl?: string; // For display in cart;
   imageHint?: string;
+  vendorName?: string;
 }
 
 export type OrderStatus = 'pending' | 'failed' | 'cancelled' | 'queue' | 'processing' | 'completed' | 'hold' | 'dispatch';
