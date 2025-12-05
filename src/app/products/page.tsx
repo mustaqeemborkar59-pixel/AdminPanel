@@ -1,4 +1,3 @@
-
 "use client";
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Image from 'next/image';
@@ -16,6 +15,7 @@ import { CurrentOrderSheet } from '@/components/menu/current-order-sheet';
 import { initialMenuItems as allMenuItems, categories as categoryData } from '@/lib/menu-item-data';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { getOrdersFromWooCommerce } from '../orders/actions';
 
 const iconMap: { [key: string]: React.ElementType } = {
   LayoutGrid, Soup, SaladIcon, Grape, Fish, Sandwich, Coffee, Cake, Settings,
@@ -23,9 +23,32 @@ const iconMap: { [key: string]: React.ElementType } = {
   'LeafyGreen': SaladIcon,
 };
 
+// Function to extract unique products from orders
+const getProductsFromOrders = (orders: any[]): MenuItem[] => {
+  const productMap = new Map<string, MenuItem>();
+
+  orders.forEach(order => {
+    order.items.forEach((item: OrderItem) => {
+      if (!productMap.has(item.itemId)) {
+        productMap.set(item.itemId, {
+          id: item.itemId,
+          name: item.name,
+          price: item.price,
+          category: 'All', // Default category, can be improved
+          imageUrl: item.imageUrl,
+          availability: true, // Assuming available if in an order
+          isVegetarian: false, // Default, not available from order data
+        });
+      }
+    });
+  });
+
+  return Array.from(productMap.values());
+};
+
 export default function ProductsPage() {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(allMenuItems);
-  const [filteredItems, setFilteredItems] = useState<MenuItem[]>(menuItems);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [isMounted, setIsMounted] = useState(false);
@@ -40,17 +63,36 @@ export default function ProductsPage() {
   
   const [itemToEdit, setItemToEdit] = useState<MenuItem | undefined>(undefined);
   const [isAddEditDialogOpen, setIsAddEditDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const { toast } = useToast();
   const categoriesContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      const result = await getOrdersFromWooCommerce();
+      if (result.success && result.data) {
+        const products = getProductsFromOrders(result.data);
+        setMenuItems(products);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Failed to load products",
+          description: result.error || "Could not fetch products from WooCommerce.",
+        });
+      }
+      setIsLoading(false);
+    };
+    fetchProducts();
+  }, [toast]);
 
   useEffect(() => {
     let items = menuItems;
     if (selectedCategory !== 'All') {
+      // This will not work correctly as category is not properly fetched.
+      // For now, it will just show no items if a category other than 'All' is selected.
       items = items.filter(item => item.category === selectedCategory);
     }
     if (searchTerm) {
@@ -62,63 +104,6 @@ export default function ProductsPage() {
     setFilteredItems(items);
   }, [selectedCategory, searchTerm, menuItems]);
 
-  useEffect(() => {
-    const contentDiv = categoriesContentRef.current;
-    if (!contentDiv) return;
-
-    const slider = contentDiv.parentElement as HTMLElement; // This should be the ScrollArea Viewport
-    if (!slider) return;
-
-    contentDiv.style.cursor = 'grab';
-
-    let isDown = false;
-    let startX: number;
-    let scrollLeftStart: number;
-
-    const handleMouseDown = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      // Do not start drag if clicking on a button or the scrollbar thumb itself
-      if (target.closest('button') || target.closest('[data-radix-scroll-area-scrollbar] div')) {
-        return;
-      }
-      isDown = true;
-      contentDiv.style.cursor = 'grabbing';
-      contentDiv.style.userSelect = 'none';
-      startX = e.clientX; 
-      scrollLeftStart = slider.scrollLeft;
-    };
-
-    const handleMouseLeaveOrUp = () => {
-      if (!isDown) return;
-      isDown = false;
-      if (contentDiv) { // Check if still mounted
-        contentDiv.style.cursor = 'grab';
-        contentDiv.style.userSelect = '';
-      }
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDown) return;
-      e.preventDefault();
-      const x = e.clientX;
-      const walk = (x - startX) * 1.5; // Sensitivity factor can be adjusted
-      slider.scrollLeft = scrollLeftStart - walk;
-    };
-
-    contentDiv.addEventListener('mousedown', handleMouseDown);
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseLeaveOrUp);
-
-    return () => {
-      contentDiv.removeEventListener('mousedown', handleMouseDown);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseLeaveOrUp);
-      if (contentDiv) {
-        contentDiv.style.cursor = 'grab';
-        contentDiv.style.userSelect = '';
-      }
-    };
-  }, []);
 
   const handleSaveMenuItem = (itemData: Omit<MenuItem, 'id'> | MenuItem) => {
     if ('id' in itemData) { 
@@ -188,11 +173,10 @@ export default function ProductsPage() {
             oi.itemId === itemId ? { ...oi, qty: oi.qty - 1 } : oi
           );
         } else {
-          // If quantity is 1, remove the item
           return prevOrderItems.filter(oi => oi.itemId !== itemId);
         }
       }
-      return prevOrderItems; // Should not happen if button is only visible for items in cart
+      return prevOrderItems;
     });
   };
 
@@ -251,7 +235,7 @@ export default function ProductsPage() {
     return currentOrderItems.reduce((sum, item) => sum + item.qty, 0);
   }, [currentOrderItems]);
 
-  if (!isMounted) {
+  if (!isMounted || isLoading) {
     return <div className="flex items-center justify-center h-screen"><PlusCircle className="h-10 w-10 animate-spin text-primary" /></div>;
   }
 
@@ -317,6 +301,7 @@ export default function ProductsPage() {
                             "flex flex-col items-start h-auto p-3 rounded-lg shadow-sm min-w-[100px] text-left",
                             isActive ? "bg-primary text-primary-foreground" : "bg-card hover:bg-muted/80"
                         )}
+                        disabled={cat.name !== 'All'} // Disable category filtering until properly implemented
                     >
                         <Icon className={cn("h-5 w-5 mb-1", isActive ? "text-primary-foreground" : "text-primary")} />
                         <span className={cn("text-xs font-medium", isActive ? "text-primary-foreground" : "text-card-foreground")}>{cat.name}</span>
