@@ -24,6 +24,20 @@ if (isWooCommerceConfigured()) {
   });
 }
 
+const formatAddress = (address: any): string => {
+  if (!address || !Object.keys(address).some(key => address[key])) {
+    return '';
+  }
+  const addressParts = [
+    address.address_1,
+    address.address_2,
+    address.city,
+    address.state,
+    address.postcode,
+    address.country
+  ];
+  return addressParts.filter(part => part).join(', ');
+};
 
 const mapWCOrderToAppOrder = (wcOrder: any): Order => {
   const items: OrderItem[] = wcOrder.line_items.map((item: any) => ({
@@ -35,6 +49,8 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
   }));
 
   const subTotal = parseFloat(wcOrder.total) - parseFloat(wcOrder.total_tax);
+  const billingAddress = formatAddress(wcOrder.billing);
+  const shippingAddress = formatAddress(wcOrder.shipping);
 
   return {
     id: String(wcOrder.id),
@@ -46,8 +62,8 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
     items: items,
     status: wcOrder.status as OrderStatus,
     orderType: 'delivery', // Defaulting to delivery
-    billingAddress: `${wcOrder.billing.address_1}, ${wcOrder.billing.city}`,
-    shippingAddress: `${wcOrder.shipping.address_1}, ${wcOrder.shipping.city}`,
+    billingAddress: billingAddress,
+    shippingAddress: shippingAddress,
     trackingId: wcOrder.meta_data.find((m: any) => m.key === '_wc_shipment_tracking_items')?.value[0]?.tracking_number || '',
     totalAmount: parseFloat(wcOrder.total),
     subTotal: subTotal,
