@@ -212,33 +212,35 @@ export default function OrdersPage() {
         // Invoice Details
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
-        doc.text('Invoice #:', pageWidth - 60, 45, { align: 'left' });
+        doc.text('Order ID:', pageWidth - 60, 45, { align: 'left' });
         doc.text('Date:', pageWidth - 60, 52, { align: 'left' });
+        doc.text('Status:', pageWidth - 60, 59, { align: 'left' });
 
         doc.setFont('helvetica', 'normal');
         doc.text(order.id, pageWidth - 20, 45, { align: 'right' });
         doc.text(formatDateInIST(order.timestamp), pageWidth - 20, 52, { align: 'right' });
+        doc.text(order.status, pageWidth-20, 59, {align: 'right'})
         
         // Line Separator
         doc.setDrawColor(200, 200, 200);
-        doc.line(20, 60, pageWidth - 20, 60);
+        doc.line(20, 65, pageWidth - 20, 65);
 
         // Bill From/To
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
-        doc.text('BILL TO:', 20, 70);
+        doc.text('BILL TO:', 20, 75);
         
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
         const billTo = [
-            order.customerName || 'N/A',
-            order.shippingAddress || 'No address provided',
-            order.pincode || '',
+            `Name: ${order.customerName || 'N/A'}`,
+            `Address: ${order.shippingAddress || 'No address provided'}`,
+            `Pincode: ${order.pincode || ''}`,
             `Phone: ${order.phone || 'N/A'}`,
+            order.altPhone ? `Alt Phone: ${order.altPhone}` : null,
             `Email: ${order.gmail || 'N/A'}`,
-            order.altPhone ? `Alt Phone: ${order.altPhone}` : null
         ].filter(line => line) as string[];
-        doc.text(billTo.join('\n'), 20, 76);
+        doc.text(billTo.join('\n'), 20, 81);
         
         // Table
         const tableColumn = ["ITEM", "QUANTITY", "PRICE", "TOTAL"];
@@ -257,7 +259,7 @@ export default function OrdersPage() {
         (doc as any).autoTable({
             head: [tableColumn],
             body: tableRows,
-            startY: (doc as any).lastAutoTable.finalY ? (doc as any).lastAutoTable.finalY + 20 : 105,
+            startY: 110,
             theme: 'striped',
             headStyles: {
                 fillColor: [52, 73, 94], // Dark blue-gray
@@ -275,7 +277,7 @@ export default function OrdersPage() {
         });
 
         // Totals at the bottom
-        let finalY = (doc as any).lastAutoTable.finalY || 105;
+        let finalY = (doc as any).lastAutoTable.finalY || 110;
         if (finalY > pageHeight - 60) {
             doc.addPage();
             finalY = 20;
