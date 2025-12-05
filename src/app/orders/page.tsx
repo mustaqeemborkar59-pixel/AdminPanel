@@ -129,7 +129,7 @@ export default function OrdersPage() {
   };
 
   const filteredOrders = useMemo(() => {
-    return getUniqueOrders(orders
+    let filtered = orders
     .filter(order => statusFilter === 'all' || order.status === statusFilter)
     .filter(order => {
         if (vendorFilter === 'all') return true;
@@ -139,8 +139,23 @@ export default function OrdersPage() {
         if (vendorFilter === 'all') return order;
         // If a vendor is selected, filter the items within the order
         const vendorItems = order.items.filter(item => item.vendorName === vendorFilter);
-        return { ...order, items: vendorItems };
+        // Recalculate totals based on filtered items
+        const subTotal = vendorItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+        // Assuming a proportional tax calculation. This might need adjustment based on real tax rules.
+        const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
+        const taxAmount = subTotal * taxRatio;
+        const totalAmount = subTotal + taxAmount;
+        
+        return { 
+            ...order, 
+            items: vendorItems,
+            // Overwrite totals for this filtered view
+            subTotal,
+            taxAmount,
+            totalAmount,
+        };
     })
+    .filter(order => order.items.length > 0) // Ensure order still has items after vendor filter
     .filter(order => {
       if (!dateRange) return true;
       const orderDate = new Date(order.timestamp);
@@ -157,7 +172,9 @@ export default function OrdersPage() {
     .filter(order => 
         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (order.customerName && order.customerName.toLowerCase().includes(searchTerm.toLowerCase()))
-    ));
+    );
+
+    return getUniqueOrders(filtered);
   }, [orders, statusFilter, vendorFilter, dateRange, searchTerm]);
   
   const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
@@ -207,10 +224,15 @@ export default function OrdersPage() {
       email: "contact@yourcompany.com"
     };
 
-    ordersToExport.forEach((order, index) => {
+    ordersToExport.forEach((originalOrder, index) => {
         if (index > 0) {
             doc.addPage();
         }
+
+        // IMPORTANT: Recalculate totals based on vendor if a filter is active
+        // The `originalOrder` from `filteredOrders` already has recalculated values if a vendor is selected.
+        // So we can use its values directly.
+        const order = originalOrder;
 
         const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
         const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
@@ -311,7 +333,7 @@ export default function OrdersPage() {
         doc.text('Subtotal:', subtotalX, totalY, { align: 'right' });
         doc.text(`₹${order.subTotal.toFixed(2)}`, textX, totalY, { align: 'right' });
         
-        doc.text(`Tax (${(order.taxAmount / order.subTotal * 100 || 0).toFixed(0)}%):`, subtotalX, totalY + 7, { align: 'right' });
+        doc.text(`Tax (${(order.subTotal > 0 ? (order.taxAmount / order.subTotal) * 100 : 0).toFixed(0)}%):`, subtotalX, totalY + 7, { align: 'right' });
         doc.text(`₹${order.taxAmount.toFixed(2)}`, textX, totalY + 7, { align: 'right' });
         
         doc.setDrawColor(40, 40, 40);
@@ -371,7 +393,8 @@ export default function OrdersPage() {
         });
         return;
       }
-      ordersToExport = getUniqueOrders(orders.filter(o => selectedOrderIds.has(o.id)));
+      // Use the already filtered and recalculated orders
+      ordersToExport = filteredOrders.filter(o => selectedOrderIds.has(o.id));
     } else { // 'all'
       if (filteredOrders.length === 0) {
         toast({
