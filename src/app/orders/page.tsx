@@ -267,24 +267,59 @@ export default function OrdersPage() {
         doc.line(margin, 65, pageWidth - margin, 65);
 
         // Bill To
+        let yPos = 75;
+        const lineSpacing = 6;
+        const valueXOffset = 25;
+        const maxContentWidth = pageWidth / 2 - margin - valueXOffset;
+
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
-        doc.text('BILL TO:', margin, 75);
-        
+        doc.text('BILL TO:', margin, yPos);
+        yPos += lineSpacing;
+
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        const billToLines = [
-            order.customerName || 'N/A',
-            order.billingAddress || 'No address provided',
-            `Pincode: ${order.pincode || ''}`,
-            `Phone: ${order.phone || 'N/A'}`,
-            order.altPhone ? `Alt Phone: ${order.altPhone}` : null,
-            `Email: ${order.gmail || 'N/A'}`,
-        ].filter(line => line) as string[];
         
-        // Use text with maxWidth for address wrapping
-        doc.text(billToLines.join('\n'), margin, 81, { maxWidth: pageWidth / 2 - margin });
+        doc.setFont('helvetica', 'bold');
+        doc.text('Name:', margin, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.text(order.customerName || 'N/A', margin + valueXOffset, yPos);
+        yPos += lineSpacing;
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('Address:', margin, yPos);
+        doc.setFont('helvetica', 'normal');
+        const addressLines = doc.splitTextToSize(order.billingAddress || 'No address provided', maxContentWidth);
+        doc.text(addressLines, margin + valueXOffset, yPos);
+        yPos += addressLines.length * (lineSpacing - 2); // Adjust spacing for multiline text
         
+        doc.setFont('helvetica', 'bold');
+        doc.text('Pincode:', margin, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.text(order.pincode || '', margin + valueXOffset, yPos);
+        yPos += lineSpacing;
+        
+        doc.setFont('helvetica', 'bold');
+        doc.text('Phone:', margin, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.text(order.phone || 'N/A', margin + valueXOffset, yPos);
+        yPos += lineSpacing;
+        
+        if (order.altPhone) {
+          doc.setFont('helvetica', 'bold');
+          doc.text('Alt Phone:', margin, yPos);
+          doc.setFont('helvetica', 'normal');
+          doc.text(order.altPhone, margin + valueXOffset, yPos);
+          yPos += lineSpacing;
+        }
+
+        doc.setFont('helvetica', 'bold');
+        doc.text('Email:', margin, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.text(order.gmail || 'N/A', margin + valueXOffset, yPos);
+        yPos += lineSpacing;
+
+
         // Table
         const tableColumn = ["ITEM", "QUANTITY", "PRICE", "TOTAL"];
         const tableRows: (string | number)[][] = [];
@@ -302,7 +337,7 @@ export default function OrdersPage() {
         (doc as any).autoTable({
             head: [tableColumn],
             body: tableRows,
-            startY: 110,
+            startY: yPos + 5, // Start table after BILL TO section
             theme: 'striped',
             headStyles: {
                 fillColor: [52, 73, 94], // Dark blue-gray
@@ -320,7 +355,7 @@ export default function OrdersPage() {
         });
 
         // Totals at the bottom
-        let finalY = (doc as any).lastAutoTable.finalY || 110;
+        let finalY = (doc as any).lastAutoTable.finalY || yPos + 5;
         if (finalY > pageHeight - 60) {
             doc.addPage();
             finalY = 20;
@@ -631,9 +666,5 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
-
-    
 
     
