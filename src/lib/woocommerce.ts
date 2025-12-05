@@ -66,7 +66,7 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
 
   // Find alternate phone from meta data, assuming the key is '_billing_phone_2'
   const altPhoneMeta = wcOrder.meta_data.find((m: any) => m.key === '_billing_phone_2');
-  const altPhone = altPhoneMeta ? altPhoneMeta.value : '';
+  const altPhone = altPhoneMeta ? altPhoneMeta.value : undefined;
 
 
   return {
