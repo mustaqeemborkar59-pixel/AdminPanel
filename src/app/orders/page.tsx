@@ -18,7 +18,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuPortal
 } from "@/components/ui/dropdown-menu";
-import { getOrdersFromSheet, updateOrderStatusInSheet } from './actions';
+import { getOrdersFromWooCommerce, updateOrderStatusInWooCommerce } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Search, ListFilter, Download, FileDown, FileText, FileSpreadsheet, Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -70,14 +70,14 @@ export default function OrdersPage() {
   useEffect(() => {
     const fetchOrders = async () => {
       setIsLoading(true);
-      const result = await getOrdersFromSheet();
+      const result = await getOrdersFromWooCommerce();
       if (result.success && result.data) {
         setOrders(result.data);
       } else {
         toast({
           variant: "destructive",
           title: "Failed to load orders",
-          description: result.error || "Could not fetch orders from Google Sheet.",
+          description: result.error || "Could not fetch orders from WooCommerce.",
         });
       }
       setIsLoading(false);
@@ -94,7 +94,7 @@ export default function OrdersPage() {
     const originalOrders = [...orders];
     setOrders(prevOrders => prevOrders.map(order => order.id === orderId ? { ...order, status } : order));
 
-    const result = await updateOrderStatusInSheet(orderId, status);
+    const result = await updateOrderStatusInWooCommerce(orderId, status);
 
     if (!result.success) {
       setOrders(originalOrders);
@@ -377,7 +377,7 @@ export default function OrdersPage() {
     <div className="flex flex-col h-full">
       <PageHeader
         title="Order Management"
-        description="View and manage customer orders for your online shop from Google Sheets."
+        description="View and manage customer orders from your WooCommerce store."
       />
       <div className="px-4 md:px-6 pt-4 flex flex-col sm:flex-row items-center gap-4">
         <div className="relative flex-grow w-full">
@@ -567,5 +567,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
