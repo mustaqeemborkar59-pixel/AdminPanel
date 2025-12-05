@@ -46,6 +46,7 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
     items: items,
     status: wcOrder.status as OrderStatus,
     orderType: 'delivery', // Defaulting to delivery
+    billingAddress: `${wcOrder.billing.address_1}, ${wcOrder.billing.city}`,
     shippingAddress: `${wcOrder.shipping.address_1}, ${wcOrder.shipping.city}`,
     trackingId: wcOrder.meta_data.find((m: any) => m.key === '_wc_shipment_tracking_items')?.value[0]?.tracking_number || '',
     totalAmount: parseFloat(wcOrder.total),
@@ -120,3 +121,5 @@ export const updateOrderStatus = async (orderId: string, status: OrderStatus): P
     return false;
   }
 };
+
+    

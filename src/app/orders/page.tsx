@@ -234,7 +234,7 @@ export default function OrdersPage() {
         doc.setFont('helvetica', 'normal');
         const billTo = [
             `Name: ${order.customerName || 'N/A'}`,
-            `Address: ${order.shippingAddress || 'No address provided'}`,
+            `Address: ${order.billingAddress || 'No address provided'}`,
             `Pincode: ${order.pincode || ''}`,
             `Phone: ${order.phone || 'N/A'}`,
             order.altPhone ? `Alt Phone: ${order.altPhone}` : null,
@@ -567,5 +567,7 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
 
     

@@ -35,6 +35,7 @@ export interface Order {
   items: OrderItem[];
   status: OrderStatus;
   orderType: OrderType;
+  billingAddress?: string;
   shippingAddress?: string; // For delivery
   trackingId?: string; // For shipped orders
   totalAmount: number;
@@ -106,3 +107,5 @@ declare module 'jspdf' {
     };
   }
 }
+
+    
