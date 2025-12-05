@@ -64,8 +64,8 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
   const billingAddress = formatAddress(wcOrder.billing);
   const shippingAddress = formatAddress(wcOrder.shipping);
 
-  // Find alternate phone from meta data, assuming the key is '_billing_phone_2'
-  const altPhoneMeta = wcOrder.meta_data.find((m: any) => m.key === '_billing_phone_2');
+  // Find alternate phone from meta data
+  const altPhoneMeta = wcOrder.meta_data.find((m: any) => m.key === 'billing_alternate_phone');
   const altPhone = altPhoneMeta ? altPhoneMeta.value : undefined;
 
 
