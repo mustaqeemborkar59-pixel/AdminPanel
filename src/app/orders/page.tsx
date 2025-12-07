@@ -393,7 +393,13 @@ export default function OrdersPage() {
         doc.text('Thank you for business with Sakib Truth!', margin, pageHeight - 20);
     });
 
-    doc.save(`invoices-${new Date().toISOString().split('T')[0]}.pdf`);
+    const dateStr = new Date().toISOString().split('T')[0];
+    let fileName = `invoices-${dateStr}.pdf`;
+    if (vendorFilter !== 'all') {
+        const safeVendorName = vendorFilter.replace(/[^a-zA-Z0-9]/g, '_');
+        fileName = `${safeVendorName}_invoices-${dateStr}.pdf`;
+    }
+    doc.save(fileName);
   };
 
   const generateExcel = (ordersToExport: Order[]) => {
@@ -625,7 +631,7 @@ export default function OrdersPage() {
                 <OrderListItem 
                   key={`${order.id}-${startIndex + index}`} 
                   order={order} 
-                  onUpdateStatus={handleUpdateOrderStatus} 
+                  onUpdateStatus={handleUpdateStatus} 
                   value={`${order.id}-${startIndex + index}`}
                   isSelected={selectedOrderIds.has(order.id)}
                   onToggleSelect={toggleSelectOrder}
@@ -671,5 +677,7 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
 
     
