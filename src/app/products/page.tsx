@@ -47,6 +47,7 @@ export default function ProductsPage() {
       const result = await getProductsFromWooCommerce();
       if (result.success && result.data) {
         setMenuItems(result.data);
+        // Dynamically create categories from fetched products
         const productCategories = Array.from(new Set(result.data.map(p => p.category)));
         const newCategories = [
           { name: 'All', icon: 'All' },
