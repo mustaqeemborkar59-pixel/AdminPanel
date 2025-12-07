@@ -631,7 +631,7 @@ export default function OrdersPage() {
                 <OrderListItem 
                   key={`${order.id}-${startIndex + index}`} 
                   order={order} 
-                  onUpdateStatus={handleUpdateStatus} 
+                  onUpdateStatus={handleUpdateOrderStatus} 
                   value={`${order.id}-${startIndex + index}`}
                   isSelected={selectedOrderIds.has(order.id)}
                   onToggleSelect={toggleSelectOrder}
@@ -677,6 +677,8 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
 
     
 
