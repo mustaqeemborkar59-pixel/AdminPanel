@@ -90,6 +90,10 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
       });
     }
   };
+  
+  const orderDateFormatted = formatDate(order.timestamp);
+  const paymentDateFormatted = order.paymentDate ? formatDate(order.paymentDate) : null;
+  const showPaymentDate = paymentDateFormatted && paymentDateFormatted !== orderDateFormatted;
 
 
   return (
@@ -107,7 +111,13 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                     <div className="flex-grow">
                         <CardTitle className="font-headline text-lg">{order.id}</CardTitle>
                         <CardDescription className="font-body text-sm mt-1">
-                        {order.customerName || 'N/A'} - <span className="text-xs">{formatDate(order.timestamp)}</span>
+                          {order.customerName || 'N/A'} -{' '}
+                          <span className="text-xs">
+                            {orderDateFormatted}
+                            {showPaymentDate && (
+                              <span className="text-blue-600 dark:text-blue-400 font-semibold"> (Paid: {paymentDateFormatted})</span>
+                            )}
+                          </span>
                         </CardDescription>
                     </div>
                 </div>
