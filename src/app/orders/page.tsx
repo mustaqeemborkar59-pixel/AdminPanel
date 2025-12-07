@@ -2,7 +2,7 @@
 "use client";
 import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
-import { type Order, type OrderItem, type OrderStatus } from '@/types';
+import { type Order, type OrderItem, type OrderStatus, type Vendor } from '@/types';
 import { OrderListItem } from '@/components/orders/order-list-item';
 import {
   DropdownMenu,
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getOrdersFromWooCommerce, updateOrderStatusInWooCommerce } from './actions';
 import { getCompanyDetailsFromRTDB } from '@/app/auth/actions';
+import { getVendorsFromRTDB } from '@/app/vendors/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Search, ListFilter, Download, FileDown, FileText, FileSpreadsheet, Calendar as CalendarIcon, Building } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -68,30 +69,55 @@ export default function OrdersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  
   const [allVendors, setAllVendors] = useState<string[]>([]);
+  const [vendorMap, setVendorMap] = useState<Map<string, string>>(new Map());
+
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchInitialData = async () => {
       setIsLoading(true);
-      const result = await getOrdersFromWooCommerce();
-      if (result.success && result.data) {
-        setOrders(result.data);
-        const vendors = new Set(
-          result.data.flatMap(order => order.items.map(item => item.vendorName).filter(Boolean) as string[])
-        );
-        setAllVendors(Array.from(vendors));
+
+      const vendorsResult = await getVendorsFromRTDB();
+      if(vendorsResult.success && vendorsResult.data) {
+        const newVendorMap = new Map(vendorsResult.data.map(v => [v.code, v.name]));
+        setVendorMap(newVendorMap);
+      } else if (!vendorsResult.success) {
+         toast({
+          variant: "destructive",
+          title: "Failed to load vendors",
+          description: vendorsResult.error || "Could not fetch vendors from the database.",
+        });
+      }
+      
+      const ordersResult = await getOrdersFromWooCommerce();
+      if (ordersResult.success && ordersResult.data) {
+        setOrders(ordersResult.data);
       } else {
         toast({
           variant: "destructive",
           title: "Failed to load orders",
-          description: result.error || "Could not fetch orders from WooCommerce.",
+          description: ordersResult.error || "Could not fetch orders from WooCommerce.",
         });
       }
+
       setIsLoading(false);
     };
-    fetchOrders();
+    fetchInitialData();
   }, [toast]);
   
+  useEffect(() => {
+     if (orders.length > 0) {
+        const vendorCodes = new Set(
+          orders.flatMap(order => order.items.map(item => item.vendorName).filter(Boolean) as string[])
+        );
+        // Now map codes to names, falling back to code if name not found
+        const vendorDisplayNames = Array.from(vendorCodes).map(code => vendorMap.get(code) || code);
+        setAllVendors(vendorDisplayNames);
+    }
+  }, [orders, vendorMap]);
+
+
   useEffect(() => {
     setCurrentPage(1);
   }, [statusFilter, searchTerm, dateRange, vendorFilter]);
@@ -134,12 +160,22 @@ export default function OrdersPage() {
     .filter(order => statusFilter === 'all' || order.status === statusFilter)
     .filter(order => {
         if (vendorFilter === 'all') return true;
-        return order.items.some(item => item.vendorName === vendorFilter);
+        // Check if any item's vendor name (from map) or code matches the filter
+        return order.items.some(item => {
+            if (!item.vendorName) return false;
+            const displayName = vendorMap.get(item.vendorName) || item.vendorName;
+            return displayName === vendorFilter;
+        });
     })
     .map(order => {
         if (vendorFilter === 'all') return order;
         // If a vendor is selected, filter the items within the order
-        const vendorItems = order.items.filter(item => item.vendorName === vendorFilter);
+        const vendorItems = order.items.filter(item => {
+          if (!item.vendorName) return false;
+          const displayName = vendorMap.get(item.vendorName) || item.vendorName;
+          return displayName === vendorFilter;
+        });
+
         // Recalculate totals based on filtered items
         const subTotal = vendorItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
         // Assuming a proportional tax calculation. This might need adjustment based on real tax rules.
@@ -176,7 +212,7 @@ export default function OrdersPage() {
     );
 
     return getUniqueOrders(filtered);
-  }, [orders, statusFilter, vendorFilter, dateRange, searchTerm]);
+  }, [orders, statusFilter, vendorFilter, dateRange, searchTerm, vendorMap]);
   
   const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -414,7 +450,7 @@ export default function OrdersPage() {
         "Quantity": item.qty,
         "Unit Price": item.price,
         "Line Total": item.qty * item.price,
-        "Vendor": item.vendorName || 'N/A', // Added Vendor
+        "Vendor": vendorMap.get(item.vendorName || '') || item.vendorName || 'N/A', // Use vendor map
         "Order Subtotal": order.subTotal,
         "Order Tax": order.taxAmount,
         "Order Total": order.totalAmount,
@@ -677,9 +713,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
-
-    
-
-    
