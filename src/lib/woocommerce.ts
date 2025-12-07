@@ -16,12 +16,19 @@ const isWooCommerceConfigured = () => {
 let api: WooCommerceRestApi | undefined;
 
 if (isWooCommerceConfigured()) {
-  api = new WooCommerceRestApi({
-    url: process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL!,
-    consumerKey: process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_KEY!,
-    consumerSecret: process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_SECRET!,
-    version: "wc/v3"
-  });
+  try {
+    // Basic validation to ensure the URL is somewhat valid before initializing
+    new URL(process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL!);
+    api = new WooCommerceRestApi({
+      url: process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL!,
+      consumerKey: process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_KEY!,
+      consumerSecret: process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_SECRET!,
+      version: "wc/v3"
+    });
+  } catch (error) {
+    console.error("Failed to initialize WooCommerce API. Please check the store URL in your .env file.", error);
+    api = undefined;
+  }
 }
 
 const formatAddress = (address: any): string => {
@@ -129,11 +136,15 @@ export const getOrders = async (): Promise<Order[]> => {
     const orders: Order[] = allWCOrders.map(mapWCOrderToAppOrder);
     return orders;
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching data from WooCommerce:", error);
-    if (error instanceof Error && (error.message.includes('getaddrinfo ENOTFOUND') || error.message.includes('Failed to parse URL'))) {
-      throw new Error('Could not connect to WooCommerce store. Please check the store URL in your .env file.');
+     if (error.code === 'ENOTFOUND' || error.message.includes('getaddrinfo ENOTFOUND')) {
+      throw new Error(`Could not connect to WooCommerce store. Hostname not found. Please check the store URL in your .env file: ${process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL}`);
     }
+    if (error.message.includes('Failed to parse URL')) {
+        throw new Error(`Invalid WooCommerce store URL. Please check the format in your .env file: ${process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL}`);
+    }
+    // Re-throw a generic but informative error for other cases.
     throw new Error('Failed to communicate with WooCommerce API. Verify store URL, keys, and network connection.');
   }
 };
@@ -152,7 +163,8 @@ export const updateOrderStatus = async (orderId: string, status: OrderStatus): P
     return response.status === 200;
   } catch (error) {
     console.error(`Failed to update order ${orderId} status in WooCommerce:`, error);
-    return false;
+    // You could re-throw a more specific error here to be handled by the server action
+    throw new Error('Failed to update order status in WooCommerce.');
   }
 };
 
@@ -181,7 +193,7 @@ export const updateOrderAddress = async (orderId: string, payload: UpdateOrderAd
     return response.status === 200;
   } catch (error) {
     console.error(`Failed to update order ${orderId} address in WooCommerce:`, error);
-    return false;
+    throw new Error('Failed to update order address in WooCommerce.');
   }
 };
 
@@ -199,7 +211,7 @@ const mapWCProductToMenuItem = (product: any): MenuItem => {
 }
 
 export const getProducts = async (): Promise<MenuItem[]> => {
-  if (!api) {
+  if (!api || !isWooCommerceConfigured()) {
     throw new Error('WooCommerce environment variables are not set correctly.');
   }
 
@@ -231,8 +243,14 @@ export const getProducts = async (): Promise<MenuItem[]> => {
     
     const products: MenuItem[] = allProducts.map(mapWCProductToMenuItem);
     return products;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching products from WooCommerce:", error);
+    if (error.code === 'ENOTFOUND' || error.message.includes('getaddrinfo ENOTFOUND')) {
+      throw new Error(`Could not connect to WooCommerce store. Hostname not found. Please check the store URL in your .env file: ${process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL}`);
+    }
+     if (error.message.includes('Failed to parse URL')) {
+        throw new Error(`Invalid WooCommerce store URL. Please check the format in your .env file: ${process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL}`);
+    }
     throw new Error('Failed to communicate with WooCommerce API to fetch products.');
   }
 };
