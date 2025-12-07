@@ -2,12 +2,21 @@
 "use server";
 
 import { redirect } from 'next/navigation';
+import { rtdb } from '@/lib/firebase';
+import { ref, set, get } from 'firebase/database';
 
 interface UserProfileData {
   uid: string;
   email: string | null;
   displayName?: string | null;
   photoURL?: string | null;
+}
+
+interface CompanyDetails {
+    companyName: string;
+    address: string;
+    city: string;
+    email: string;
 }
 
 // This server action is a wrapper but the core logic is now removed.
@@ -44,4 +53,36 @@ export async function signOut() {
     console.error('SignOut Server Action Error (auth.signOut() should be client-side):', error);
   }
   redirect('/login');
+}
+
+
+export async function saveCompanyDetailsToRTDB(details: CompanyDetails): Promise<{ success: boolean; message?: string }> {
+    if (!rtdb) {
+        return { success: false, message: "Realtime Database is not configured." };
+    }
+    try {
+        const detailsRef = ref(rtdb, 'companyDetails/info');
+        await set(detailsRef, details);
+        return { success: true };
+    } catch (error: any) {
+        console.error('Failed to save company details to RTDB:', error);
+        return { success: false, message: error.message || 'Failed to save company details.' };
+    }
+}
+
+export async function getCompanyDetailsFromRTDB(): Promise<{ success: boolean; data?: CompanyDetails; message?: string }> {
+    if (!rtdb) {
+        return { success: false, message: "Realtime Database is not configured." };
+    }
+    try {
+        const detailsRef = ref(rtdb, 'companyDetails/info');
+        const snapshot = await get(detailsRef);
+        if (snapshot.exists()) {
+            return { success: true, data: snapshot.val() };
+        }
+        return { success: true, data: undefined }; // No data found is not an error
+    } catch (error: any) {
+        console.error('Failed to get company details from RTDB:', error);
+        return { success: false, message: error.message || 'Failed to fetch company details.' };
+    }
 }
