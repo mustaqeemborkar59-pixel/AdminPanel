@@ -36,10 +36,11 @@ interface AddMenuItemDialogProps {
   trigger?: ReactNode | null;
 }
 
-const defaultState: Omit<MenuItem, 'id' | 'imageHint' | 'regularPrice'> = {
+const defaultState: Omit<MenuItem, 'id' | 'imageHint'> = {
   name: '',
   category: 'Fiction',
   price: 0,
+  regularPrice: undefined,
   imageUrl: '',
   availability: true,
   description: '',
@@ -127,7 +128,7 @@ export function AddMenuItemDialog({ isOpen, onOpenChange, onSaveItem, existingIt
           </div>
 
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="price" className="text-right">Price</Label>
+            <Label htmlFor="price" className="text-right">Sale Price</Label>
             <Input id="price" name="price" type="number" value={formData.price} onChange={handleChange} className="col-span-3" required min="0" step="0.01" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">

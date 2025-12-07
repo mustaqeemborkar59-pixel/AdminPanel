@@ -204,11 +204,11 @@ const mapWCProductToMenuItem = (product: any): MenuItem => {
   return {
     id: String(product.id),
     name: product.name,
-    // Use sale_price if available, otherwise regular_price, fallback to price
+    // If it's on sale, price is the sale_price. Otherwise, it's the regular_price (or the price field as a fallback).
     price: parseFloat(isSale ? product.sale_price : product.regular_price || product.price || '0'),
-    // Store regular_price only if it's a sale item and different from sale_price
-    regularPrice: isSale && parseFloat(product.regular_price) !== parseFloat(product.sale_price) 
-      ? parseFloat(product.regular_price) 
+    // Only set regularPrice if the item is on sale and the prices are different.
+    regularPrice: isSale && parseFloat(product.regular_price) > parseFloat(product.sale_price)
+      ? parseFloat(product.regular_price)
       : undefined,
     category: product.categories.length > 0 ? product.categories[0].name : 'Uncategorized',
     imageUrl: product.images.length > 0 ? product.images[0].src : undefined,
