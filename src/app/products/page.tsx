@@ -7,23 +7,22 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
-  LayoutGrid, Soup, SaladIcon, Grape, Fish, Sandwich, Coffee, Cake, Search, PlusCircle, Settings, ListFilter, Eye, EyeOff, Edit3, ShoppingCart
+  LayoutGrid, Book, Search, PlusCircle, Settings, ShoppingCart
 } from 'lucide-react';
 import type { MenuItem, OrderItem, OrderType } from '@/types';
 import { MenuItemCard } from '@/components/menu/menu-item-card';
 import { AddMenuItemDialog } from '@/components/menu/add-menu-item-dialog';
 import { CurrentOrderSheet } from '@/components/menu/current-order-sheet';
-import { initialMenuItems as allMenuItems, categories as categoryData } from '@/lib/menu-item-data';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { getProductsFromWooCommerce } from './actions';
 import { Loader2 } from 'lucide-react';
+import { categories as defaultCategories } from '@/lib/menu-item-data';
 
 
 const iconMap: { [key: string]: React.ElementType } = {
-  LayoutGrid, Soup, SaladIcon, Grape, Fish, Sandwich, Coffee, Cake, Settings,
-  'Salad': SaladIcon, 
-  'LeafyGreen': SaladIcon,
+  All: LayoutGrid,
+  Default: Book,
 };
 
 
@@ -34,13 +33,13 @@ export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isMounted, setIsMounted] = useState(false);
   const [isAdminMode, setIsAdminMode] = useState(false);
-  const [categories, setCategories] = useState(categoryData);
+  const [categories, setCategories] = useState(defaultCategories);
 
   const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
   const [isOrderSheetOpen, setIsOrderSheetOpen] = useState(false);
   const [orderCustomerName, setOrderCustomerName] = useState('');
   const [orderDeliveryAddress, setOrderDeliveryAddress] = useState('');
-  const [currentOrderType, setCurrentOrderType] = useState<OrderType>('dine-in');
+  const [currentOrderType, setCurrentOrderType] = useState<OrderType>('delivery');
   const [currentPaymentMethod, setCurrentPaymentMethod] = useState<'cash' | 'card' | 'qr'>('card');
   
   const [itemToEdit, setItemToEdit] = useState<MenuItem | undefined>(undefined);
@@ -59,8 +58,8 @@ export default function ProductsPage() {
         setMenuItems(result.data);
         const productCategories = Array.from(new Set(result.data.map(p => p.category)));
         const newCategories = [
-          { name: 'All', icon: 'LayoutGrid' },
-          ...productCategories.map(c => ({ name: c, icon: categoryData.find(cd => cd.name === c)?.icon || 'LayoutGrid' }))
+          { name: 'All', icon: 'All' },
+          ...productCategories.map(c => ({ name: c, icon: 'Default' }))
         ];
         setCategories(newCategories);
       } else {
@@ -94,7 +93,7 @@ export default function ProductsPage() {
     // This is now a client-side only operation and will not persist.
     // A server action would be needed to update WooCommerce.
     if ('id' in itemData) { 
-      setMenuItems(prevItems => prevItems.map(item => item.id === itemData.id ? itemData : item));
+      setMenuItems(prevItems => prevItems.map(item => item.id === itemData.id ? itemData as MenuItem : item));
       toast({ title: "Product Updated (Client-side)", description: `${itemData.name} has been updated locally.` });
     } else { 
       const newItem: MenuItem = {
@@ -230,8 +229,8 @@ export default function ProductsPage() {
   return (
     <div className="flex flex-col h-full">
       <PageHeader
-        title="Products & Ordering"
-        description="Browse products, manage inventory, and create customer orders."
+        title="Book Catalog"
+        description="Browse books, manage stock, and create customer orders."
         actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => setIsOrderSheetOpen(true)} disabled={totalItemsInOrder === 0}>
@@ -242,7 +241,7 @@ export default function ProductsPage() {
             </Button>
             {isAdminMode && (
                 <Button size="sm" onClick={handleOpenAddDialog}>
-                    <PlusCircle className="mr-2 h-4 w-4" /> Add New Product
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add New Book
                 </Button>
             )}
           </div>
@@ -266,7 +265,7 @@ export default function ProductsPage() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                     type="search"
-                    placeholder="Search products..."
+                    placeholder="Search books by title or description..."
                     className="pl-10 h-10 w-full text-sm"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -277,7 +276,7 @@ export default function ProductsPage() {
             <ScrollArea className="mb-4 -mx-4 sm:mx-0">
                 <div ref={categoriesContentRef} className="flex gap-2 px-4 sm:px-0 pb-3 select-none">
                 {categories.map(cat => {
-                    const Icon = iconMap[cat.icon] || LayoutGrid;
+                    const Icon = iconMap[cat.icon] || iconMap.Default;
                     const count = categoryCounts[cat.name] || 0;
                     const isActive = selectedCategory === cat.name;
                     return (
@@ -326,7 +325,7 @@ export default function ProductsPage() {
                   })}
                   {filteredItems.length === 0 && (
                       <p className="col-span-full text-center text-muted-foreground py-10">
-                      No products match your criteria.
+                      No books match your criteria.
                       </p>
                   )}
                   </div>

@@ -9,7 +9,6 @@ export interface MenuItem {
   imageHint?: string; // For AI image generation hint
   availability: boolean;
   description?: string;
-  isVegetarian: boolean; // Note: This might be less relevant for general products
   discount?: number; // Optional discount percentage (e.g., 20 for 20%)
 }
 
@@ -115,5 +114,3 @@ declare module 'jspdf' {
     };
   }
 }
-
-    

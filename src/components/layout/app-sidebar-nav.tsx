@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'; // Added useRouter
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
-  Package,
+  BookOpen,
   ClipboardList,
   Archive,
   Users,
@@ -37,7 +37,7 @@ import { useToast } from '@/hooks/use-toast'; // For potential error messages
 const mainNavItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/orders', label: 'Orders', icon: ClipboardList },
-  { href: '/products', label: 'Products', icon: Package },
+  { href: '/products', label: 'Books', icon: BookOpen },
   { href: '/customers', label: 'Customers', icon: Users },
   { href: '/inventory', label: 'Inventory', icon: Archive },
   { href: '/delivery', label: 'Delivery', icon: Truck },

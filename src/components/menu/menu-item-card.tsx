@@ -19,20 +19,6 @@ interface MenuItemCardProps {
   isAdminView?: boolean;
 }
 
-const VegIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600 dark:text-green-500">
-    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
-    <circle cx="12" cy="12" r="5" fill="currentColor"/>
-  </svg>
-);
-
-const NonVegIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-600 dark:text-red-500">
-    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
-    <circle cx="12" cy="12" r="5" fill="currentColor"/>
-  </svg>
-);
-
 export function MenuItemCard({
   item,
   quantityInOrder = 0,
@@ -70,7 +56,7 @@ export function MenuItemCard({
           {item.name}
         </h3>
         <p className="text-xs text-muted-foreground mb-2 line-clamp-2 flex-grow min-h-[1.5rem]">
-          {item.description || "Delicious choice"}
+          {item.description || "A great choice for your collection."}
         </p>
         
         <div className="mt-auto space-y-2 pt-2">
@@ -82,7 +68,6 @@ export function MenuItemCard({
                   <span className="text-xs text-muted-foreground line-through">₹{item.price.toFixed(2)}</span>
                 )}
               </div>
-              {item.isVegetarian ? <VegIcon /> : <NonVegIcon />}
             </div>
 
             {isAdminView && onEditAdminAction && onDeleteAdminAction && onToggleAvailabilityAdminAction && (
@@ -118,7 +103,7 @@ export function MenuItemCard({
                   )}
                   onClick={() => onAddToOrder(item)}
                 >
-                  <PlusCircle className="mr-2 h-4 w-4" /> Add to Dish
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add to Cart
                 </Button>
               ) : (
                 <div className="flex items-center justify-center gap-2"> 
@@ -146,7 +131,7 @@ export function MenuItemCard({
           
           {!item.availability && (
               <Badge variant="outline" className="w-full justify-center py-1 text-sm border-yellow-500 text-yellow-700 bg-yellow-50 dark:bg-yellow-900/50 dark:text-yellow-400 dark:border-yellow-700">
-                  Currently Unavailable
+                  Currently Out of Stock
               </Badge>
           )}
         </div>
@@ -154,5 +139,3 @@ export function MenuItemCard({
     </Card>
   );
 }
-
-    

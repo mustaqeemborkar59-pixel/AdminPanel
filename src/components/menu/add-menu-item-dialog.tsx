@@ -37,12 +37,11 @@ interface AddMenuItemDialogProps {
 
 const defaultState: Omit<MenuItem, 'id' | 'imageHint'> = {
   name: '',
-  category: allCategories.find(c => c.name !== 'All')?.name || 'Appetizers',
+  category: 'Fiction',
   price: 0,
   imageUrl: '',
   availability: true,
   description: '',
-  isVegetarian: false,
   discount: 0,
 };
 
@@ -95,16 +94,16 @@ export function AddMenuItemDialog({ isOpen, onOpenChange, onSaveItem, existingIt
           {trigger || ( // Default trigger button if `trigger` is undefined (but not null)
             <Button>
               {existingItem ? <Edit3 className="mr-2 h-4 w-4" /> : <PlusCircle className="mr-2 h-4 w-4" />}
-              {existingItem ? 'Edit Item' : 'Add New Item'}
+              {existingItem ? 'Edit Product' : 'Add New Product'}
             </Button>
           )}
         </DialogTrigger>
       )}
       <DialogContent className="sm:max-w-lg bg-card">
         <DialogHeader>
-          <DialogTitle className="font-headline">{existingItem ? 'Edit' : 'Add New'} Menu Item</DialogTitle>
+          <DialogTitle className="font-headline">{existingItem ? 'Edit' : 'Add New'} Product</DialogTitle>
           <DialogDescription>
-            Fill in the details for the menu item. Click save when you're done.
+            Fill in the details for the product. Click save when you're done.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
@@ -147,17 +146,12 @@ export function AddMenuItemDialog({ isOpen, onOpenChange, onSaveItem, existingIt
             <span/> {/* Spacer for alignment */}
             <div className="col-span-3 flex items-center space-x-2">
               <Checkbox id="availability" name="availability" checked={formData.availability} onCheckedChange={(checked) => setFormData(prev => ({...prev, availability: Boolean(checked)}))} />
-              <Label htmlFor="availability" className="font-normal">Available</Label>
-            </div>
-            <span/> {/* Spacer for alignment */}
-            <div className="col-span-3 flex items-center space-x-2">
-              <Checkbox id="isVegetarian" name="isVegetarian" checked={formData.isVegetarian} onCheckedChange={(checked) => setFormData(prev => ({...prev, isVegetarian: Boolean(checked)}))} />
-              <Label htmlFor="isVegetarian" className="font-normal">Vegetarian</Label>
+              <Label htmlFor="availability" className="font-normal">In Stock</Label>
             </div>
           </div>
           <DialogFooter className="mt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit">{existingItem ? 'Save Changes' : 'Add Item'}</Button>
+            <Button type="submit">{existingItem ? 'Save Changes' : 'Add Product'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
