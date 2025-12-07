@@ -96,11 +96,8 @@ function DashboardContent() {
       sixDaysAgoIST.setHours(0, 0, 0, 0); 
 
       const recentOrders = orders.filter(order => {
-          if (!order.paymentDate) {
-            return false;
-          }
-          const orderDate = new Date(order.timestamp);
-          return orderDate >= sixDaysAgoIST && orderDate <= nowInIST;
+          const dateToConsider = order.paymentDate ? new Date(order.paymentDate) : new Date(order.timestamp);
+          return dateToConsider >= sixDaysAgoIST && dateToConsider <= nowInIST;
       });
       
       const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -120,8 +117,8 @@ function DashboardContent() {
       }).reverse();
 
       recentOrders.forEach(order => {
-          const orderDate = new Date(order.timestamp);
-          const orderDateInIST = new Date(orderDate.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+          const dateToConsider = order.paymentDate ? order.paymentDate : order.timestamp;
+          const orderDateInIST = new Date(new Date(dateToConsider).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
           
           const year = orderDateInIST.getFullYear();
           const month = String(orderDateInIST.getMonth() + 1).padStart(2, '0');
@@ -294,5 +291,7 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
+
+    
 
     
