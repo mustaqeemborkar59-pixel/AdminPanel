@@ -13,7 +13,6 @@ export const initialMenuItems: MenuItem[] = [
     imageHint: 'midnight library book',
     availability: true,
     description: 'A novel about a library that allows you to live the life you could have lived.',
-    discount: 10,
   },
   {
     id: 'BOOK002',
@@ -69,13 +68,4 @@ export const initialMenuItems: MenuItem[] = [
     availability: false,
     description: 'A lone astronaut must save the earth from a disaster.',
   },
-];
-
-export const categories = [
-  { name: 'All', icon: 'LayoutGrid' },
-  { name: 'Fiction', icon: 'Book' },
-  { name: 'Non-Fiction', icon: 'Book' },
-  { name: 'Science Fiction', icon: 'Book' },
-  { name: 'Fantasy', icon: 'Book' },
-  { name: 'Biography', icon: 'Book' },
 ];

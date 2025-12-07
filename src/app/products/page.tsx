@@ -16,8 +16,6 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { getProductsFromWooCommerce } from './actions';
 import { Loader2 } from 'lucide-react';
-import { categories as defaultCategories } from '@/lib/menu-item-data';
-
 
 const iconMap: { [key: string]: React.ElementType } = {
   All: LayoutGrid,
@@ -31,7 +29,7 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [isMounted, setIsMounted] = useState(false);
-  const [categories, setCategories] = useState(defaultCategories);
+  const [categories, setCategories] = useState<{name: string; icon: string}[]>([]);
   
   const [itemToEdit, setItemToEdit] = useState<MenuItem | undefined>(undefined);
   const [isAddEditDialogOpen, setIsAddEditDialogOpen] = useState(false);

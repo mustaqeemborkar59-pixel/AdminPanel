@@ -19,9 +19,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { PlusCircle, Edit3 } from "lucide-react";
 import { type MenuItem } from '@/types';
 import { Checkbox } from '@/components/ui/checkbox';
-import { categories as allCategories } from '@/lib/menu-item-data';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface AddMenuItemDialogProps {
   isOpen: boolean;
@@ -34,6 +38,7 @@ interface AddMenuItemDialogProps {
    * assuming the dialog is controlled entirely externally.
    */
   trigger?: ReactNode | null;
+  allCategories?: string[]; // Make categories dynamic
 }
 
 const defaultState: Omit<MenuItem, 'id' | 'imageHint'> = {
@@ -46,7 +51,14 @@ const defaultState: Omit<MenuItem, 'id' | 'imageHint'> = {
   description: '',
 };
 
-export function AddMenuItemDialog({ isOpen, onOpenChange, onSaveItem, existingItem, trigger }: AddMenuItemDialogProps) {
+export function AddMenuItemDialog({
+  isOpen,
+  onOpenChange,
+  onSaveItem,
+  existingItem,
+  trigger,
+  allCategories = ['Fiction', 'Non-Fiction', 'Science Fiction'], // Default fallback
+}: AddMenuItemDialogProps) {
   const [formData, setFormData] = useState<Omit<MenuItem, 'id' | 'imageHint'>>(defaultState);
 
   useEffect(() => {
@@ -55,10 +67,10 @@ export function AddMenuItemDialog({ isOpen, onOpenChange, onSaveItem, existingIt
         const { id, imageHint, ...editableData } = existingItem;
         setFormData(editableData);
       } else {
-        setFormData(defaultState);
+        setFormData({ ...defaultState, category: allCategories[0] || 'Uncategorized' });
       }
     }
-  }, [existingItem, isOpen]);
+  }, [existingItem, isOpen, allCategories]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -66,8 +78,7 @@ export function AddMenuItemDialog({ isOpen, onOpenChange, onSaveItem, existingIt
       setFormData({ ...formData, [name]: parseFloat(value) || 0 });
     } else if (type === 'checkbox') {
       setFormData({ ...formData, [name]: (e.target as HTMLInputElement).checked });
-    }
-    else {
+    } else {
       setFormData({ ...formData, [name]: value });
     }
   };
@@ -85,14 +96,12 @@ export function AddMenuItemDialog({ isOpen, onOpenChange, onSaveItem, existingIt
     }
     onOpenChange(false); // Close dialog via prop
   };
-  
-  const uniqueCategories = Array.from(new Set(allCategories.filter(c => c.name !== 'All').map(c => c.name)));
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      {trigger !== null && ( // Only render DialogTrigger if trigger is not explicitly null
+      {trigger !== null && (
         <DialogTrigger asChild>
-          {trigger || ( // Default trigger button if `trigger` is undefined (but not null)
+          {trigger || (
             <Button>
               {existingItem ? <Edit3 className="mr-2 h-4 w-4" /> : <PlusCircle className="mr-2 h-4 w-4" />}
               {existingItem ? 'Edit Product' : 'Add New Product'}
@@ -120,7 +129,7 @@ export function AddMenuItemDialog({ isOpen, onOpenChange, onSaveItem, existingIt
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                {uniqueCategories.map(cat => (
+                {allCategories.map(cat => (
                   <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                 ))}
               </SelectContent>
