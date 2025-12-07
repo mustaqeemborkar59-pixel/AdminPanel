@@ -14,11 +14,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Store } from "lucide-react";
+import { Store, Loader2 } from "lucide-react";
 import type { Vendor } from '@/types';
 
 interface AddVendorDialogProps {
-  onAddVendor: (vendor: Omit<Vendor, 'id'>) => void;
+  onAddVendor: (vendor: Omit<Vendor, 'id'>) => Promise<void>;
   existingVendor?: Vendor;
   triggerButton?: ReactNode;
 }
@@ -30,6 +30,7 @@ const defaultState: Omit<Vendor, 'id'> = {
 
 export function AddVendorDialog({ onAddVendor, existingVendor, triggerButton }: AddVendorDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState<Omit<Vendor, 'id'>>(defaultState);
 
   useEffect(() => {
@@ -47,14 +48,15 @@ export function AddVendorDialog({ onAddVendor, existingVendor, triggerButton }: 
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.code) {
-        // Simple validation
         alert("Vendor Name and Code are required.");
         return;
     }
-    onAddVendor(formData);
+    setIsSaving(true);
+    await onAddVendor(formData);
+    setIsSaving(false);
     setIsOpen(false);
     if (!existingVendor) {
         setFormData(defaultState);
@@ -80,15 +82,18 @@ export function AddVendorDialog({ onAddVendor, existingVendor, triggerButton }: 
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right font-body">Name</Label>
-            <Input id="name" name="name" value={formData.name} onChange={handleChange} className="col-span-3 font-body" required placeholder="e.g., Sakib Traders" />
+            <Input id="name" name="name" value={formData.name} onChange={handleChange} className="col-span-3 font-body" required placeholder="e.g., Sakib Traders" disabled={isSaving}/>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="code" className="text-right font-body">Code</Label>
-            <Input id="code" name="code" value={formData.code} onChange={handleChange} className="col-span-3 font-body" required placeholder="e.g., ST_GI" />
+            <Input id="code" name="code" value={formData.code} onChange={handleChange} className="col-span-3 font-body" required placeholder="e.g., ST_GI" disabled={isSaving}/>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="font-body">Cancel</Button>
-            <Button type="submit" className="font-body">{existingVendor ? 'Save Changes' : 'Add Vendor'}</Button>
+            <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="font-body" disabled={isSaving}>Cancel</Button>
+            <Button type="submit" className="font-body" disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                {isSaving ? 'Saving...' : (existingVendor ? 'Save Changes' : 'Add Vendor')}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

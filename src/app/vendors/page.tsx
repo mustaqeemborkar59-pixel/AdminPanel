@@ -1,33 +1,72 @@
 
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
-import { Button } from '@/components/ui/button';
-import { UserPlus } from 'lucide-react';
 import type { Vendor } from '@/types';
 import { VendorsTable } from '@/components/vendors/vendors-table';
 import { AddVendorDialog } from '@/components/vendors/add-vendor-dialog';
-
-// Initial static data for vendors
-const initialVendors: Vendor[] = [
-  { id: 'VEND001', code: 'ST_GI', name: 'Sakib Traders' },
-  { id: 'VEND002', code: 'AZ_Fash', name: 'A-Z Fashion' },
-  { id: 'VEND003', code: 'LeoEnt', name: 'Leo Enterprises' },
-];
+import { getVendorsFromRTDB, saveVendorToRTDB, deleteVendorFromRTDB } from './actions';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 export default function VendorsPage() {
-  const [vendors, setVendors] = useState<Vendor[]>(initialVendors);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
-  const handleAddVendor = (newVendor: Omit<Vendor, 'id'>) => {
-    setVendors(prev => [...prev, { ...newVendor, id: `VEND${String(Date.now()).slice(-4)}` }]);
+  useEffect(() => {
+    const fetchVendors = async () => {
+      setIsLoading(true);
+      const result = await getVendorsFromRTDB();
+      if (result.success && result.data) {
+        setVendors(result.data);
+      } else if (!result.success) {
+        toast({
+          variant: "destructive",
+          title: "Failed to load vendors",
+          description: result.error || "Could not fetch vendors from the database.",
+        });
+      }
+      setIsLoading(false);
+    };
+    fetchVendors();
+  }, [toast]);
+
+  const refreshVendors = async () => {
+    const result = await getVendorsFromRTDB();
+    if (result.success && result.data) {
+      setVendors(result.data);
+    }
+  }
+
+  const handleAddVendor = async (newVendorData: Omit<Vendor, 'id'>) => {
+    const result = await saveVendorToRTDB(newVendorData);
+    if (result.success) {
+      toast({ title: "Vendor Added", description: `${newVendorData.name} has been added.` });
+      await refreshVendors();
+    } else {
+      toast({ variant: "destructive", title: "Failed to Add", description: result.error });
+    }
   };
 
-  const handleEditVendor = (updatedVendor: Vendor) => {
-     setVendors(prev => prev.map(v => v.id === updatedVendor.id ? updatedVendor : v));
+  const handleEditVendor = async (updatedVendor: Vendor) => {
+    const result = await saveVendorToRTDB(updatedVendor, updatedVendor.id);
+     if (result.success) {
+      toast({ title: "Vendor Updated", description: `${updatedVendor.name} has been updated.` });
+      await refreshVendors();
+    } else {
+      toast({ variant: "destructive", title: "Failed to Update", description: result.error });
+    }
   };
 
-  const handleDeleteVendor = (vendorId: string) => {
-    setVendors(prev => prev.filter(v => v.id !== vendorId));
+  const handleDeleteVendor = async (vendorId: string) => {
+    const result = await deleteVendorFromRTDB(vendorId);
+    if (result.success) {
+      toast({ title: "Vendor Deleted", description: "The vendor has been removed." });
+      await refreshVendors();
+    } else {
+      toast({ variant: "destructive", title: "Failed to Delete", description: result.error });
+    }
   };
 
   return (
@@ -40,11 +79,17 @@ export default function VendorsPage() {
         }
       />
       <div className="flex-1 p-4 md:p-6 space-y-6 overflow-auto">
-        <VendorsTable 
-            vendors={vendors} 
-            onEditVendor={handleEditVendor} 
-            onDeleteVendor={handleDeleteVendor}
-        />
+        {isLoading ? (
+            <div className="flex justify-center items-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        ) : (
+            <VendorsTable 
+                vendors={vendors} 
+                onEditVendor={handleEditVendor} 
+                onDeleteVendor={handleDeleteVendor}
+            />
+        )}
       </div>
     </div>
   );

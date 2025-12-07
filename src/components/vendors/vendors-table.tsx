@@ -12,11 +12,23 @@ import { Button } from '@/components/ui/button';
 import { Edit, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { AddVendorDialog } from './add-vendor-dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 
 interface VendorsTableProps {
   vendors: Vendor[];
-  onEditVendor: (vendor: Vendor) => void;
-  onDeleteVendor: (vendorId: string) => void;
+  onEditVendor: (vendor: Vendor) => Promise<void>;
+  onDeleteVendor: (vendorId: string) => Promise<void>;
 }
 
 export function VendorsTable({ vendors, onEditVendor, onDeleteVendor }: VendorsTableProps) {
@@ -40,14 +52,39 @@ export function VendorsTable({ vendors, onEditVendor, onDeleteVendor }: VendorsT
               <TableCell className="font-medium">{vendor.name}</TableCell>
               <TableCell className="font-mono text-sm">{vendor.code}</TableCell>
               <TableCell className="text-right">
-                <AddVendorDialog existingVendor={vendor} onAddVendor={(editedVendor) => onEditVendor({...editedVendor, id: vendor.id})} triggerButton={
+                <AddVendorDialog 
+                  existingVendor={vendor} 
+                  onAddVendor={async (editedVendorData) => {
+                    const vendorToUpdate: Vendor = { ...vendor, ...editedVendorData };
+                    await onEditVendor(vendorToUpdate);
+                  }} 
+                  triggerButton={
                     <Button variant="ghost" size="icon" className="mr-2">
                         <Edit className="h-4 w-4" />
                     </Button>
                 }/>
-                <Button variant="ghost" size="icon" onClick={() => onDeleteVendor(vendor.id)} className="text-destructive hover:text-destructive/80">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive/80">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete the vendor <span className="font-semibold">{vendor.name}</span>. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => onDeleteVendor(vendor.id)} className="bg-destructive hover:bg-destructive/90">
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </TableCell>
             </TableRow>
           ))}
