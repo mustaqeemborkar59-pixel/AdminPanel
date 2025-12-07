@@ -196,16 +196,25 @@ export default function OrdersPage() {
     .filter(order => {
       if (!dateRange) return true;
       // Prioritize paymentDate, fallback to timestamp (creation date)
-      const dateToFilter = order.paymentDate ? new Date(order.paymentDate) : new Date(order.timestamp);
+      const dateStringToFilter = order.paymentDate || order.timestamp;
       
+      // Convert the UTC date string from the order to an IST date object
+      const orderDateInIST = new Date(new Date(dateStringToFilter).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+
       let fromDate = dateRange.from ? new Date(dateRange.from) : null;
       let toDate = dateRange.to ? new Date(dateRange.to) : null;
 
+      // Set time to the start and end of the day for accurate range comparison
       if(fromDate) fromDate.setHours(0,0,0,0);
       if(toDate) toDate.setHours(23,59,59,999);
 
-      if (fromDate && !toDate) return dateToFilter >= fromDate;
-      if (fromDate && toDate) return dateToFilter >= fromDate && dateToFilter <= toDate;
+      if (fromDate && toDate) {
+        return orderDateInIST >= fromDate && orderDateInIST <= toDate;
+      }
+      if (fromDate && !toDate) {
+         // If only a start date is selected, check if the order date is on or after it.
+        return orderDateInIST >= fromDate;
+      }
       return true;
     })
     .filter(order => 
@@ -715,3 +724,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
