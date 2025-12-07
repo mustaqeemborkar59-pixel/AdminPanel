@@ -88,6 +88,12 @@ export interface UserProfile {
   photoURL?: string;
 }
 
+export interface Vendor {
+    id: string;
+    code: string;
+    name: string;
+}
+
 // This interface is used by the jspdf-autotable library.
 // We declare it here to satisfy TypeScript.
 declare module 'jspdf' {
@@ -98,5 +104,3 @@ declare module 'jspdf' {
     };
   }
 }
-
-    

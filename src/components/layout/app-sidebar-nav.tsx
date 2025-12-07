@@ -14,6 +14,7 @@ import {
   LogOut,
   Sparkles,
   ShieldCheck,
+  Store,
 } from 'lucide-react';
 import {
   SidebarHeader,
@@ -37,6 +38,7 @@ const mainNavItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/orders', label: 'Orders', icon: ClipboardList },
   { href: '/admins', label: 'Admins', icon: ShieldCheck },
+  { href: '/vendors', label: 'Vendors', icon: Store },
   { href: '/delivery', label: 'Delivery', icon: Truck },
   { href: '/specials', label: 'Specials', icon: Sparkles },
   { href: '/settings', label: 'Settings', icon: Settings },
@@ -216,5 +218,3 @@ export function AppSidebarNav({ user, authLoading }: AppSidebarNavProps) {
     </>
   );
 }
-
-    
