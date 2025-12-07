@@ -237,40 +237,41 @@ export default function OrdersPage() {
         const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
         const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
         const margin = 10;
+        let yPos = 20;
 
         // Header
         doc.setFontSize(28);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(40, 40, 40);
-        doc.text('INVOICE', pageWidth / 2, 30, { align: 'center' });
+        doc.text('INVOICE', pageWidth / 2, yPos, { align: 'center' });
+        yPos += 15;
 
+        // Company & Order Details
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text(companyDetails.name, margin, 30);
-        doc.text(companyDetails.address, margin, 36);
-        doc.text(companyDetails.city, margin, 42);
+        doc.text(companyDetails.name, margin, yPos);
+        doc.text(companyDetails.address, margin, yPos + 6);
+        doc.text(companyDetails.city, margin, yPos + 12);
 
-        // Invoice Details
-        doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
-        doc.text('Order ID:', pageWidth - 60, 45, { align: 'left' });
-        doc.text('Date:', pageWidth - 60, 52, { align: 'left' });
-        doc.text('Status:', pageWidth - 60, 59, { align: 'left' });
+        doc.text('Order ID:', pageWidth - 70, yPos, { align: 'left' });
+        doc.text('Date:', pageWidth - 70, yPos + 7, { align: 'left' });
+        doc.text('Status:', pageWidth - 70, yPos + 14, { align: 'left' });
 
         doc.setFont('helvetica', 'normal');
-        doc.text(order.id, pageWidth - margin, 45, { align: 'right' });
-        doc.text(formatDateInIST(order.timestamp), pageWidth - margin, 52, { align: 'right' });
-        doc.text(order.status, pageWidth-margin, 59, {align: 'right'})
+        doc.text(order.id, pageWidth - margin, yPos, { align: 'right' });
+        doc.text(formatDateInIST(order.timestamp), pageWidth - margin, yPos + 7, { align: 'right' });
+        doc.text(order.status, pageWidth-margin, yPos + 14, {align: 'right'})
+        yPos += 24;
         
         // Line Separator
         doc.setDrawColor(200, 200, 200);
-        doc.line(margin, 65, pageWidth - margin, 65);
+        doc.line(margin, yPos, pageWidth - margin, yPos);
+        yPos += 10;
 
         // Bill To
-        let yPos = 75;
         const lineSpacing = 6;
         const valueXOffset = 25;
-        // Adjust the width for the address. 80% of the content area.
         const maxContentWidth = (pageWidth - margin * 2) * 0.8;
 
         doc.setFontSize(10);
@@ -667,6 +668,8 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
 
     
 
