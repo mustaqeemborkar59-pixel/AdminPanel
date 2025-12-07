@@ -7,12 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
-  LayoutGrid, Book, Search, PlusCircle, Settings, ShoppingCart
+  LayoutGrid, Book, Search, PlusCircle
 } from 'lucide-react';
-import type { MenuItem, OrderItem, OrderType } from '@/types';
+import type { MenuItem } from '@/types';
 import { MenuItemCard } from '@/components/menu/menu-item-card';
 import { AddMenuItemDialog } from '@/components/menu/add-menu-item-dialog';
-import { CurrentOrderSheet } from '@/components/menu/current-order-sheet';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { getProductsFromWooCommerce } from './actions';
@@ -32,15 +31,7 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [isMounted, setIsMounted] = useState(false);
-  const [isAdminMode, setIsAdminMode] = useState(false);
   const [categories, setCategories] = useState(defaultCategories);
-
-  const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
-  const [isOrderSheetOpen, setIsOrderSheetOpen] = useState(false);
-  const [orderCustomerName, setOrderCustomerName] = useState('');
-  const [orderDeliveryAddress, setOrderDeliveryAddress] = useState('');
-  const [currentOrderType, setCurrentOrderType] = useState<OrderType>('delivery');
-  const [currentPaymentMethod, setCurrentPaymentMethod] = useState<'cash' | 'card' | 'qr'>('card');
   
   const [itemToEdit, setItemToEdit] = useState<MenuItem | undefined>(undefined);
   const [isAddEditDialogOpen, setIsAddEditDialogOpen] = useState(false);
@@ -94,7 +85,7 @@ export default function ProductsPage() {
     // A server action would be needed to update WooCommerce.
     if ('id' in itemData) { 
       setMenuItems(prevItems => prevItems.map(item => item.id === itemData.id ? itemData as MenuItem : item));
-      toast({ title: "Product Updated (Client-side)", description: `${itemData.name} has been updated locally.` });
+      toast({ title: "Product Updated (Client-side)", description: `${itemData.name} has been updated locally. This will not affect your WooCommerce store.` });
     } else { 
       const newItem: MenuItem = {
         ...itemData,
@@ -102,7 +93,7 @@ export default function ProductsPage() {
         imageHint: itemData.name.toLowerCase().split(" ").slice(0,2).join(" "),
       };
       setMenuItems(prevItems => [newItem, ...prevItems]);
-      toast({ title: "Product Added (Client-side)", description: `${newItem.name} has been added locally.` });
+      toast({ title: "Product Added (Client-side)", description: `${newItem.name} has been added locally. This will not affect your WooCommerce store.` });
     }
     setIsAddEditDialogOpen(false);
     setItemToEdit(undefined);
@@ -120,7 +111,7 @@ export default function ProductsPage() {
 
   const handleDeleteMenuItem = (itemId: string) => {
     setMenuItems(prevItems => prevItems.filter(item => item.id !== itemId));
-    toast({ title: "Product Deleted (Client-side)", description: `Product has been removed locally.`, variant: "destructive" });
+    toast({ title: "Product Deleted (Client-side)", description: `Product has been removed locally. This will not affect your WooCommerce store.`, variant: "destructive" });
   };
 
   const handleToggleAvailability = (itemId: string) => {
@@ -131,81 +122,8 @@ export default function ProductsPage() {
     );
     const item = menuItems.find(i => i.id === itemId);
     if (item) {
-        toast({ title: "Availability Updated (Client-side)", description: `${item.name} is now ${!item.availability ? 'available' : 'unavailable'}.`});
+        toast({ title: "Availability Updated (Client-side)", description: `${item.name} is now ${!item.availability ? 'available' : 'unavailable'}. This will not affect your WooCommerce store.`});
     }
-  };
-
-  const handleAddToOrder = (item: MenuItem) => {
-    setCurrentOrderItems(prevOrderItems => {
-      const existingItem = prevOrderItems.find(oi => oi.itemId === item.id);
-      if (existingItem) {
-        return prevOrderItems.map(oi =>
-          oi.itemId === item.id ? { ...oi, qty: oi.qty + 1 } : oi
-        );
-      } else {
-        const displayPrice = item.discount ? item.price * (1 - item.discount / 100) : item.price;
-        return [...prevOrderItems, { itemId: item.id, name: item.name, qty: 1, price: displayPrice, imageUrl: item.imageUrl, imageHint: item.imageHint }];
-      }
-    });
-    toast({ title: item.name, description: `Added to order.` });
-  };
-
-  const handleDecreaseOrderItem = (itemId: string) => {
-    setCurrentOrderItems(prevOrderItems => {
-      const existingItem = prevOrderItems.find(oi => oi.itemId === itemId);
-      if (existingItem) {
-        if (existingItem.qty > 1) {
-          return prevOrderItems.map(oi =>
-            oi.itemId === itemId ? { ...oi, qty: oi.qty - 1 } : oi
-          );
-        } else {
-          return prevOrderItems.filter(oi => oi.itemId !== itemId);
-        }
-      }
-      return prevOrderItems;
-    });
-  };
-
-
-  const handleUpdateOrderItemQuantity = (itemId: string, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      setCurrentOrderItems(prev => prev.filter(item => item.itemId !== itemId));
-    } else {
-      setCurrentOrderItems(prev =>
-        prev.map(item => (item.itemId === itemId ? { ...item, qty: newQuantity } : item))
-      );
-    }
-  };
-
-  const handleRemoveOrderItem = (itemId: string) => {
-    setCurrentOrderItems(prev => prev.filter(item => item.itemId !== itemId));
-  };
-
-  const handlePlaceOrder = (details: { customerName: string; deliveryAddress?: string; orderType: OrderType; paymentMethod: 'cash' | 'card' | 'qr' }) => {
-    // This will not create a real WooCommerce order yet.
-    const subTotal = currentOrderItems.reduce((sum, item) => sum + item.price * item.qty, 0);
-    const taxAmount = subTotal * 0.05; 
-    const totalAmount = subTotal + taxAmount;
-
-    const newOrder = {
-        id: `ORD${Date.now()}`,
-        customerName: details.customerName,
-        items: currentOrderItems,
-        status: 'placed' as const,
-        orderType: details.orderType,
-        deliveryAddress: details.deliveryAddress,
-        paymentMethod: details.paymentMethod,
-        subTotal,
-        taxAmount,
-        totalAmount,
-        timestamp: new Date().toISOString(),
-    };
-    console.log('Placing Order (Client-side):', newOrder);
-    toast({ title: "Order Placed!", description: `Order ${newOrder.id} has been successfully placed locally.` });
-    setCurrentOrderItems([]);
-    setOrderCustomerName('');
-    setOrderDeliveryAddress('');
-    setIsOrderSheetOpen(false);
   };
 
   const categoryCounts = useMemo(() => {
@@ -217,10 +135,6 @@ export default function ProductsPage() {
     });
     return counts;
   }, [menuItems, categories]);
-  
-  const totalItemsInOrder = useMemo(() => {
-    return currentOrderItems.reduce((sum, item) => sum + item.qty, 0);
-  }, [currentOrderItems]);
 
   if (!isMounted) {
     return <div className="flex items-center justify-center h-screen"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div>;
@@ -229,21 +143,13 @@ export default function ProductsPage() {
   return (
     <div className="flex flex-col h-full">
       <PageHeader
-        title="Book Catalog"
-        description="Browse books, manage stock, and create customer orders."
+        title="Product Management"
+        description="View, add, and manage all your store's products."
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setIsOrderSheetOpen(true)} disabled={totalItemsInOrder === 0}>
-                <ShoppingCart className="mr-2 h-4 w-4" /> View Order {totalItemsInOrder > 0 ? `(${totalItemsInOrder})` : ''}
+            <Button size="sm" onClick={handleOpenAddDialog}>
+                <PlusCircle className="mr-2 h-4 w-4" /> Add New Product
             </Button>
-            <Button variant={isAdminMode ? "default" : "outline"} size="sm" onClick={() => setIsAdminMode(!isAdminMode)}>
-              <Settings className="mr-2 h-4 w-4" /> {isAdminMode ? "Exit Admin" : "Admin Mode"}
-            </Button>
-            {isAdminMode && (
-                <Button size="sm" onClick={handleOpenAddDialog}>
-                    <PlusCircle className="mr-2 h-4 w-4" /> Add New Book
-                </Button>
-            )}
           </div>
         }
       />
@@ -258,14 +164,14 @@ export default function ProductsPage() {
         />
        )}
 
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-[1fr_auto] overflow-hidden p-4 md:p-6">
+      <div className="flex-1 grid grid-cols-1 overflow-hidden p-4 md:p-6">
         <div className="flex flex-col overflow-hidden">
             <div className="mb-4 flex flex-col sm:flex-row gap-4 items-center">
                 <div className="relative flex-grow w-full sm:w-auto">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                     type="search"
-                    placeholder="Search books by title or description..."
+                    placeholder="Search products by title or description..."
                     className="pl-10 h-10 w-full text-sm"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -306,26 +212,18 @@ export default function ProductsPage() {
             ) : (
               <ScrollArea className="flex-1 -mx-4 sm:mx-0">
                   <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3 px-4 sm:px-0 pb-6">
-                  {filteredItems.map(item => {
-                      const orderItem = currentOrderItems.find(oi => oi.itemId === item.id);
-                      const quantityInOrder = orderItem ? orderItem.qty : 0;
-                      return (
-                          <MenuItemCard
-                          key={item.id}
-                          item={item}
-                          quantityInOrder={quantityInOrder}
-                          onAddToOrder={handleAddToOrder}
-                          onDecreaseFromOrder={handleDecreaseOrderItem}
-                          isAdminView={isAdminMode}
-                          onEditAdminAction={handleOpenEditDialog}
-                          onDeleteAdminAction={handleDeleteMenuItem}
-                          onToggleAvailabilityAdminAction={handleToggleAvailability}
-                          />
-                      );
-                  })}
+                  {filteredItems.map(item => (
+                      <MenuItemCard
+                        key={item.id}
+                        item={item}
+                        onEditAdminAction={handleOpenEditDialog}
+                        onDeleteAdminAction={handleDeleteMenuItem}
+                        onToggleAvailabilityAdminAction={handleToggleAvailability}
+                      />
+                  ))}
                   {filteredItems.length === 0 && (
                       <p className="col-span-full text-center text-muted-foreground py-10">
-                      No books match your criteria.
+                      No products match your criteria.
                       </p>
                   )}
                   </div>
@@ -333,22 +231,8 @@ export default function ProductsPage() {
             )}
         </div>
       </div>
-      <CurrentOrderSheet
-        isOpen={isOrderSheetOpen}
-        onOpenChange={setIsOrderSheetOpen}
-        orderItems={currentOrderItems}
-        onUpdateItemQuantity={handleUpdateOrderItemQuantity}
-        onRemoveItem={handleRemoveOrderItem}
-        onPlaceOrder={handlePlaceOrder}
-        currentOrderType={currentOrderType}
-        onOrderTypeChange={setCurrentOrderType}
-        currentPaymentMethod={currentPaymentMethod}
-        onPaymentMethodChange={setCurrentPaymentMethod}
-        customerName={orderCustomerName}
-        onCustomerNameChange={setOrderCustomerName}
-        deliveryAddress={orderDeliveryAddress}
-        onDeliveryAddressChange={setOrderDeliveryAddress}
-      />
     </div>
   );
 }
+
+    

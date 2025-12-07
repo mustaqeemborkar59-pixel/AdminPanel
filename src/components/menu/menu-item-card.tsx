@@ -5,29 +5,21 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { MenuItem } from '@/types';
-import { PlusCircle, Edit3, Trash2, EyeOff, Eye, Minus } from 'lucide-react';
+import { Edit3, Trash2, EyeOff, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MenuItemCardProps {
   item: MenuItem;
-  quantityInOrder?: number;
-  onAddToOrder: (item: MenuItem) => void;
-  onDecreaseFromOrder: (itemId: string) => void;
-  onEditAdminAction?: (item: MenuItem) => void;
-  onDeleteAdminAction?: (itemId: string) => void;
-  onToggleAvailabilityAdminAction?: (itemId: string) => void;
-  isAdminView?: boolean;
+  onEditAdminAction: (item: MenuItem) => void;
+  onDeleteAdminAction: (itemId: string) => void;
+  onToggleAvailabilityAdminAction: (itemId: string) => void;
 }
 
 export function MenuItemCard({
   item,
-  quantityInOrder = 0,
-  onAddToOrder,
-  onDecreaseFromOrder,
   onEditAdminAction,
   onDeleteAdminAction,
   onToggleAvailabilityAdminAction,
-  isAdminView = false
 }: MenuItemCardProps) {
   const displayPrice = item.discount ? item.price * (1 - item.discount / 100) : item.price;
 
@@ -50,13 +42,18 @@ export function MenuItemCard({
             {item.discount}% OFF
           </Badge>
         )}
+         {!item.availability && (
+            <Badge variant="outline" className="absolute top-2 right-2 text-xs border-yellow-500 text-yellow-700 bg-yellow-50 dark:bg-yellow-900/50 dark:text-yellow-400 dark:border-yellow-700">
+                Out of Stock
+            </Badge>
+          )}
       </div>
       <CardContent className="p-3 flex flex-col flex-grow">
         <h3 className="text-base font-semibold mb-0.5 truncate group-hover:whitespace-normal" title={item.name}>
           {item.name}
         </h3>
         <p className="text-xs text-muted-foreground mb-2 line-clamp-2 flex-grow min-h-[1.5rem]">
-          {item.description || "A great choice for your collection."}
+          {item.description || "No description available."}
         </p>
         
         <div className="mt-auto space-y-2 pt-2">
@@ -70,9 +67,8 @@ export function MenuItemCard({
               </div>
             </div>
 
-            {isAdminView && onEditAdminAction && onDeleteAdminAction && onToggleAvailabilityAdminAction && (
-              <div className="flex gap-1 ml-2"> 
-                   <Button
+            <div className="flex gap-1 ml-2"> 
+                  <Button
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7"
@@ -87,55 +83,12 @@ export function MenuItemCard({
                   <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive/80" onClick={() => onDeleteAdminAction(item.id)}>
                       <Trash2 className="h-4 w-4"/>
                   </Button>
-              </div>
-            )}
-          </div>
-          
-          {!isAdminView && item.availability && (
-            <div className="w-full pt-1"> 
-              {quantityInOrder === 0 ? (
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full font-semibold h-9 text-sm",
-                    "bg-transparent border-primary text-primary", 
-                    "hover:bg-primary hover:text-primary-foreground" 
-                  )}
-                  onClick={() => onAddToOrder(item)}
-                >
-                  <PlusCircle className="mr-2 h-4 w-4" /> Add to Cart
-                </Button>
-              ) : (
-                <div className="flex items-center justify-center gap-2"> 
-                  <Button
-                    variant="default"
-                    size="icon"
-                    className="h-9 w-9"
-                    onClick={() => onDecreaseFromOrder(item.id)}
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <span className="text-lg font-semibold text-center w-8">{quantityInOrder}</span>
-                  <Button
-                    variant="default"
-                    size="icon"
-                    className="h-9 w-9"
-                    onClick={() => onAddToOrder(item)}
-                  >
-                    <PlusCircle className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
             </div>
-          )}
-          
-          {!item.availability && (
-              <Badge variant="outline" className="w-full justify-center py-1 text-sm border-yellow-500 text-yellow-700 bg-yellow-50 dark:bg-yellow-900/50 dark:text-yellow-400 dark:border-yellow-700">
-                  Currently Out of Stock
-              </Badge>
-          )}
+          </div>
         </div>
       </CardContent>
     </Card>
   );
 }
+
+    
