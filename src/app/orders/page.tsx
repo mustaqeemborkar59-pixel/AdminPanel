@@ -19,6 +19,7 @@ import {
   DropdownMenuPortal
 } from "@/components/ui/dropdown-menu";
 import { getOrdersFromWooCommerce, updateOrderStatusInWooCommerce } from './actions';
+import { getCompanyDetailsFromRTDB } from '@/app/auth/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Search, ListFilter, Download, FileDown, FileText, FileSpreadsheet, Calendar as CalendarIcon, Building } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -215,13 +216,15 @@ export default function OrdersPage() {
     }
   };
   
-  const generatePdf = (ordersToExport: Order[]) => {
+  const generatePdf = async (ordersToExport: Order[]) => {
     const doc = new jsPDF();
-    const companyDetails = {
-      name: "Your Company",
-      address: "123 Business Rd, Suite 100",
-      city: "Your City, State, 12345",
-      email: "contact@yourcompany.com"
+    const dbDetailsResult = await getCompanyDetailsFromRTDB();
+
+    const companyDetails = dbDetailsResult.success && dbDetailsResult.data ? dbDetailsResult.data : {
+        companyName: "Your Company",
+        address: "123 Business Rd, Suite 100",
+        city: "Your City, State, 12345",
+        email: "contact@yourcompany.com"
     };
 
     ordersToExport.forEach((originalOrder, index) => {
@@ -249,7 +252,7 @@ export default function OrdersPage() {
         // Company & Order Details
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text(companyDetails.name, margin, yPos);
+        doc.text(companyDetails.companyName, margin, yPos);
         doc.text(companyDetails.address, margin, yPos + 6);
         doc.text(companyDetails.city, margin, yPos + 12);
 
@@ -668,13 +671,5 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
-
-    
-
-    
-
-    
 
     
