@@ -30,7 +30,7 @@ export function MenuItemCard({
     )}>
       <div className="flex flex-col md:flex-row items-stretch">
         {/* Left Side: Details */}
-        <div className="flex-grow p-4 md:p-5">
+        <div className="flex-grow p-4 md:p-5 flex flex-col">
           <div className="flex items-start justify-between gap-4">
               <h3 className="text-lg font-bold text-foreground mb-1">
                 {item.name}
@@ -41,7 +41,7 @@ export function MenuItemCard({
                 </Badge>
               )}
           </div>
-          <p className="text-sm text-muted-foreground mb-3 line-clamp-2 min-h-[2.5rem]">
+          <p className="text-sm text-muted-foreground mb-3 line-clamp-2 min-h-[2.5rem] flex-grow">
             {item.description || "No description available."}
           </p>
 
@@ -83,15 +83,17 @@ export function MenuItemCard({
         </div>
 
         {/* Right Side: Image */}
-        <div className="relative w-full md:w-1/3 aspect-[4/3] md:aspect-auto shrink-0">
-           <Image
-              src={item.imageUrl || `https://placehold.co/300x200.png?text=${encodeURIComponent(item.name)}`}
-              alt={item.name}
-              fill
-              sizes="(max-width: 768px) 100vw, 33vw"
-              className="object-cover"
-              data-ai-hint={item.imageHint || item.name.toLowerCase().split(" ").slice(0,2).join(" ")}
-            />
+        <div className="flex items-center justify-center p-4 md:p-5 bg-muted/20 w-full md:w-[250px] shrink-0">
+            <div className="relative w-full aspect-square rounded-lg overflow-hidden shadow-inner">
+                <Image
+                    src={item.imageUrl || `https://placehold.co/300x300.png?text=${encodeURIComponent(item.name)}`}
+                    alt={item.name}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 250px"
+                    className="object-cover"
+                    data-ai-hint={item.imageHint || item.name.toLowerCase().split(" ").slice(0,2).join(" ")}
+                />
+            </div>
         </div>
       </div>
     </Card>
