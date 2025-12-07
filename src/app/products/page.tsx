@@ -164,75 +164,71 @@ export default function ProductsPage() {
         />
        )}
 
-      <div className="flex-1 grid grid-cols-1 overflow-hidden p-4 md:p-6">
-        <div className="flex flex-col overflow-hidden">
-            <div className="mb-4 flex flex-col sm:flex-row gap-4 items-center">
-                <div className="relative flex-grow w-full sm:w-auto">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                    type="search"
-                    placeholder="Search products by title or description..."
-                    className="pl-10 h-10 w-full text-sm"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
+      <div className="flex-1 flex flex-col overflow-hidden p-4 md:p-6">
+        <div className="mb-4 flex flex-col sm:flex-row gap-4 items-center">
+            <div className="relative flex-grow w-full sm:w-auto">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                type="search"
+                placeholder="Search products by title or description..."
+                className="pl-10 h-10 w-full text-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                />
             </div>
-
-            <ScrollArea className="mb-4 -mx-4 sm:mx-0">
-                <div ref={categoriesContentRef} className="flex gap-2 px-4 sm:px-0 pb-3 select-none">
-                {categories.map(cat => {
-                    const Icon = iconMap[cat.icon] || iconMap.Default;
-                    const count = categoryCounts[cat.name] || 0;
-                    const isActive = selectedCategory === cat.name;
-                    return (
-                    <Button
-                        key={cat.name}
-                        variant={isActive ? 'default' : 'outline'}
-                        onClick={() => setSelectedCategory(cat.name)}
-                        className={cn(
-                            "flex flex-col items-start h-auto p-3 rounded-lg shadow-sm min-w-[100px] text-left",
-                            isActive ? "bg-primary text-primary-foreground" : "bg-card hover:bg-muted/80"
-                        )}
-                    >
-                        <Icon className={cn("h-5 w-5 mb-1", isActive ? "text-primary-foreground" : "text-primary")} />
-                        <span className={cn("text-xs font-medium", isActive ? "text-primary-foreground" : "text-card-foreground")}>{cat.name}</span>
-                        <span className={cn("text-[10px]", isActive ? "text-primary-foreground/80" : "text-muted-foreground")}>{count} Items</span>
-                    </Button>
-                    );
-                })}
-                </div>
-                <ScrollBar orientation="horizontal" />
-            </ScrollArea>
-
-            {isLoading ? (
-              <div className="flex items-center justify-center flex-1">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : (
-              <ScrollArea className="flex-1 -mx-4 sm:mx-0">
-                  <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3 px-4 sm:px-0 pb-6">
-                  {filteredItems.map(item => (
-                      <MenuItemCard
-                        key={item.id}
-                        item={item}
-                        onEditAdminAction={handleOpenEditDialog}
-                        onDeleteAdminAction={handleDeleteMenuItem}
-                        onToggleAvailabilityAdminAction={handleToggleAvailability}
-                      />
-                  ))}
-                  {filteredItems.length === 0 && (
-                      <p className="col-span-full text-center text-muted-foreground py-10">
-                      No products match your criteria.
-                      </p>
-                  )}
-                  </div>
-              </ScrollArea>
-            )}
         </div>
+
+        <ScrollArea className="mb-4 -mx-4 sm:mx-0">
+            <div ref={categoriesContentRef} className="flex gap-2 px-4 sm:px-0 pb-3 select-none">
+            {categories.map(cat => {
+                const Icon = iconMap[cat.icon] || iconMap.Default;
+                const count = categoryCounts[cat.name] || 0;
+                const isActive = selectedCategory === cat.name;
+                return (
+                <Button
+                    key={cat.name}
+                    variant={isActive ? 'default' : 'outline'}
+                    onClick={() => setSelectedCategory(cat.name)}
+                    className={cn(
+                        "flex flex-col items-start h-auto p-3 rounded-lg shadow-sm min-w-[100px] text-left",
+                        isActive ? "bg-primary text-primary-foreground" : "bg-card hover:bg-muted/80"
+                    )}
+                >
+                    <Icon className={cn("h-5 w-5 mb-1", isActive ? "text-primary-foreground" : "text-primary")} />
+                    <span className={cn("text-xs font-medium", isActive ? "text-primary-foreground" : "text-card-foreground")}>{cat.name}</span>
+                    <span className={cn("text-[10px]", isActive ? "text-primary-foreground/80" : "text-muted-foreground")}>{count} Items</span>
+                </Button>
+                );
+            })}
+            </div>
+            <ScrollBar orientation="horizontal" />
+        </ScrollArea>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center flex-1">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <ScrollArea className="flex-1 -mx-4 sm:mx-0">
+              <div className="space-y-4 px-4 sm:px-0 pb-6">
+              {filteredItems.map(item => (
+                  <MenuItemCard
+                    key={item.id}
+                    item={item}
+                    onEditAdminAction={handleOpenEditDialog}
+                    onDeleteAdminAction={handleDeleteMenuItem}
+                    onToggleAvailabilityAdminAction={handleToggleAvailability}
+                  />
+              ))}
+              {filteredItems.length === 0 && (
+                  <p className="col-span-full text-center text-muted-foreground py-10">
+                  No products match your criteria.
+                  </p>
+              )}
+              </div>
+          </ScrollArea>
+        )}
       </div>
     </div>
   );
 }
-
-    
