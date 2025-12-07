@@ -54,15 +54,6 @@ export interface UpdateOrderAddressPayload {
 }
 
 
-export interface InventoryItem {
-  id: string;
-  name: string;
-  quantity: number;
-  unit: string; // kg, liter, pcs, etc.
-  alertLevel: number;
-  vendor?: string;
-}
-
 export interface StaffMember {
   id:string;
   name: string;
@@ -107,3 +98,5 @@ declare module 'jspdf' {
     };
   }
 }
+
+    

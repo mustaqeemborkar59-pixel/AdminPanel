@@ -7,22 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { DollarSign, Users, ShoppingBag, Archive, Activity, AlertTriangle, UsersRound, Package, ChevronDown, Loader2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label, LabelList } from 'recharts';
-import type { Order, InventoryItem, StaffMember, OrderStatus, OrderType, MenuItem } from '@/types';
-import { initialMenuItems } from '@/lib/menu-item-data';
+import type { Order, StaffMember, OrderStatus, OrderType, MenuItem } from '@/types';
 import { cn } from '@/lib/utils';
 import { getOrdersFromWooCommerce } from '@/app/orders/actions';
 import { useToast } from '@/hooks/use-toast';
 
 // --- Initial Data (adapted for e-commerce) ---
-const initialInventoryItemsData: InventoryItem[] = [
-  { id: 'INV001', name: 'Laptop Pro', quantity: 50, unit: 'pcs', alertLevel: 10, vendor: 'Tech Supply Co.' },
-  { id: 'INV002', name: 'Wireless Mouse', quantity: 100, unit: 'pcs', alertLevel: 20, vendor: 'Gadget Imports' },
-  { id: 'INV003', name: 'USB-C Hub', quantity: 20, unit: 'pcs', alertLevel: 5, vendor: 'Accessories Ltd.' },
-  { id: 'INV004', name: 'Keyboard', quantity: 3, unit: 'pcs', alertLevel: 10, vendor: 'Local Electronics' },
-  { id: 'INV005', name: 'Webcam', quantity: 15, unit: 'pcs', alertLevel: 5, vendor: 'Vision Best' },
-  { id: 'INV006', name: 'Monitor', quantity: 2, unit: 'pcs', alertLevel: 5, vendor: 'Displays Inc.' },
-];
-
 const initialStaffData: StaffMember[] = [
     { id: 'STAFF001', name: 'John Doe', role: 'Fulfillment', shift: '9 AM - 5 PM', status: 'on-duty' },
     { id: 'STAFF002', name: 'Jane Smith', role: 'Support', shift: '12 PM - 8 PM', status: 'on-duty' },

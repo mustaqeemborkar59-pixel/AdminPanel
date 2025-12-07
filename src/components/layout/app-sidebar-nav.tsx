@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
   ClipboardList,
-  Archive,
   Users,
   Settings,
   PanelLeft,
@@ -38,7 +37,6 @@ const mainNavItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/orders', label: 'Orders', icon: ClipboardList },
   { href: '/admins', label: 'Admins', icon: ShieldCheck },
-  { href: '/inventory', label: 'Inventory', icon: Archive },
   { href: '/delivery', label: 'Delivery', icon: Truck },
   { href: '/specials', label: 'Specials', icon: Sparkles },
   { href: '/settings', label: 'Settings', icon: Settings },
@@ -218,3 +216,5 @@ export function AppSidebarNav({ user, authLoading }: AppSidebarNavProps) {
     </>
   );
 }
+
+    
