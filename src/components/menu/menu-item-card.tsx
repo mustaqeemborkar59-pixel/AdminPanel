@@ -28,8 +28,8 @@ export function MenuItemCard({
       "overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 w-full",
       !item.availability && "bg-muted/50"
     )}>
-      <div className="flex flex-col md:flex-row items-stretch">
-        {/* Left Side: Details */}
+      <div className="flex flex-col md:flex-row-reverse items-stretch">
+        {/* Right Side: Details */}
         <div className="flex-grow p-4 md:p-5 flex flex-col">
           <div className="flex items-start justify-between gap-4">
               <h3 className="text-lg font-bold text-foreground mb-1">
@@ -82,7 +82,7 @@ export function MenuItemCard({
 
         </div>
 
-        {/* Right Side: Image */}
+        {/* Left Side: Image */}
         <div className="flex items-center justify-center p-4 md:p-5 bg-muted/20 w-full md:w-[250px] shrink-0">
             <div className="relative w-full aspect-square rounded-lg overflow-hidden shadow-inner">
                 <Image
