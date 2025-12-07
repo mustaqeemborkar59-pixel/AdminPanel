@@ -387,7 +387,7 @@ export default function OrdersPage() {
         // Footer
         doc.setFontSize(10);
         doc.setTextColor(150);
-        doc.text('Thank you for your business!', margin, pageHeight - 20);
+        doc.text('Thank you for business with Sakib Truth!', margin, pageHeight - 20);
     });
 
     doc.save(`invoices-${new Date().toISOString().split('T')[0]}.pdf`);
