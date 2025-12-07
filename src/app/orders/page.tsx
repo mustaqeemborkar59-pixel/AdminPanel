@@ -195,15 +195,17 @@ export default function OrdersPage() {
     .filter(order => order.items.length > 0) // Ensure order still has items after vendor filter
     .filter(order => {
       if (!dateRange) return true;
-      const orderDate = new Date(order.timestamp);
+      // Prioritize paymentDate, fallback to timestamp (creation date)
+      const dateToFilter = order.paymentDate ? new Date(order.paymentDate) : new Date(order.timestamp);
+      
       let fromDate = dateRange.from ? new Date(dateRange.from) : null;
       let toDate = dateRange.to ? new Date(dateRange.to) : null;
 
       if(fromDate) fromDate.setHours(0,0,0,0);
       if(toDate) toDate.setHours(23,59,59,999);
 
-      if (fromDate && !toDate) return orderDate >= fromDate;
-      if (fromDate && toDate) return orderDate >= fromDate && orderDate <= toDate;
+      if (fromDate && !toDate) return dateToFilter >= fromDate;
+      if (fromDate && toDate) return dateToFilter >= fromDate && dateToFilter <= toDate;
       return true;
     })
     .filter(order => 
