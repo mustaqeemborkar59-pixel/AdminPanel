@@ -330,8 +330,8 @@ export default function OrdersPage() {
             const itemData = [
                 item.name,
                 item.qty,
-                `₹${item.price.toFixed(2)}`,
-                `₹${(item.price * item.qty).toFixed(2)}`
+                `₹${item.price.toFixed(0)}`,
+                `₹${(item.price * item.qty).toFixed(0)}`
             ];
             tableRows.push(itemData);
         });
@@ -371,10 +371,10 @@ export default function OrdersPage() {
         doc.setFont('helvetica', 'normal');
         
         doc.text('Subtotal:', subtotalX, totalY, { align: 'right' });
-        doc.text(`₹${order.subTotal.toFixed(2)}`, textX, totalY, { align: 'right' });
+        doc.text(`₹${order.subTotal.toFixed(0)}`, textX, totalY, { align: 'right' });
         
         doc.text(`Tax (${(order.subTotal > 0 ? (order.taxAmount / order.subTotal) * 100 : 0).toFixed(0)}%):`, subtotalX, totalY + 7, { align: 'right' });
-        doc.text(`₹${order.taxAmount.toFixed(2)}`, textX, totalY + 7, { align: 'right' });
+        doc.text(`₹${order.taxAmount.toFixed(0)}`, textX, totalY + 7, { align: 'right' });
         
         doc.setDrawColor(40, 40, 40);
         doc.line(subtotalX - 5, totalY + 12, textX, totalY + 12);
@@ -382,7 +382,7 @@ export default function OrdersPage() {
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         doc.text('TOTAL:', subtotalX, totalY + 18, { align: 'right' });
-        doc.text(`₹${order.totalAmount.toFixed(2)}`, textX, totalY + 18, { align: 'right' });
+        doc.text(`₹${order.totalAmount.toFixed(0)}`, textX, totalY + 18, { align: 'right' });
 
         // Footer
         doc.setFontSize(10);
