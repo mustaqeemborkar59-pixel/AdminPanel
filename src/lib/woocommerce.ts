@@ -1,6 +1,6 @@
 
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
-import { Order, OrderItem, OrderStatus, type UpdateOrderAddressPayload } from '@/types';
+import { Order, OrderItem, OrderStatus, type UpdateOrderAddressPayload, type MenuItem } from '@/types';
 
 // Check if the required environment variables are available at runtime.
 const isWooCommerceConfigured = () => {
@@ -182,5 +182,58 @@ export const updateOrderAddress = async (orderId: string, payload: UpdateOrderAd
   } catch (error) {
     console.error(`Failed to update order ${orderId} address in WooCommerce:`, error);
     return false;
+  }
+};
+
+const mapWCProductToMenuItem = (product: any): MenuItem => {
+  return {
+    id: String(product.id),
+    name: product.name,
+    price: parseFloat(product.price) || 0,
+    category: product.categories.length > 0 ? product.categories[0].name : 'Uncategorized',
+    imageUrl: product.images.length > 0 ? product.images[0].src : undefined,
+    availability: product.stock_status === 'instock',
+    description: product.short_description ? product.short_description.replace(/<[^>]*>?/gm, '') : undefined,
+    isVegetarian: false, // This info is not available from standard WC fields
+    discount: product.on_sale && product.regular_price ? ( (parseFloat(product.regular_price) - parseFloat(product.sale_price)) / parseFloat(product.regular_price) * 100) : undefined,
+  };
+}
+
+export const getProducts = async (): Promise<MenuItem[]> => {
+  if (!api) {
+    throw new Error('WooCommerce environment variables are not set correctly.');
+  }
+
+  try {
+    let allProducts: any[] = [];
+    let page = 1;
+    const perPage = 100;
+    let keepFetching = true;
+
+    while(keepFetching) {
+      const response = await api.get("products", {
+        per_page: perPage,
+        page: page,
+      });
+
+      if (response.status !== 200) {
+        throw new Error(`Failed to fetch products on page ${page}: ${response.statusText}`);
+      }
+
+      const fetchedProducts = response.data;
+      allProducts = allProducts.concat(fetchedProducts);
+
+      if (fetchedProducts.length < perPage) {
+        keepFetching = false;
+      } else {
+        page++;
+      }
+    }
+    
+    const products: MenuItem[] = allProducts.map(mapWCProductToMenuItem);
+    return products;
+  } catch (error) {
+    console.error("Error fetching products from WooCommerce:", error);
+    throw new Error('Failed to communicate with WooCommerce API to fetch products.');
   }
 };

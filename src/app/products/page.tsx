@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Image from 'next/image';
@@ -15,7 +16,9 @@ import { CurrentOrderSheet } from '@/components/menu/current-order-sheet';
 import { initialMenuItems as allMenuItems, categories as categoryData } from '@/lib/menu-item-data';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { getOrdersFromWooCommerce } from '../orders/actions';
+import { getProductsFromWooCommerce } from './actions';
+import { Loader2 } from 'lucide-react';
+
 
 const iconMap: { [key: string]: React.ElementType } = {
   LayoutGrid, Soup, SaladIcon, Grape, Fish, Sandwich, Coffee, Cake, Settings,
@@ -23,28 +26,6 @@ const iconMap: { [key: string]: React.ElementType } = {
   'LeafyGreen': SaladIcon,
 };
 
-// Function to extract unique products from orders
-const getProductsFromOrders = (orders: any[]): MenuItem[] => {
-  const productMap = new Map<string, MenuItem>();
-
-  orders.forEach(order => {
-    order.items.forEach((item: OrderItem) => {
-      if (!productMap.has(item.itemId)) {
-        productMap.set(item.itemId, {
-          id: item.itemId,
-          name: item.name,
-          price: item.price,
-          category: 'All', // Default category, can be improved
-          imageUrl: item.imageUrl,
-          availability: true, // Assuming available if in an order
-          isVegetarian: false, // Default, not available from order data
-        });
-      }
-    });
-  });
-
-  return Array.from(productMap.values());
-};
 
 export default function ProductsPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -53,6 +34,7 @@ export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isMounted, setIsMounted] = useState(false);
   const [isAdminMode, setIsAdminMode] = useState(false);
+  const [categories, setCategories] = useState(categoryData);
 
   const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
   const [isOrderSheetOpen, setIsOrderSheetOpen] = useState(false);
@@ -72,10 +54,15 @@ export default function ProductsPage() {
     setIsMounted(true);
     const fetchProducts = async () => {
       setIsLoading(true);
-      const result = await getOrdersFromWooCommerce();
+      const result = await getProductsFromWooCommerce();
       if (result.success && result.data) {
-        const products = getProductsFromOrders(result.data);
-        setMenuItems(products);
+        setMenuItems(result.data);
+        const productCategories = Array.from(new Set(result.data.map(p => p.category)));
+        const newCategories = [
+          { name: 'All', icon: 'LayoutGrid' },
+          ...productCategories.map(c => ({ name: c, icon: categoryData.find(cd => cd.name === c)?.icon || 'LayoutGrid' }))
+        ];
+        setCategories(newCategories);
       } else {
         toast({
           variant: "destructive",
@@ -91,8 +78,6 @@ export default function ProductsPage() {
   useEffect(() => {
     let items = menuItems;
     if (selectedCategory !== 'All') {
-      // This will not work correctly as category is not properly fetched.
-      // For now, it will just show no items if a category other than 'All' is selected.
       items = items.filter(item => item.category === selectedCategory);
     }
     if (searchTerm) {
@@ -106,9 +91,11 @@ export default function ProductsPage() {
 
 
   const handleSaveMenuItem = (itemData: Omit<MenuItem, 'id'> | MenuItem) => {
+    // This is now a client-side only operation and will not persist.
+    // A server action would be needed to update WooCommerce.
     if ('id' in itemData) { 
       setMenuItems(prevItems => prevItems.map(item => item.id === itemData.id ? itemData : item));
-      toast({ title: "Product Updated", description: `${itemData.name} has been updated.` });
+      toast({ title: "Product Updated (Client-side)", description: `${itemData.name} has been updated locally.` });
     } else { 
       const newItem: MenuItem = {
         ...itemData,
@@ -116,7 +103,7 @@ export default function ProductsPage() {
         imageHint: itemData.name.toLowerCase().split(" ").slice(0,2).join(" "),
       };
       setMenuItems(prevItems => [newItem, ...prevItems]);
-      toast({ title: "Product Added", description: `${newItem.name} has been added.` });
+      toast({ title: "Product Added (Client-side)", description: `${newItem.name} has been added locally.` });
     }
     setIsAddEditDialogOpen(false);
     setItemToEdit(undefined);
@@ -134,7 +121,7 @@ export default function ProductsPage() {
 
   const handleDeleteMenuItem = (itemId: string) => {
     setMenuItems(prevItems => prevItems.filter(item => item.id !== itemId));
-    toast({ title: "Product Deleted", description: `Product has been removed.`, variant: "destructive" });
+    toast({ title: "Product Deleted (Client-side)", description: `Product has been removed locally.`, variant: "destructive" });
   };
 
   const handleToggleAvailability = (itemId: string) => {
@@ -145,7 +132,7 @@ export default function ProductsPage() {
     );
     const item = menuItems.find(i => i.id === itemId);
     if (item) {
-        toast({ title: "Availability Updated", description: `${item.name} is now ${!item.availability ? 'available' : 'unavailable'}.`});
+        toast({ title: "Availability Updated (Client-side)", description: `${item.name} is now ${!item.availability ? 'available' : 'unavailable'}.`});
     }
   };
 
@@ -196,6 +183,7 @@ export default function ProductsPage() {
   };
 
   const handlePlaceOrder = (details: { customerName: string; deliveryAddress?: string; orderType: OrderType; paymentMethod: 'cash' | 'card' | 'qr' }) => {
+    // This will not create a real WooCommerce order yet.
     const subTotal = currentOrderItems.reduce((sum, item) => sum + item.price * item.qty, 0);
     const taxAmount = subTotal * 0.05; 
     const totalAmount = subTotal + taxAmount;
@@ -213,8 +201,8 @@ export default function ProductsPage() {
         totalAmount,
         timestamp: new Date().toISOString(),
     };
-    console.log('Placing Order:', newOrder);
-    toast({ title: "Order Placed!", description: `Order ${newOrder.id} has been successfully placed.` });
+    console.log('Placing Order (Client-side):', newOrder);
+    toast({ title: "Order Placed!", description: `Order ${newOrder.id} has been successfully placed locally.` });
     setCurrentOrderItems([]);
     setOrderCustomerName('');
     setOrderDeliveryAddress('');
@@ -223,20 +211,20 @@ export default function ProductsPage() {
 
   const categoryCounts = useMemo(() => {
     const counts: { [key: string]: number } = { All: menuItems.length };
-    categoryData.forEach(cat => {
+    categories.forEach(cat => {
       if (cat.name !== 'All') {
         counts[cat.name] = menuItems.filter(item => item.category === cat.name).length;
       }
     });
     return counts;
-  }, [menuItems]);
+  }, [menuItems, categories]);
   
   const totalItemsInOrder = useMemo(() => {
     return currentOrderItems.reduce((sum, item) => sum + item.qty, 0);
   }, [currentOrderItems]);
 
-  if (!isMounted || isLoading) {
-    return <div className="flex items-center justify-center h-screen"><PlusCircle className="h-10 w-10 animate-spin text-primary" /></div>;
+  if (!isMounted) {
+    return <div className="flex items-center justify-center h-screen"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div>;
   }
 
   return (
@@ -271,8 +259,8 @@ export default function ProductsPage() {
         />
        )}
 
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-[1fr_auto] overflow-hidden">
-        <div className="flex flex-col overflow-hidden p-4 md:p-6">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-[1fr_auto] overflow-hidden p-4 md:p-6">
+        <div className="flex flex-col overflow-hidden">
             <div className="mb-4 flex flex-col sm:flex-row gap-4 items-center">
                 <div className="relative flex-grow w-full sm:w-auto">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -288,7 +276,7 @@ export default function ProductsPage() {
 
             <ScrollArea className="mb-4 -mx-4 sm:mx-0">
                 <div ref={categoriesContentRef} className="flex gap-2 px-4 sm:px-0 pb-3 select-none">
-                {categoryData.map(cat => {
+                {categories.map(cat => {
                     const Icon = iconMap[cat.icon] || LayoutGrid;
                     const count = categoryCounts[cat.name] || 0;
                     const isActive = selectedCategory === cat.name;
@@ -301,7 +289,6 @@ export default function ProductsPage() {
                             "flex flex-col items-start h-auto p-3 rounded-lg shadow-sm min-w-[100px] text-left",
                             isActive ? "bg-primary text-primary-foreground" : "bg-card hover:bg-muted/80"
                         )}
-                        disabled={cat.name !== 'All'} // Disable category filtering until properly implemented
                     >
                         <Icon className={cn("h-5 w-5 mb-1", isActive ? "text-primary-foreground" : "text-primary")} />
                         <span className={cn("text-xs font-medium", isActive ? "text-primary-foreground" : "text-card-foreground")}>{cat.name}</span>
@@ -313,32 +300,38 @@ export default function ProductsPage() {
                 <ScrollBar orientation="horizontal" />
             </ScrollArea>
 
-            <ScrollArea className="flex-1 -mx-4 sm:mx-0">
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3 px-4 sm:px-0 pb-6">
-                {filteredItems.map(item => {
-                    const orderItem = currentOrderItems.find(oi => oi.itemId === item.id);
-                    const quantityInOrder = orderItem ? orderItem.qty : 0;
-                    return (
-                        <MenuItemCard
-                        key={item.id}
-                        item={item}
-                        quantityInOrder={quantityInOrder}
-                        onAddToOrder={handleAddToOrder}
-                        onDecreaseFromOrder={handleDecreaseOrderItem}
-                        isAdminView={isAdminMode}
-                        onEditAdminAction={handleOpenEditDialog}
-                        onDeleteAdminAction={handleDeleteMenuItem}
-                        onToggleAvailabilityAdminAction={handleToggleAvailability}
-                        />
-                    );
-                })}
-                {filteredItems.length === 0 && (
-                    <p className="col-span-full text-center text-muted-foreground py-10">
-                    No products match your criteria.
-                    </p>
-                )}
-                </div>
-            </ScrollArea>
+            {isLoading ? (
+              <div className="flex items-center justify-center flex-1">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <ScrollArea className="flex-1 -mx-4 sm:mx-0">
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3 px-4 sm:px-0 pb-6">
+                  {filteredItems.map(item => {
+                      const orderItem = currentOrderItems.find(oi => oi.itemId === item.id);
+                      const quantityInOrder = orderItem ? orderItem.qty : 0;
+                      return (
+                          <MenuItemCard
+                          key={item.id}
+                          item={item}
+                          quantityInOrder={quantityInOrder}
+                          onAddToOrder={handleAddToOrder}
+                          onDecreaseFromOrder={handleDecreaseOrderItem}
+                          isAdminView={isAdminMode}
+                          onEditAdminAction={handleOpenEditDialog}
+                          onDeleteAdminAction={handleDeleteMenuItem}
+                          onToggleAvailabilityAdminAction={handleToggleAvailability}
+                          />
+                      );
+                  })}
+                  {filteredItems.length === 0 && (
+                      <p className="col-span-full text-center text-muted-foreground py-10">
+                      No products match your criteria.
+                      </p>
+                  )}
+                  </div>
+              </ScrollArea>
+            )}
         </div>
       </div>
       <CurrentOrderSheet
