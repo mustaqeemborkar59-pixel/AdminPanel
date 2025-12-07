@@ -153,15 +153,13 @@ export default function ProductsPage() {
         }
       />
       
-      {isAddEditDialogOpen && (
-        <AddMenuItemDialog
-            isOpen={isAddEditDialogOpen}
-            onOpenChange={setIsAddEditDialogOpen}
-            onSaveItem={handleSaveMenuItem}
-            existingItem={itemToEdit}
-            trigger={null} 
-        />
-       )}
+      <AddMenuItemDialog
+          isOpen={isAddEditDialogOpen}
+          onOpenChange={setIsAddEditDialogOpen}
+          onSaveItem={handleSaveMenuItem}
+          existingItem={itemToEdit}
+          trigger={null} 
+      />
 
       <div className="flex-1 flex flex-col overflow-hidden p-4 md:p-6">
         <div className="mb-4 flex flex-col sm:flex-row gap-4 items-center">
