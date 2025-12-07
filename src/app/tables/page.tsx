@@ -1,8 +1,6 @@
-// This page has been redirected to /products to consolidate menu/product management.
+// This page has been redirected to / to consolidate menu/product management.
 import { redirect } from 'next/navigation';
 
 export default function TablesRedirectPage() {
-  redirect('/products');
+  redirect('/');
 }
-
-    

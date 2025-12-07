@@ -36,7 +36,6 @@ import { useToast } from '@/hooks/use-toast'; // For potential error messages
 const mainNavItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/orders', label: 'Orders', icon: ClipboardList },
-  { href: '/products', label: 'Products', icon: Archive },
   { href: '/customers', label: 'Customers', icon: Users },
   { href: '/inventory', label: 'Inventory', icon: Archive },
   { href: '/delivery', label: 'Delivery', icon: Truck },
@@ -218,5 +217,3 @@ export function AppSidebarNav({ user, authLoading }: AppSidebarNavProps) {
     </>
   );
 }
-
-    
