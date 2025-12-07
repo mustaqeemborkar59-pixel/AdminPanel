@@ -95,9 +95,11 @@ function DashboardContent() {
       sixDaysAgoIST.setDate(nowInIST.getDate() - 6);
       sixDaysAgoIST.setHours(0, 0, 0, 0); 
 
-      const recentOrders = orders.filter(order => {
-          const dateToConsider = order.paymentDate ? new Date(order.paymentDate) : new Date(order.timestamp);
-          return dateToConsider >= sixDaysAgoIST && dateToConsider <= nowInIST;
+      // Filter for orders that have a paymentDate within the last 7 days
+      const recentPaidOrders = orders.filter(order => {
+          if (!order.paymentDate) return false;
+          const paymentDateInIST = new Date(new Date(order.paymentDate).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+          return paymentDateInIST >= sixDaysAgoIST && paymentDateInIST <= nowInIST;
       });
       
       const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -116,16 +118,16 @@ function DashboardContent() {
           };
       }).reverse();
 
-      recentOrders.forEach(order => {
-          const dateToConsider = order.paymentDate ? order.paymentDate : order.timestamp;
-          const orderDateInIST = new Date(new Date(dateToConsider).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+      recentPaidOrders.forEach(order => {
+          // We know paymentDate is not null here because of the filter above
+          const paymentDateInIST = new Date(new Date(order.paymentDate!).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
           
-          const year = orderDateInIST.getFullYear();
-          const month = String(orderDateInIST.getMonth() + 1).padStart(2, '0');
-          const day = String(orderDateInIST.getDate()).padStart(2, '0');
-          const orderDateStr = `${year}-${month}-${day}`;
+          const year = paymentDateInIST.getFullYear();
+          const month = String(paymentDateInIST.getMonth() + 1).padStart(2, '0');
+          const day = String(paymentDateInIST.getDate()).padStart(2, '0');
+          const paymentDateStr = `${year}-${month}-${day}`;
 
-          const dayData = orderCountsByDay.find(d => d.date === orderDateStr);
+          const dayData = orderCountsByDay.find(d => d.date === paymentDateStr);
           if (dayData) {
               dayData.orders += 1;
           }
@@ -291,6 +293,8 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
+
+    
 
     
 
