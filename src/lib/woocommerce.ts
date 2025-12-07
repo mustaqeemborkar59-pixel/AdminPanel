@@ -194,7 +194,6 @@ const mapWCProductToMenuItem = (product: any): MenuItem => {
     imageUrl: product.images.length > 0 ? product.images[0].src : undefined,
     availability: product.stock_status === 'instock',
     description: product.short_description ? product.short_description.replace(/<[^>]*>?/gm, '') : undefined,
-    isVegetarian: false, // This info is not available from standard WC fields
     discount: product.on_sale && product.regular_price ? ( (parseFloat(product.regular_price) - parseFloat(product.sale_price)) / parseFloat(product.regular_price) * 100) : undefined,
   };
 }
