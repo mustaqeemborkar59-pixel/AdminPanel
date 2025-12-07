@@ -242,7 +242,7 @@ export default function OrdersPage() {
         doc.setFontSize(28);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(40, 40, 40);
-        doc.text('INVOICE', pageWidth - margin, 30, { align: 'right' });
+        doc.text('INVOICE', pageWidth / 2, 30, { align: 'center' });
 
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
@@ -667,6 +667,8 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
 
     
 
