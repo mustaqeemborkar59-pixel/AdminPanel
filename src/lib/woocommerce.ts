@@ -93,9 +93,9 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
 };
 
 export const getOrders = async (): Promise<Order[]> => {
-  if (!api) {
+  if (!api || !isWooCommerceConfigured()) {
     // Throw an error that will be caught by the server action and displayed to the user.
-    throw new Error('WooCommerce environment variables are not set correctly. Please check your .env file and ensure NEXT_PUBLIC_WOOCOMMERCE_STORE_URL is set to your store\'s URL.');
+    throw new Error('WooCommerce environment variables are not set correctly. Please check your .env file and ensure NEXT_PUBLIC_WOOCOMMERCE_STORE_URL, CONSUMER_KEY, and CONSUMER_SECRET are set correctly.');
   }
   
   try {
