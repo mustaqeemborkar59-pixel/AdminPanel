@@ -236,7 +236,7 @@ export default function OrdersPage() {
 
         const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
         const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
-        const margin = 20;
+        const margin = 10;
 
         // Header
         doc.setFontSize(28);
@@ -270,7 +270,8 @@ export default function OrdersPage() {
         let yPos = 75;
         const lineSpacing = 6;
         const valueXOffset = 25;
-        const maxContentWidth = pageWidth / 2 - margin - valueXOffset;
+        // Adjust the width for the address. 80% of the content area.
+        const maxContentWidth = (pageWidth - margin * 2) * 0.8;
 
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
@@ -666,5 +667,7 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
 
     
