@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, type ReactNode } from 'react';
@@ -35,14 +36,13 @@ interface AddMenuItemDialogProps {
   trigger?: ReactNode | null;
 }
 
-const defaultState: Omit<MenuItem, 'id' | 'imageHint'> = {
+const defaultState: Omit<MenuItem, 'id' | 'imageHint' | 'regularPrice'> = {
   name: '',
   category: 'Fiction',
   price: 0,
   imageUrl: '',
   availability: true,
   description: '',
-  discount: 0,
 };
 
 export function AddMenuItemDialog({ isOpen, onOpenChange, onSaveItem, existingItem, trigger }: AddMenuItemDialogProps) {
@@ -131,16 +131,16 @@ export function AddMenuItemDialog({ isOpen, onOpenChange, onSaveItem, existingIt
             <Input id="price" name="price" type="number" value={formData.price} onChange={handleChange} className="col-span-3" required min="0" step="0.01" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="regularPrice" className="text-right">Regular Price</Label>
+            <Input id="regularPrice" name="regularPrice" type="number" value={formData.regularPrice || ''} onChange={handleChange} className="col-span-3" min="0" step="0.01" placeholder="Optional, for sales"/>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="imageUrl" className="text-right">Image URL</Label>
             <Input id="imageUrl" name="imageUrl" value={formData.imageUrl || ''} onChange={handleChange} className="col-span-3" placeholder="https://placehold.co/300x200.png"/>
           </div>
            <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="description" className="text-right">Description</Label>
             <Textarea id="description" name="description" value={formData.description || ''} onChange={handleChange} className="col-span-3" rows={3} />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="discount" className="text-right">Discount (%)</Label>
-            <Input id="discount" name="discount" type="number" value={formData.discount || 0} onChange={handleChange} className="col-span-3" min="0" max="100" />
           </div>
           <div className="grid grid-cols-4 items-center gap-x-4 gap-y-2">
             <span/> {/* Spacer for alignment */}

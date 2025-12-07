@@ -1,4 +1,5 @@
 
+
 "use client";
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,14 +22,30 @@ export function MenuItemCard({
   onDeleteAdminAction,
   onToggleAvailabilityAdminAction,
 }: MenuItemCardProps) {
-  const displayPrice = item.discount ? item.price * (1 - item.discount / 100) : item.price;
+  const displayPrice = item.price;
+  const originalPrice = item.regularPrice;
+  const isSale = originalPrice && originalPrice > displayPrice;
 
   return (
     <Card className={cn(
       "overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 w-full",
       !item.availability && "bg-muted/50"
     )}>
-      <div className="flex flex-col md:flex-row-reverse items-stretch">
+      <div className="flex flex-col md:flex-row items-stretch">
+        {/* Left Side: Image */}
+        <div className="flex items-center justify-center p-4 md:p-5 bg-muted/20 w-full md:w-[250px] shrink-0">
+            <div className="relative w-full aspect-square rounded-lg overflow-hidden shadow-inner">
+                <Image
+                    src={item.imageUrl || `https://placehold.co/300x300.png?text=${encodeURIComponent(item.name)}`}
+                    alt={item.name}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 250px"
+                    className="object-cover"
+                    data-ai-hint={item.imageHint || item.name.toLowerCase().split(" ").slice(0,2).join(" ")}
+                />
+            </div>
+        </div>
+
         {/* Right Side: Details */}
         <div className="flex-grow p-4 md:p-5 flex flex-col">
           <div className="flex items-start justify-between gap-4">
@@ -49,18 +66,18 @@ export function MenuItemCard({
             <div className="flex items-center gap-1.5" title="Price">
               <DollarSign className="h-4 w-4 text-primary" />
               <span className="font-semibold text-foreground">₹{displayPrice.toFixed(2)}</span>
-              {item.discount && (
-                  <span className="text-xs text-muted-foreground line-through">₹{item.price.toFixed(2)}</span>
+              {isSale && originalPrice && (
+                  <span className="text-xs text-muted-foreground line-through">₹{originalPrice.toFixed(2)}</span>
                 )}
             </div>
              <div className="flex items-center gap-1.5" title="Category">
               <Archive className="h-4 w-4 text-primary" />
               <span className="font-medium text-foreground">{item.category}</span>
             </div>
-             {item.discount && (
+             {isSale && originalPrice && (
                 <div className="flex items-center gap-1.5" title="Discount">
                     <Tag className="h-4 w-4 text-destructive" />
-                    <span className="font-semibold text-destructive">{item.discount}% OFF</span>
+                    <span className="font-semibold text-destructive">{Math.round(((originalPrice - displayPrice) / originalPrice) * 100)}% OFF</span>
                 </div>
             )}
           </div>
@@ -80,20 +97,6 @@ export function MenuItemCard({
               </Button>
           </div>
 
-        </div>
-
-        {/* Left Side: Image */}
-        <div className="flex items-center justify-center p-4 md:p-5 bg-muted/20 w-full md:w-[250px] shrink-0">
-            <div className="relative w-full aspect-square rounded-lg overflow-hidden shadow-inner">
-                <Image
-                    src={item.imageUrl || `https://placehold.co/300x300.png?text=${encodeURIComponent(item.name)}`}
-                    alt={item.name}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 250px"
-                    className="object-cover"
-                    data-ai-hint={item.imageHint || item.name.toLowerCase().split(" ").slice(0,2).join(" ")}
-                />
-            </div>
         </div>
       </div>
     </Card>

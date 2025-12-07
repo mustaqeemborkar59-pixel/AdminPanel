@@ -1,4 +1,5 @@
 
+
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 import { Order, OrderItem, OrderStatus, type UpdateOrderAddressPayload, type MenuItem } from '@/types';
 
@@ -198,15 +199,21 @@ export const updateOrderAddress = async (orderId: string, payload: UpdateOrderAd
 };
 
 const mapWCProductToMenuItem = (product: any): MenuItem => {
+  const isSale = product.on_sale && product.sale_price;
+
   return {
     id: String(product.id),
     name: product.name,
-    price: parseFloat(product.price) || 0,
+    // Use sale_price if available, otherwise regular_price, fallback to price
+    price: parseFloat(isSale ? product.sale_price : product.regular_price || product.price || '0'),
+    // Store regular_price only if it's a sale item and different from sale_price
+    regularPrice: isSale && parseFloat(product.regular_price) !== parseFloat(product.sale_price) 
+      ? parseFloat(product.regular_price) 
+      : undefined,
     category: product.categories.length > 0 ? product.categories[0].name : 'Uncategorized',
     imageUrl: product.images.length > 0 ? product.images[0].src : undefined,
     availability: product.stock_status === 'instock',
-    description: product.short_description ? product.short_description.replace(/<[^>]*>?/gm, '') : undefined,
-    discount: product.on_sale && product.regular_price ? ( (parseFloat(product.regular_price) - parseFloat(product.sale_price)) / parseFloat(product.regular_price) * 100) : undefined,
+    description: product.short_description ? product.short_description.replace(/<[^>]*>?/gm, '') : product.description ? product.description.replace(/<[^>]*>?/gm, '') : undefined,
   };
 }
 

@@ -5,11 +5,11 @@ export interface MenuItem {
   name: string;
   category: string;
   price: number;
+  regularPrice?: number; // The original price, if the product is on sale.
   imageUrl?: string;
   imageHint?: string; // For AI image generation hint
   availability: boolean;
   description?: string;
-  discount?: number; // Optional discount percentage (e.g., 20 for 20%)
 }
 
 export interface OrderItem {
