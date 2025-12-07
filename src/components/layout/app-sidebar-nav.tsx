@@ -14,6 +14,7 @@ import {
   Truck,
   LogOut,
   Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 import {
   SidebarHeader,
@@ -36,7 +37,7 @@ import { useToast } from '@/hooks/use-toast'; // For potential error messages
 const mainNavItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/orders', label: 'Orders', icon: ClipboardList },
-  { href: '/customers', label: 'Customers', icon: Users },
+  { href: '/admins', label: 'Admins', icon: ShieldCheck },
   { href: '/inventory', label: 'Inventory', icon: Archive },
   { href: '/delivery', label: 'Delivery', icon: Truck },
   { href: '/specials', label: 'Specials', icon: Sparkles },
