@@ -10,69 +10,48 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import type { Customer } from "@/types";
+import type { UserProfile } from "@/types";
 import { cn } from "@/lib/utils";
 import { Card } from "../ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 interface CustomerTableProps {
-  customers: Customer[];
+  users: UserProfile[];
 }
 
-const statusColors: Record<Customer['status'], string> = {
-  pending: 'bg-yellow-500/80 border-yellow-600/80 text-yellow-900',
-  shipped: 'bg-blue-500/80 border-blue-600/80 text-blue-900',
-  delivered: 'bg-green-500/80 border-green-600/80 text-green-900',
-  cancelled: 'bg-red-500/80 border-red-600/80 text-red-900',
-};
-
-export function CustomerTable({ customers }: CustomerTableProps) {
+export function CustomerTable({ users }: CustomerTableProps) {
+  if (!users || users.length === 0) {
+    return <div className="text-center py-12 text-muted-foreground">No users found.</div>
+  }
+  
   return (
     <Card className="shadow-lg">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Name</TableHead>
+            <TableHead>User</TableHead>
+            <TableHead>Email</TableHead>
             <TableHead>Phone</TableHead>
-            <TableHead>Alternate Phone</TableHead>
-            <TableHead>Billing</TableHead>
-            <TableHead>Pincode</TableHead>
-            <TableHead>Gmail</TableHead>
-            <TableHead>Products</TableHead>
-            <TableHead>Total</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Payment Date</TableHead>
-            <TableHead>Tracking ID</TableHead>
-            <TableHead>Vendor Name</TableHead>
+            <TableHead>UID</TableHead>
+            <TableHead>Address</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {customers.map((customer) => (
-            <TableRow key={customer.id} className="hover:bg-muted/50">
-              <TableCell className="font-medium">{customer.id}</TableCell>
+          {users.map((user) => (
+            <TableRow key={user.uid} className="hover:bg-muted/50">
               <TableCell>
-                <Badge
-                  variant="outline"
-                  className={cn("capitalize", statusColors[customer.status])}
-                >
-                  {customer.status}
-                </Badge>
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-9 w-9">
+                     <AvatarImage src={user.photoURL} alt={user.displayName} data-ai-hint="user avatar"/>
+                     <AvatarFallback>{user.displayName?.[0] || user.email?.[0] || 'U'}</AvatarFallback>
+                  </Avatar>
+                  <span className="font-medium">{user.displayName || 'N/A'}</span>
+                </div>
               </TableCell>
-              <TableCell>{customer.name}</TableCell>
-              <TableCell>{customer.phone}</TableCell>
-              <TableCell>{customer.altPhone || 'N/A'}</TableCell>
-              <TableCell>{customer.billingAddress}</TableCell>
-              <TableCell>{customer.pincode}</TableCell>
-              <TableCell>{customer.gmail}</TableCell>
-              <TableCell>
-                {customer.products.map(p => `${p.name} (x${p.qty})`).join(', ')}
-              </TableCell>
-              <TableCell>₹{customer.total.toFixed(2)}</TableCell>
-              <TableCell>{customer.date}</TableCell>
-              <TableCell>{customer.paymentDate}</TableCell>
-              <TableCell>{customer.trackingId || 'N/A'}</TableCell>
-              <TableCell>{customer.vendorName || 'N/A'}</TableCell>
+              <TableCell>{user.email}</TableCell>
+              <TableCell>{user.phone || 'N/A'}</TableCell>
+              <TableCell className="font-mono text-xs">{user.uid}</TableCell>
+              <TableCell>{user.address || 'N/A'}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -80,5 +59,3 @@ export function CustomerTable({ customers }: CustomerTableProps) {
     </Card>
   );
 }
-
-    

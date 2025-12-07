@@ -5,9 +5,9 @@ export interface MenuItem {
   name: string;
   category: string;
   price: number;
-  regularPrice?: number; // The original price, if the product is on sale.
+  regularPrice?: number;
   imageUrl?: string;
-  imageHint?: string; // For AI image generation hint
+  imageHint?: string;
   availability: boolean;
   description?: string;
 }
@@ -87,21 +87,14 @@ export interface TableReservation {
   guests: number;
 }
 
-export interface Customer {
-  id: string;
-  status: 'pending' | 'shipped' | 'delivered' | 'cancelled';
-  name: string;
-  phone: string;
-  altPhone?: string;
-  billingAddress: string;
-  pincode: string;
-  gmail: string;
-  products: { name: string; qty: number }[];
-  total: number;
-  date: string;
-  paymentDate: string;
-  trackingId?: string;
-  vendorName?: string;
+// Represents a user profile stored in the database.
+export interface UserProfile {
+  uid: string;
+  displayName: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  photoURL?: string;
 }
 
 // This interface is used by the jspdf-autotable library.

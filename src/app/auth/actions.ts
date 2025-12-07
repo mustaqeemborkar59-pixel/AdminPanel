@@ -4,6 +4,7 @@
 import { redirect } from 'next/navigation';
 import { rtdb } from '@/lib/firebase';
 import { ref, set, get } from 'firebase/database';
+import type { UserProfile } from '@/types';
 
 interface UserProfileData {
   uid: string;
@@ -84,5 +85,29 @@ export async function getCompanyDetailsFromRTDB(): Promise<{ success: boolean; d
     } catch (error: any) {
         console.error('Failed to get company details from RTDB:', error);
         return { success: false, message: error.message || 'Failed to fetch company details.' };
+    }
+}
+
+
+export async function getAllUsersFromRTDB(): Promise<{ success: boolean; data?: UserProfile[]; message?: string }> {
+    if (!rtdb) {
+        return { success: false, message: "Realtime Database is not configured." };
+    }
+    try {
+        const usersRef = ref(rtdb, 'users');
+        const snapshot = await get(usersRef);
+        if (snapshot.exists()) {
+            const usersData = snapshot.val();
+            // The data is an object with UIDs as keys. Convert it to an array.
+            const usersArray = Object.keys(usersData).map(uid => ({
+                uid,
+                ...usersData[uid]
+            }));
+            return { success: true, data: usersArray };
+        }
+        return { success: true, data: [] }; // No users found is not an error
+    } catch (error: any) {
+        console.error('Failed to get all users from RTDB:', error);
+        return { success: false, message: error.message || 'Failed to fetch user profiles.' };
     }
 }
