@@ -57,14 +57,15 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
   const [billingAddress, setBillingAddress] = useState<UpdateOrderAddressPayload>({
     first_name: order.customerName?.split(' ')[0] || '',
     last_name: order.customerName?.split(' ').slice(1).join(' ') || '',
-    address_1: order.billingAddress?.split(',')[0] || '',
-    address_2: '', // Assuming landmark could go here, or it's part of address_1
-    city: '', // This needs to be parsed from the full address string if needed.
-    state: '', // This needs to be parsed.
+    address_1: '',
+    address_2: '',
+    city: '',
+    state: '',
     postcode: order.pincode || '',
-    country: '', // This needs to be parsed.
+    country: '',
     email: order.gmail || '',
-    phone: order.phone || ''
+    phone: order.phone || '',
+    alternate_phone: order.altPhone || '',
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,7 +82,8 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
     const payload: UpdateOrderAddressPayload = {};
     for (const key in billingAddress) {
       const typedKey = key as keyof UpdateOrderAddressPayload;
-      if (billingAddress[typedKey]) {
+      // Allow sending empty strings to clear a field in Woo
+      if (billingAddress[typedKey] !== undefined) {
         payload[typedKey] = billingAddress[typedKey];
       }
     }
@@ -246,10 +248,14 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                                       <Input id="phone" name="phone" value={billingAddress.phone} onChange={handleInputChange} className="h-8 text-sm mt-1" />
                                   </div>
                                   <div>
+                                      <Label htmlFor="alternate_phone" className="text-xs">Alternate Phone</Label>
+                                      <Input id="alternate_phone" name="alternate_phone" value={billingAddress.alternate_phone} onChange={handleInputChange} className="h-8 text-sm mt-1" />
+                                  </div>
+                                </div>
+                                <div>
                                       <Label htmlFor="email" className="text-xs">Email address</Label>
                                       <Input id="email" name="email" type="email" value={billingAddress.email} onChange={handleInputChange} className="h-8 text-sm mt-1" />
-                                  </div>
-                               </div>
+                                </div>
 
                                 <div className="flex justify-end gap-2 mt-2">
                                     <Button variant="ghost" size="sm" onClick={() => setIsEditingAddress(false)}>Cancel</Button>

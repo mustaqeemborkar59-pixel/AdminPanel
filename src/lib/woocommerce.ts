@@ -175,7 +175,7 @@ export const updateOrderAddress = async (orderId: string, payload: UpdateOrderAd
     return false;
   }
   try {
-    const data: { billing: Partial<UpdateOrderAddressPayload> } = {
+    const data: { billing: Partial<UpdateOrderAddressPayload>, meta_data?: any[] } = {
       billing: {}
     };
 
@@ -183,12 +183,22 @@ export const updateOrderAddress = async (orderId: string, payload: UpdateOrderAd
     const fields: (keyof UpdateOrderAddressPayload)[] = ['first_name', 'last_name', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country', 'email', 'phone'];
     
     fields.forEach(field => {
-      if (payload[field]) {
+      // Allow empty strings to clear a field in WC
+      if (payload[field] !== undefined) {
         data.billing[field] = payload[field];
       }
     });
+    
+    // Handle alternate phone as meta data
+    if (payload.alternate_phone !== undefined) {
+      data.meta_data = [{
+        key: '_billing_alternate_phone',
+        value: payload.alternate_phone
+      }];
+    }
 
-    if (Object.keys(data.billing).length === 0) {
+
+    if (Object.keys(data.billing).length === 0 && !data.meta_data) {
       console.log("No address data to update.");
       return true; // Nothing to update, so we can consider it successful.
     }
