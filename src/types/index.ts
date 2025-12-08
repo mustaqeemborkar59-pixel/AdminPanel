@@ -36,6 +36,9 @@ export interface Order {
   status: OrderStatus;
   orderType: OrderType;
   billingAddress?: string;
+  billing_city?: string;
+  billing_state?: string;
+  billing_country?: string;
   shippingAddress?: string; // For delivery
   trackingId?: string; // For shipped orders
   totalAmount: number;

@@ -57,12 +57,12 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
   const [billingAddress, setBillingAddress] = useState<UpdateOrderAddressPayload>({
     first_name: order.customerName?.split(' ')[0] || '',
     last_name: order.customerName?.split(' ').slice(1).join(' ') || '',
-    address_1: '',
+    address_1: '', // This will be populated from billingAddress string, but can be edited
     address_2: '',
-    city: '',
-    state: '',
+    city: order.billing_city || '',
+    state: order.billing_state || '',
     postcode: order.pincode || '',
-    country: '',
+    country: order.billing_country || '',
     email: order.gmail || '',
     phone: order.phone || '',
     alternate_phone: order.altPhone || '',
@@ -114,6 +114,18 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
   const orderDateFormatted = formatDate(order.timestamp);
   const paymentDateFormatted = order.paymentDate ? formatDate(order.paymentDate) : null;
   const showPaymentDate = paymentDateFormatted && paymentDateFormatted !== orderDateFormatted;
+
+  React.useEffect(() => {
+    if(isEditingAddress){
+        // When opening edit mode, parse the full address string into parts if they don't exist
+        const [address_1 = '', address_2 = ''] = (order.billingAddress || '').split(',').map(s => s.trim());
+        setBillingAddress(prev => ({
+            ...prev,
+            address_1: prev.address_1 || address_1,
+            address_2: prev.address_2 || address_2,
+        }));
+    }
+  }, [isEditingAddress, order.billingAddress]);
 
 
   return (

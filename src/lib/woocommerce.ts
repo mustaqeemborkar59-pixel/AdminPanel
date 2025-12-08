@@ -88,6 +88,9 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
     status: wcOrder.status as OrderStatus,
     orderType: 'delivery', // Defaulting to delivery
     billingAddress: billingAddress,
+    billing_city: wcOrder.billing.city,
+    billing_state: wcOrder.billing.state,
+    billing_country: wcOrder.billing.country,
     shippingAddress: shippingAddress,
     trackingId: wcOrder.meta_data.find((m: any) => m.key === '_wc_shipment_tracking_items')?.value[0]?.tracking_number || '',
     totalAmount: parseFloat(wcOrder.total),
