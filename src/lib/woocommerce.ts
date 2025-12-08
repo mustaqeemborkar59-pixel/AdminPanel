@@ -178,14 +178,17 @@ export const updateOrderAddress = async (orderId: string, payload: UpdateOrderAd
     const data: { billing: Partial<UpdateOrderAddressPayload> } = {
       billing: {}
     };
-    if (payload.postcode) {
-      data.billing.postcode = payload.postcode;
-    }
-    if (payload.address_1) {
-      data.billing.address_1 = payload.address_1;
-    }
 
-    if(Object.keys(data.billing).length === 0) {
+    // Map all possible fields from the payload to the billing object
+    const fields: (keyof UpdateOrderAddressPayload)[] = ['first_name', 'last_name', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country', 'email', 'phone'];
+    
+    fields.forEach(field => {
+      if (payload[field]) {
+        data.billing[field] = payload[field];
+      }
+    });
+
+    if (Object.keys(data.billing).length === 0) {
       console.log("No address data to update.");
       return true; // Nothing to update, so we can consider it successful.
     }

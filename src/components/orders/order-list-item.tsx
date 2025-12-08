@@ -52,36 +52,54 @@ const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; 
 export function OrderListItem({ order, onUpdateStatus, value, isSelected, onToggleSelect, formatDate }: OrderListItemProps) {
   const { toast } = useToast();
   const [isEditingAddress, setIsEditingAddress] = useState(false);
-  const [pincode, setPincode] = useState(order.pincode || '');
-  const [address1, setAddress1] = useState(order.billingAddress?.split(',')[0] || '');
   
+  // State for the entire billing address
+  const [billingAddress, setBillingAddress] = useState<UpdateOrderAddressPayload>({
+    first_name: order.customerName?.split(' ')[0] || '',
+    last_name: order.customerName?.split(' ').slice(1).join(' ') || '',
+    address_1: order.billingAddress?.split(',')[0] || '',
+    address_2: '', // Assuming landmark could go here, or it's part of address_1
+    city: '', // This needs to be parsed from the full address string if needed.
+    state: '', // This needs to be parsed.
+    postcode: order.pincode || '',
+    country: '', // This needs to be parsed.
+    email: order.gmail || '',
+    phone: order.phone || ''
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setBillingAddress(prev => ({ ...prev, [name]: value }));
+  };
+
   const currentStatusInfo = statusInfo[order.status] || statusInfo.pending;
   const StatusIcon = currentStatusInfo.icon;
   const displayAddress = (order.shippingAddress && order.shippingAddress.trim() !== ',') ? order.shippingAddress : order.billingAddress;
   
   const handleAddressUpdate = async () => {
+    // Only pass non-empty fields to the payload to avoid overwriting with empty strings
     const payload: UpdateOrderAddressPayload = {};
-    if (pincode !== order.pincode) {
-      payload.postcode = pincode;
-    }
-    const originalAddress1 = order.billingAddress?.split(',')[0] || '';
-    if(address1 !== originalAddress1) {
-        payload.address_1 = address1;
+    for (const key in billingAddress) {
+      const typedKey = key as keyof UpdateOrderAddressPayload;
+      if (billingAddress[typedKey]) {
+        payload[typedKey] = billingAddress[typedKey];
+      }
     }
 
-    if(Object.keys(payload).length === 0) {
-        setIsEditingAddress(false);
-        return;
+    if (Object.keys(payload).length === 0) {
+      setIsEditingAddress(false);
+      return;
     }
 
     const result = await updateOrderAddressInWooCommerce(order.id, payload);
 
-    if(result.success) {
+    if (result.success) {
       toast({
         title: "Address Updated",
         description: `Address for order ${order.id} has been updated.`,
       });
       setIsEditingAddress(false);
+      // Note: A page refresh or re-fetch would be needed to see the changes immediately.
     } else {
       toast({
         variant: "destructive",
@@ -183,30 +201,59 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                     </div>
                      <div className="border-t pt-3 space-y-2 text-sm text-muted-foreground">
                         {isEditingAddress ? (
-                            <div className="space-y-3 p-2 rounded-md border bg-background">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                     <div>
-                                        <Label htmlFor={`address-${order.id}`} className="text-xs">Address Line 1</Label>
-                                        <Input
-                                            id={`address-${order.id}`}
-                                            value={address1}
-                                            onChange={(e) => setAddress1(e.target.value)}
-                                            className="h-8 text-sm mt-1"
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor={`pincode-${order.id}`} className="text-xs">Pincode</Label>
-                                        <Input
-                                            id={`pincode-${order.id}`}
-                                            value={pincode}
-                                            onChange={(e) => setPincode(e.target.value)}
-                                            className="h-8 text-sm mt-1"
-                                        />
-                                    </div>
+                            <div className="space-y-4 p-3 rounded-md border bg-background">
+                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  <div>
+                                      <Label htmlFor="first_name" className="text-xs">First name</Label>
+                                      <Input id="first_name" name="first_name" value={billingAddress.first_name} onChange={handleInputChange} className="h-8 text-sm mt-1" />
+                                  </div>
+                                  <div>
+                                      <Label htmlFor="last_name" className="text-xs">Last name</Label>
+                                      <Input id="last_name" name="last_name" value={billingAddress.last_name} onChange={handleInputChange} className="h-8 text-sm mt-1" />
+                                  </div>
+                               </div>
+                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  <div>
+                                      <Label htmlFor="country" className="text-xs">Country / Region</Label>
+                                      <Input id="country" name="country" value={billingAddress.country} onChange={handleInputChange} className="h-8 text-sm mt-1" />
+                                  </div>
+                                   <div>
+                                      <Label htmlFor="address_1" className="text-xs">Street address</Label>
+                                      <Input id="address_1" name="address_1" value={billingAddress.address_1} onChange={handleInputChange} className="h-8 text-sm mt-1" placeholder="House number and street name"/>
+                                  </div>
                                 </div>
+                                <div>
+                                      <Label htmlFor="address_2" className="text-xs">Landmark (optional)</Label>
+                                      <Input id="address_2" name="address_2" value={billingAddress.address_2} onChange={handleInputChange} className="h-8 text-sm mt-1" placeholder="Apartment, suite, unit, etc."/>
+                                </div>
+                               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                  <div>
+                                      <Label htmlFor="city" className="text-xs">Town / City</Label>
+                                      <Input id="city" name="city" value={billingAddress.city} onChange={handleInputChange} className="h-8 text-sm mt-1" />
+                                  </div>
+                                  <div>
+                                      <Label htmlFor="state" className="text-xs">State</Label>
+                                      <Input id="state" name="state" value={billingAddress.state} onChange={handleInputChange} className="h-8 text-sm mt-1" />
+                                  </div>
+                                  <div>
+                                      <Label htmlFor="postcode" className="text-xs">Postcode / ZIP</Label>
+                                      <Input id="postcode" name="postcode" value={billingAddress.postcode} onChange={handleInputChange} className="h-8 text-sm mt-1" />
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  <div>
+                                      <Label htmlFor="phone" className="text-xs">Phone</Label>
+                                      <Input id="phone" name="phone" value={billingAddress.phone} onChange={handleInputChange} className="h-8 text-sm mt-1" />
+                                  </div>
+                                  <div>
+                                      <Label htmlFor="email" className="text-xs">Email address</Label>
+                                      <Input id="email" name="email" type="email" value={billingAddress.email} onChange={handleInputChange} className="h-8 text-sm mt-1" />
+                                  </div>
+                               </div>
+
                                 <div className="flex justify-end gap-2 mt-2">
                                     <Button variant="ghost" size="sm" onClick={() => setIsEditingAddress(false)}>Cancel</Button>
-                                    <Button size="sm" onClick={handleAddressUpdate}>Save</Button>
+                                    <Button size="sm" onClick={handleAddressUpdate}>Save Address</Button>
                                 </div>
                             </div>
                         ) : (
