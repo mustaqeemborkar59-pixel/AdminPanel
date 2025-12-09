@@ -6,10 +6,10 @@ import { Order, OrderItem, OrderStatus, type UpdateOrderAddressPayload, type Men
 // Check if the required environment variables are available at runtime.
 const isWooCommerceConfigured = () => {
   return (
-    process.env.WOOCOMMERCE_STORE_URL &&
-    process.env.WOOCOMMERCE_STORE_URL !== 'https://your-store-url.com' &&
-    process.env.WOOCOMMERCE_CONSUMER_KEY &&
-    process.env.WOOCOMMERCE_CONSUMER_SECRET
+    process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL &&
+    process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL !== 'https://your-store-url.com' &&
+    process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_KEY &&
+    process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_SECRET
   );
 };
 
@@ -19,11 +19,11 @@ let api: WooCommerceRestApi | undefined;
 if (isWooCommerceConfigured()) {
   try {
     // Basic validation to ensure the URL is somewhat valid before initializing
-    new URL(process.env.WOOCOMMERCE_STORE_URL!);
+    new URL(process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL!);
     api = new WooCommerceRestApi({
-      url: process.env.WOOCOMMERCE_STORE_URL!,
-      consumerKey: process.env.WOOCOMMERCE_CONSUMER_KEY!,
-      consumerSecret: process.env.WOOCOMMERCE_CONSUMER_SECRET!,
+      url: process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL!,
+      consumerKey: process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_KEY!,
+      consumerSecret: process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_SECRET!,
       version: "wc/v3",
       timeout: 60000, // 60-second timeout
     });
