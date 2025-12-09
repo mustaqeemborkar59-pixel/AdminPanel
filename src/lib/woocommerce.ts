@@ -6,10 +6,10 @@ import { Order, OrderItem, OrderStatus, type UpdateOrderAddressPayload, type Men
 // Check if the required environment variables are available at runtime.
 const isWooCommerceConfigured = () => {
   return (
-    process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL &&
-    process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL !== 'https://your-store-url.com' &&
-    process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_KEY &&
-    process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_SECRET
+    process.env.WOOCOMMERCE_STORE_URL &&
+    process.env.WOOCOMMERCE_STORE_URL !== 'https://your-store-url.com' &&
+    process.env.WOOCOMMERCE_CONSUMER_KEY &&
+    process.env.WOOCOMMERCE_CONSUMER_SECRET
   );
 };
 
@@ -19,11 +19,11 @@ let api: WooCommerceRestApi | undefined;
 if (isWooCommerceConfigured()) {
   try {
     // Basic validation to ensure the URL is somewhat valid before initializing
-    new URL(process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL!);
+    new URL(process.env.WOOCOMMERCE_STORE_URL!);
     api = new WooCommerceRestApi({
-      url: process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL!,
-      consumerKey: process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_KEY!,
-      consumerSecret: process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_SECRET!,
+      url: process.env.WOOCOMMERCE_STORE_URL!,
+      consumerKey: process.env.WOOCOMMERCE_CONSUMER_KEY!,
+      consumerSecret: process.env.WOOCOMMERCE_CONSUMER_SECRET!,
       version: "wc/v3"
     });
   } catch (error) {
@@ -106,7 +106,7 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
 export const getOrders = async (): Promise<Order[]> => {
   if (!api || !isWooCommerceConfigured()) {
     // Throw an error that will be caught by the server action and displayed to the user.
-    throw new Error('WooCommerce environment variables are not set correctly. Please check your .env file and ensure NEXT_PUBLIC_WOOCOMMERCE_STORE_URL, CONSUMER_KEY, and CONSUMER_SECRET are set correctly.');
+    throw new Error('WooCommerce environment variables are not set correctly. Please check your .env file and ensure WOOCOMMERCE_STORE_URL, WOOCOMMERCE_CONSUMER_KEY, and WOOCOMMERCE_CONSUMER_SECRET are set correctly.');
   }
   
   try {
@@ -143,10 +143,10 @@ export const getOrders = async (): Promise<Order[]> => {
   } catch (error: any) {
     console.error("Error fetching data from WooCommerce:", error);
      if (error.code === 'ENOTFOUND' || error.message.includes('getaddrinfo ENOTFOUND')) {
-      throw new Error(`Could not connect to WooCommerce store. Hostname not found. Please check the store URL in your .env file: ${process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL}`);
+      throw new Error(`Could not connect to WooCommerce store. Hostname not found. Please check the store URL in your .env file: ${process.env.WOOCOMMERCE_STORE_URL}`);
     }
     if (error.message.includes('Failed to parse URL')) {
-        throw new Error(`Invalid WooCommerce store URL. Please check the format in your .env file: ${process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL}`);
+        throw new Error(`Invalid WooCommerce store URL. Please check the format in your .env file: ${process.env.WOOCOMMERCE_STORE_URL}`);
     }
     // Re-throw a generic but informative error for other cases.
     throw new Error('Failed to communicate with WooCommerce API. Verify store URL, keys, and network connection.');
@@ -269,10 +269,10 @@ export const getProducts = async (): Promise<MenuItem[]> => {
   } catch (error: any) {
     console.error("Error fetching products from WooCommerce:", error);
     if (error.code === 'ENOTFOUND' || error.message.includes('getaddrinfo ENOTFOUND')) {
-      throw new Error(`Could not connect to WooCommerce store. Hostname not found. Please check the store URL in your .env file: ${process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL}`);
+      throw new Error(`Could not connect to WooCommerce store. Hostname not found. Please check the store URL in your .env file: ${process.env.WOOCOMMERCE_STORE_URL}`);
     }
      if (error.message.includes('Failed to parse URL')) {
-        throw new Error(`Invalid WooCommerce store URL. Please check the format in your .env file: ${process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL}`);
+        throw new Error(`Invalid WooCommerce store URL. Please check the format in your .env file: ${process.env.WOOCOMMERCE_STORE_URL}`);
     }
     throw new Error('Failed to communicate with WooCommerce API to fetch products.');
   }
