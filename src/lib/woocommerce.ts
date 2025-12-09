@@ -24,7 +24,8 @@ if (isWooCommerceConfigured()) {
       url: process.env.WOOCOMMERCE_STORE_URL!,
       consumerKey: process.env.WOOCOMMERCE_CONSUMER_KEY!,
       consumerSecret: process.env.WOOCOMMERCE_CONSUMER_SECRET!,
-      version: "wc/v3"
+      version: "wc/v3",
+      timeout: 60000, // 60-second timeout
     });
   } catch (error) {
     console.error("Failed to initialize WooCommerce API. Please check the store URL in your .env file.", error);
