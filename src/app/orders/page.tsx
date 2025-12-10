@@ -42,7 +42,8 @@ const orderStatuses: OrderStatus[] = ['pending', 'queue', 'processing', 'dispatc
 const ITEMS_PER_PAGE = 10;
 
 // New timezone-aware formatting function
-function formatDateInIST(dateInput: string | Date): string {
+function formatDateInIST(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return 'N/A';
   const date = new Date(dateInput);
   const options: Intl.DateTimeFormatOptions = {
     year: 'numeric',
@@ -444,21 +445,19 @@ export default function OrdersPage() {
     const worksheetData = ordersToExport.flatMap(order => 
       order.items.map(item => ({
         "Order ID": order.id,
-        "Order Status": order.status,
-        "Customer Name": order.customerName,
-        "Customer Email": order.gmail,
-        "Order Date": formatDateInIST(order.timestamp),
+        "Status": order.status,
+        "Payment Date": formatDateInIST(order.paymentDate),
+        "Customer Name": order.customerName || 'N/A',
+        "Phone": order.phone || 'N/A',
+        "Alt Phone": order.altPhone || 'N/A',
+        "Pincode": order.pincode || 'N/A',
+        "Billing Address": order.billingAddress || 'N/A',
         "Product Name": item.name,
         "Quantity": item.qty,
         "Unit Price": item.price,
         "Line Total": item.qty * item.price,
-        "Vendor": vendorMap.get(item.vendorName || '') || item.vendorName || 'N/A', // Use vendor map
-        "Order Subtotal": order.subTotal,
-        "Order Tax": order.taxAmount,
+        "Vendor": vendorMap.get(item.vendorName || '') || item.vendorName || 'N/A',
         "Order Total": order.totalAmount,
-        "Shipping Address": order.shippingAddress,
-        "Tracking ID": order.trackingId,
-        "Payment Method": order.paymentMethod,
       }))
     );
 
