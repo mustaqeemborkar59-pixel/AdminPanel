@@ -5,7 +5,7 @@ import { useState, useEffect, ReactNode, Suspense } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { DollarSign, Users, ShoppingBag, Archive, Activity, AlertTriangle, UsersRound, Package, ChevronDown, Loader2, Calendar as CalendarIcon } from 'lucide-react';
+import { DollarSign, Users, ShoppingBag, Activity, UsersRound, Package, ChevronDown, Loader2, Calendar as CalendarIcon, CheckCircle, Clock, PackageSearch, Truck, XCircle, Archive } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label, LabelList } from 'recharts';
 import type { Order, StaffMember, OrderStatus, OrderType, MenuItem } from '@/types';
 import { cn } from '@/lib/utils';
@@ -26,15 +26,15 @@ const initialStaffData: StaffMember[] = [
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
-const STATUS_COLORS: Record<string, string> = {
-  pending: '#FBBF24', // yellow-400
-  queue: '#A78BFA',   // violet-400 (purple)
-  processing: '#60A5FA', // blue-400
-  dispatch: '#3B82F6',   // blue-600
-  completed: '#34D399', // emerald-400 (green)
-  hold: '#F97316',      // orange-500
-  failed: '#EF4444',    // red-500
-  cancelled: '#DC2626', // red-600
+const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; label: string }> = {
+  pending: { icon: PackageSearch, color: 'bg-yellow-500', label: 'Pending' },
+  queue: { icon: Clock, color: 'bg-blue-500', label: 'In Queue' },
+  processing: { icon: Loader, color: 'bg-purple-500', label: 'Processing' },
+  dispatch: { icon: Truck, color: 'bg-indigo-500', label: 'Dispatched' },
+  completed: { icon: CheckCircle, color: 'bg-green-500', label: 'Completed' },
+  hold: { icon: Archive, color: 'bg-orange-500', label: 'On Hold' },
+  failed: { icon: XCircle, color: 'bg-red-500', label: 'Failed' },
+  cancelled: { icon: XCircle, color: 'bg-red-600', label: 'Cancelled' },
 };
 
 // Helper array for gradients for StatsCards
@@ -55,7 +55,7 @@ function DashboardContent() {
   const [activeStaffCount, setActiveStaffCount] = useState(0);
   const [newCustomers, setNewCustomers] = useState(0);
   const [weeklyOrderData, setWeeklyOrderData] = useState<{name: string, orders: number}[]>([]);
-  const [salesDetailsData, setSalesDetailsData] = useState<{name: string, value: number}[]>([]);
+  const [salesDetailsData, setSalesDetailsData] = useState<{name: string, value: number, label: string, icon: React.ElementType, color: string}[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
     const today = new Date();
     const sixDaysAgo = new Date();
@@ -134,7 +134,7 @@ function DashboardContent() {
       
       setWeeklyOrderData(orderCountsByDay);
 
-      // --- Sales Details Chart Data Processing ---
+      // --- Sales Details List Data Processing ---
       const statusCounts: {[key in OrderStatus]?: number} = {};
       orders.forEach(order => {
         const statusKey = order.status || 'unknown';
@@ -142,11 +142,18 @@ function DashboardContent() {
       });
       
       const salesData = Object.entries(statusCounts)
-        .map(([name, value]) => ({ 
-          name: name.charAt(0).toUpperCase() + name.slice(1), 
-          value 
-        }))
-        .sort((a,b) => b.value - a.value); // Sort for better visualization
+        .map(([name, value]) => {
+            const statusKey = name as OrderStatus;
+            const info = statusInfo[statusKey] || { icon: Activity, color: 'bg-gray-400', label: 'Unknown' };
+            return {
+                name: statusKey,
+                value,
+                label: info.label,
+                icon: info.icon,
+                color: info.color
+            };
+        })
+        .sort((a, b) => b.value - a.value); // Sort for better visualization
       
       setSalesDetailsData(salesData);
 
@@ -189,50 +196,33 @@ function DashboardContent() {
 
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-5">
           <Card className="lg:col-span-2">
-            <CardHeader className="flex-row items-center justify-between">
-              <div>
+            <CardHeader>
                 <CardTitle className="font-headline text-xl">Sales Details</CardTitle>
                 <CardDescription className="text-xs text-muted-foreground mt-1">Breakdown by order status</CardDescription>
-              </div>
             </CardHeader>
-            <CardContent className="pt-4">
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Tooltip
-                        contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)'}}
-                        labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
-                        itemStyle={{ color: 'hsl(var(--foreground))' }}
-                    />
-                    <Pie
-                      data={salesDetailsData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      innerRadius={50}
-                      paddingAngle={5}
-                      strokeWidth={2}
-                    >
-                      {salesDetailsData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name.toLowerCase()] || COLORS[index % COLORS.length]} />
-                      ))}
-                       <LabelList 
-                          dataKey="name" 
-                          position="outside" 
-                          offset={15}
-                          className="fill-muted-foreground text-xs"
-                          formatter={(value: string) => `${value}`}
-                        />
-                         <LabelList 
-                          dataKey="value" 
-                          position="inside"
-                          className="fill-background text-sm font-semibold"
-                          formatter={(value: number) => `${value}`}
-                        />
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
+            <CardContent className="pt-2">
+              {salesDetailsData.length > 0 ? (
+                <div className="space-y-3">
+                  {salesDetailsData.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <div key={item.name} className="flex items-center p-2 rounded-md hover:bg-muted/50 transition-colors">
+                        <div className={cn("p-2 rounded-full mr-3", item.color)}>
+                            <Icon className="h-4 w-4 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{item.label}</p>
+                        </div>
+                        <p className="text-sm font-semibold">{item.value}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-[250px] text-muted-foreground">
+                  <p>No sales data available.</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -337,7 +327,3 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
-
-    
-
-    
