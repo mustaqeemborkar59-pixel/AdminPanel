@@ -197,30 +197,41 @@ function DashboardContent() {
             </CardHeader>
             <CardContent className="pt-4">
                 <ResponsiveContainer width="100%" height={250}>
-                    <BarChart data={salesDetailsData} layout="vertical" margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" horizontal={false}/>
-                        <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} />
-                        <YAxis 
-                          type="category" 
-                          dataKey="name"
-                          stroke="hsl(var(--muted-foreground))" 
-                          fontSize={12} 
-                          axisLine={false} 
-                          tickLine={false}
-                          width={80}
+                  <PieChart>
+                    <Tooltip
+                        contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)'}}
+                        labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
+                        itemStyle={{ color: 'hsl(var(--foreground))' }}
+                    />
+                    <Pie
+                      data={salesDetailsData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      innerRadius={50}
+                      paddingAngle={5}
+                      strokeWidth={2}
+                    >
+                      {salesDetailsData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name.toLowerCase()] || COLORS[index % COLORS.length]} />
+                      ))}
+                       <LabelList 
+                          dataKey="name" 
+                          position="outside" 
+                          offset={15}
+                          className="fill-muted-foreground text-xs"
+                          formatter={(value: string) => `${value}`}
                         />
-                        <Tooltip
-                            contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)'}}
-                            labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
-                            itemStyle={{ color: 'hsl(var(--foreground))' }}
-                            cursor={{fill: 'hsl(var(--muted)/0.3)'}}
+                         <LabelList 
+                          dataKey="value" 
+                          position="inside"
+                          className="fill-background text-sm font-semibold"
+                          formatter={(value: number) => `${value}`}
                         />
-                        <Bar dataKey="value" name="Orders" barSize={20} radius={[0, 4, 4, 0]}>
-                           {salesDetailsData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name.toLowerCase()] || COLORS[index % COLORS.length]} />
-                          ))}
-                        </Bar>
-                    </BarChart>
+                    </Pie>
+                  </PieChart>
                 </ResponsiveContainer>
             </CardContent>
           </Card>
@@ -326,5 +337,7 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
+
+    
 
     
