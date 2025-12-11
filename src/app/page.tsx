@@ -5,12 +5,16 @@ import { useState, useEffect, ReactNode, Suspense } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { DollarSign, Users, ShoppingBag, Archive, Activity, AlertTriangle, UsersRound, Package, ChevronDown, Loader2 } from 'lucide-react';
+import { DollarSign, Users, ShoppingBag, Archive, Activity, AlertTriangle, UsersRound, Package, ChevronDown, Loader2, Calendar as CalendarIcon } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label, LabelList } from 'recharts';
 import type { Order, StaffMember, OrderStatus, OrderType, MenuItem } from '@/types';
 import { cn } from '@/lib/utils';
 import { getOrdersFromWooCommerce } from '@/app/orders/actions';
 import { useToast } from '@/hooks/use-toast';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format, eachDayOfInterval, startOfTomorrow } from 'date-fns';
+import type { DateRange } from "react-day-picker";
 
 // --- Initial Data (adapted for e-commerce) ---
 const initialStaffData: StaffMember[] = [
@@ -52,6 +56,12 @@ function DashboardContent() {
   const [newCustomers, setNewCustomers] = useState(0);
   const [weeklyOrderData, setWeeklyOrderData] = useState<{name: string, orders: number}[]>([]);
   const [salesDetailsData, setSalesDetailsData] = useState<{name: string, value: number}[]>([]);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
+    const today = new Date();
+    const sixDaysAgo = new Date();
+    sixDaysAgo.setDate(today.getDate() - 6);
+    return { from: sixDaysAgo, to: today };
+  });
 
 
   useEffect(() => {
@@ -88,44 +98,33 @@ function DashboardContent() {
       setTotalOrders(currentTotalOrders);
       
       // --- Chart Data Processing ---
-      const nowInIST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-      nowInIST.setHours(23, 59, 59, 999); 
+      const fromDate = dateRange?.from ? new Date(dateRange.from) : new Date();
+      const toDate = dateRange?.to ? new Date(dateRange.to) : new Date();
 
-      const sixDaysAgoIST = new Date(nowInIST);
-      sixDaysAgoIST.setDate(nowInIST.getDate() - 6);
-      sixDaysAgoIST.setHours(0, 0, 0, 0); 
+      if (!dateRange?.from) fromDate.setDate(new Date().getDate() - 6);
 
-      // Filter for orders that have a paymentDate within the last 7 days
+      fromDate.setHours(0,0,0,0);
+      toDate.setHours(23,59,59,999);
+
       const recentPaidOrders = orders.filter(order => {
           if (!order.paymentDate) return false;
           const paymentDateInIST = new Date(new Date(order.paymentDate).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-          return paymentDateInIST >= sixDaysAgoIST && paymentDateInIST <= nowInIST;
+          return paymentDateInIST >= fromDate && paymentDateInIST <= toDate;
       });
       
-      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const orderCountsByDay = Array.from({ length: 7 }, (_, i) => {
-          const date = new Date(nowInIST);
-          date.setDate(nowInIST.getDate() - i);
-          
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, '0');
-          const day = String(date.getDate()).padStart(2, '0');
+      const intervalDays = eachDayOfInterval({ start: fromDate, end: toDate });
+      
+      const orderCountsByDay = intervalDays.map(day => ({
+        name: format(day, 'MMM d'), // Format as 'Jan 1', 'Jan 2' etc.
+        date: format(day, 'yyyy-MM-dd'),
+        orders: 0
+      }));
 
-          return {
-              name: days[date.getDay()],
-              date: `${year}-${month}-${day}`, // YYYY-MM-DD
-              orders: 0
-          };
-      }).reverse();
 
       recentPaidOrders.forEach(order => {
-          // We know paymentDate is not null here because of the filter above
-          const paymentDateInIST = new Date(new Date(order.paymentDate!).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-          
-          const year = paymentDateInIST.getFullYear();
-          const month = String(paymentDateInIST.getMonth() + 1).padStart(2, '0');
-          const day = String(paymentDateInIST.getDate()).padStart(2, '0');
-          const paymentDateStr = `${year}-${month}-${day}`;
+          if (!order.paymentDate) return;
+          const paymentDateInIST = new Date(new Date(order.paymentDate).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+          const paymentDateStr = format(paymentDateInIST, 'yyyy-MM-dd');
 
           const dayData = orderCountsByDay.find(d => d.date === paymentDateStr);
           if (dayData) {
@@ -163,7 +162,7 @@ function DashboardContent() {
 
     // Static data remains for now
     setActiveStaffCount(initialStaffData.filter(staff => staff.status === 'on-duty').length);
-  }, [orders]);
+  }, [orders, dateRange]);
 
 
   if (isLoading) {
@@ -228,10 +227,44 @@ function DashboardContent() {
 
           <Card className="lg:col-span-3">
              <CardHeader className="flex-row items-center justify-between">
-              <CardTitle className="font-headline text-xl">Weekly Order Chart</CardTitle>
-               <Button variant="outline" size="sm" className="ml-auto h-8 text-xs">
-                Last 7 Days
-              </Button>
+                <CardTitle className="font-headline text-xl">Order Activity</CardTitle>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="date"
+                      variant={"outline"}
+                      size="sm"
+                      className={cn(
+                        "w-[240px] justify-start text-left font-normal h-8 text-xs",
+                        !dateRange && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateRange?.from ? (
+                        dateRange.to ? (
+                          <>
+                            {format(dateRange.from, "LLL dd, y")} -{" "}
+                            {format(dateRange.to, "LLL dd, y")}
+                          </>
+                        ) : (
+                          format(dateRange.from, "LLL dd, y")
+                        )
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="end">
+                    <Calendar
+                      initialFocus
+                      mode="range"
+                      defaultMonth={dateRange?.from}
+                      selected={dateRange}
+                      onSelect={setDateRange}
+                      numberOfMonths={2}
+                    />
+                  </PopoverContent>
+                </Popover>
             </CardHeader>
             <CardContent className="pt-4">
               <ResponsiveContainer width="100%" height={250}>
@@ -293,9 +326,5 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
-
-    
-
-    
 
     
