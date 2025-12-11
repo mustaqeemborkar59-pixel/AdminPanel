@@ -448,6 +448,7 @@ export default function OrdersPage() {
         "Status": order.status,
         "Payment Date": formatDateInIST(order.paymentDate),
         "Customer Name": order.customerName || 'N/A',
+        "Email ID": order.gmail || 'N/A',
         "Phone": order.phone || 'N/A',
         "Alt Phone": order.altPhone || 'N/A',
         "Pincode": order.pincode || 'N/A',
@@ -718,3 +719,4 @@ export default function OrdersPage() {
     
 
     
+
