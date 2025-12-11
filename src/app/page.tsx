@@ -84,9 +84,8 @@ function DashboardContent() {
   
   useEffect(() => {
     if (orders.length > 0) {
-      const validOrdersForRevenue = orders.filter(order => 
-        !['pending', 'failed', 'cancelled'].includes(order.status)
-      );
+      // Calculate total sales only from orders with a payment date.
+      const validOrdersForRevenue = orders.filter(order => order.paymentDate);
 
       const currentTotalSales = validOrdersForRevenue.reduce((sum, order) => sum + order.totalAmount, 0);
       const currentTotalOrders = orders.length;
@@ -188,7 +187,7 @@ function DashboardContent() {
       <PageHeader title="Shop Dashboard" description="Comprehensive overview of your online store's operations and performance." />
       <div className="flex-1 p-4 md:p-6 space-y-6 overflow-auto">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatsCard title="Total Revenue" value={`₹${totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={gradientStyles[0]} />
+          <StatsCard title="Total Sale" value={`₹${totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={gradientStyles[0]} />
           <StatsCard title="Total Orders" value={totalOrders.toString()} icon={<ShoppingBag className="h-5 w-5 text-white/70" />} className={gradientStyles[1]} />
           <StatsCard title="Active Staff" value={activeStaffCount.toString()} icon={<UsersRound className="h-5 w-5 text-white/70" />} className={gradientStyles[1]} />
            <StatsCard title="New Customers" value={newCustomers.toLocaleString()} icon={<Users className="h-5 w-5 text-white/70" />} className={gradientStyles[3]} />
