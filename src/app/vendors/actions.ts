@@ -6,5 +6,3 @@
 // This file can be safely deleted, but we'll clear it to prevent any accidental usage.
 
 export {};
-
-    
