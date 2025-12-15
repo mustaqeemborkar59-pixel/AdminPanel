@@ -68,7 +68,7 @@ function formatDateInIST(dateInput: string | Date | null | undefined): string {
 }
 
 export default function OrdersPage() {
-  const { user, userProfile } = useAppContext(); // Get user profile from context
+  const { userProfile } = useAppContext(); // Get user profile from context
   const [orders, setOrders] = useState<Order[]>([]);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
   const [vendorFilter, setVendorFilter] = useState<string>('all');
@@ -79,11 +79,11 @@ export default function OrdersPage() {
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   
-  const [allVendors, setAllVendors] = useState<string[]>([]);
+  const [allVendors, setAllVendors] = useState<Vendor[]>([]);
   const [vendorMap, setVendorMap] = useState<Map<string, string>>(new Map());
 
-  const isSuperAdmin = user?.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
-  const isVendor = !isSuperAdmin && userProfile?.role === 'vendor';
+  const userRole = userProfile?.role;
+  const isVendor = userRole === 'vendor';
 
 
   useEffect(() => {
@@ -92,6 +92,7 @@ export default function OrdersPage() {
 
       const vendorsResult = await getVendorsFromRTDB();
       if(vendorsResult.success && vendorsResult.data) {
+        setAllVendors(vendorsResult.data);
         const newVendorMap = new Map(vendorsResult.data.map(v => [v.code, v.name]));
         setVendorMap(newVendorMap);
       } else if (!vendorsResult.success) {
@@ -117,17 +118,6 @@ export default function OrdersPage() {
     };
     fetchInitialData();
   }, [toast]);
-  
-  useEffect(() => {
-     if (orders.length > 0) {
-        const vendorCodes = new Set(
-          orders.flatMap(order => order.items.map(item => item.vendorName).filter((v): v is string => !!v))
-        );
-        // Now map codes to names, falling back to code if name not found
-        const vendorDisplayNames = Array.from(vendorCodes).map(code => vendorMap.get(code) || code);
-        setAllVendors(vendorDisplayNames);
-    }
-  }, [orders, vendorMap]);
 
 
   useEffect(() => {
@@ -168,10 +158,42 @@ export default function OrdersPage() {
   };
 
   const filteredOrders = useMemo(() => {
-    
     const currentVendorCode = isVendor ? userProfile?.vendorCode : null;
 
-    let filtered = orders
+    let filteredByRoleAndFilter = orders.map(order => {
+        let itemsToShow = order.items;
+        
+        // If the user is a vendor, filter items to only show theirs.
+        if (isVendor && currentVendorCode) {
+            itemsToShow = order.items.filter(item => item.vendorName === currentVendorCode);
+        } 
+        // If it's an admin/super-admin applying a vendor filter
+        else if (!isVendor && vendorFilter !== 'all') {
+            const vendorCodeToFilter = allVendors.find(v => v.name === vendorFilter)?.code;
+            if (vendorCodeToFilter) {
+                itemsToShow = order.items.filter(item => item.vendorName === vendorCodeToFilter);
+            }
+        }
+        
+        // If, after filtering, there are no items for this user/filter, discard the order by returning null.
+        if (itemsToShow.length === 0) return null;
+        
+        // If the items have changed (meaning we filtered them), recalculate totals for this view.
+        if (itemsToShow.length !== order.items.length) {
+            const subTotal = itemsToShow.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            // Use the original order's tax ratio to calculate the new tax amount fairly.
+            const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
+            const taxAmount = subTotal * taxRatio;
+            const totalAmount = subTotal + taxAmount;
+            return { ...order, items: itemsToShow, subTotal, taxAmount, totalAmount };
+        }
+        
+        // If no items were filtered, return the original order.
+        return order;
+    }).filter((order): order is Order => order !== null); // This removes the null orders.
+
+    // Apply other filters (status, date, search) on the already role-filtered data.
+    let finalFiltered = filteredByRoleAndFilter
       .filter(order => statusFilter === 'all' || order.status === statusFilter)
       .filter(order => {
         if (!dateRange?.from) return true; // No date filter applied
@@ -197,43 +219,10 @@ export default function OrdersPage() {
       .filter(order => 
           order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (order.customerName && order.customerName.toLowerCase().includes(searchTerm.toLowerCase()))
-      )
-      // Recalculate items and totals based on vendor role or filter
-      .map(order => {
-        let itemsToShow = order.items;
-        
-        // 1. If user is a vendor, show only their items.
-        if (currentVendorCode) {
-          itemsToShow = order.items.filter(item => item.vendorName === currentVendorCode);
-        }
-        // 2. If it's an admin applying a vendor filter from dropdown
-        else if (!isSuperAdmin && vendorFilter !== 'all') {
-          itemsToShow = order.items.filter(item => {
-            if (!item.vendorName) return false;
-            const displayName = vendorMap.get(item.vendorName) || item.vendorName;
-            return displayName === vendorFilter;
-          });
-        }
-        
-        // If, after filtering, there are no items for this user/filter, discard the order
-        if (itemsToShow.length === 0) return null;
-        
-        // If the items have changed, recalculate totals
-        if (itemsToShow.length !== order.items.length) {
-            const subTotal = itemsToShow.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
-            const taxAmount = subTotal * taxRatio;
-            const totalAmount = subTotal + taxAmount;
-            return { ...order, items: itemsToShow, subTotal, taxAmount, totalAmount };
-        }
-        
-        // Otherwise, return the original order
-        return order;
-      })
-      .filter((order): order is Order => order !== null); // Remove null orders
+      );
 
-    return getUniqueOrders(filtered);
-  }, [orders, statusFilter, vendorFilter, dateRange, searchTerm, vendorMap, userProfile, isVendor, isSuperAdmin]);
+    return getUniqueOrders(finalFiltered);
+  }, [orders, statusFilter, vendorFilter, dateRange, searchTerm, vendorMap, userProfile, isVendor, allVendors]);
   
   const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -605,7 +594,7 @@ export default function OrdersPage() {
                 <DropdownMenuRadioGroup value={vendorFilter} onValueChange={setVendorFilter}>
                   <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
                   {allVendors.map(vendor => (
-                    <DropdownMenuRadioItem key={vendor} value={vendor}>{vendor}</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem key={vendor.id} value={vendor.name}>{vendor.name}</DropdownMenuRadioItem>
                   ))}
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
