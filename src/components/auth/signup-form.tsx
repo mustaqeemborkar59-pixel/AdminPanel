@@ -50,7 +50,6 @@ export function SignupForm() {
           email: userCredential.user.email,
           displayName: userCredential.user.email?.split('@')[0], // Default display name
           photoURL: `https://placehold.co/100x100.png?text=${userCredential.user.email?.[0]?.toUpperCase() || 'U'}`, // Default photo
-          role: 'user', // Explicitly set role for the action
         });
 
         if (!profileCreationResult.success) {

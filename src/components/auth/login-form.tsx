@@ -34,9 +34,7 @@ export function LoginForm() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
       if (userCredential.user) {
-        await updateRTDBUserProfileOnLogin({
-          uid: userCredential.user.uid,
-          email: userCredential.user.email,
+        await updateRTDBUserProfileOnLogin(userCredential.user.uid, {
           displayName: userCredential.user.displayName,
           photoURL: userCredential.user.photoURL,
         });

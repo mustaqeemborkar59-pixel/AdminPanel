@@ -6,13 +6,12 @@ import { rtdb } from '@/lib/firebase';
 import { ref, set, get, update } from 'firebase/database';
 import type { UserProfile } from '@/types';
 
-// Extended UserProfileData to include role for creation
-interface UserProfileData {
+// Stripped down version for signup, role is handled internally
+interface UserProfileOnSignup {
   uid: string;
   email: string | null;
   displayName?: string | null;
   photoURL?: string | null;
-  role?: 'admin' | 'vendor' | 'user';
 }
 
 interface CompanyDetails {
@@ -22,7 +21,7 @@ interface CompanyDetails {
     email: string;
 }
 
-export async function createRTDBUserProfileOnSignup(details: UserProfileData): Promise<{ success: boolean; message?: string }> {
+export async function createRTDBUserProfileOnSignup(details: UserProfileOnSignup): Promise<{ success: boolean; message?: string }> {
   if (!rtdb) {
     return { success: false, message: "Realtime Database is not configured." };
   }
@@ -63,13 +62,13 @@ export async function getRTDBUserProfile(uid: string): Promise<{ success: boolea
 }
 
 
-export async function updateRTDBUserProfileOnLogin(details: UserProfileData): Promise<{ success: boolean; message?: string }> {
+export async function updateRTDBUserProfileOnLogin(uid: string, details: { displayName?: string | null, photoURL?: string | null }): Promise<{ success: boolean; message?: string }> {
   if (!rtdb) {
     return { success: false, message: "Realtime Database is not configured." };
   }
   try {
     // This function can update details like photoURL or displayName on login if they've changed
-    const userRef = ref(rtdb, `users/${details.uid}`);
+    const userRef = ref(rtdb, `users/${uid}`);
     const snapshot = await get(userRef);
     if(snapshot.exists()) {
       const updates: Partial<UserProfile> = {};
