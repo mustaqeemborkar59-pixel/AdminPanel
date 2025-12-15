@@ -74,8 +74,10 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
       const isSuperAdmin = user.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
       const { role, vendorCode } = userProfile;
       
-      // Condition for being in a pending state
-      const isPending = (role === 'user' && !isSuperAdmin) || (role === 'vendor' && !vendorCode);
+      // Condition for being in a pending state:
+      // 1. Role is 'user' AND they are not the super admin.
+      // 2. Role is 'vendor' BUT they haven't been assigned a vendorCode yet.
+      const isPending = (!isSuperAdmin && role === 'user') || (role === 'vendor' && !vendorCode);
       
       // Condition for being fully approved
       const isApproved = role === 'admin' || isSuperAdmin || (role === 'vendor' && !!vendorCode);
@@ -123,11 +125,16 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   
   // If user is on an auth or pending page, render the page without the main layout.
   if (isAuthPage || isPendingPage) {
-    return <>{children}</>;
+    return (
+      <AppContext.Provider value={{ user, userProfile, authLoading: loading }}>
+        {children}
+      </AppContext.Provider>
+    );
   }
 
-  // If a logged in user is still in a pending state (e.g., vendor without code), show loader while redirect happens.
-  if (user && userProfile && ((userProfile.role === 'user' && user.email !== process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL) || (userProfile.role === 'vendor' && !userProfile.vendorCode))) {
+  // If a logged in user is still in a pending state, show loader while redirect happens.
+  const isSuperAdmin = user?.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
+  if (user && userProfile && !isSuperAdmin && ((userProfile.role === 'user') || (userProfile.role === 'vendor' && !userProfile.vendorCode))) {
        return (
          <div className="flex items-center justify-center min-h-screen bg-background">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -153,3 +160,5 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     </AppContext.Provider>
   );
 }
+
+    

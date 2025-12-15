@@ -48,7 +48,7 @@ const gradientStyles = [
 
 function DashboardContent() {
   const { toast } = useToast();
-  const { userProfile } = useAppContext(); // Get user profile
+  const { user, userProfile } = useAppContext(); // Get user and profile
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -65,7 +65,9 @@ function DashboardContent() {
     return { from: sixDaysAgo, to: today };
   });
 
-  const isVendor = userProfile?.role === 'vendor';
+  const isSuperAdmin = user?.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
+  const isVendor = !isSuperAdmin && userProfile?.role === 'vendor';
+  const vendorName = isVendor ? userProfile?.vendorCode : 'Shop';
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -209,7 +211,7 @@ function DashboardContent() {
 
   return (
     <div className="flex flex-col h-full">
-      <PageHeader title={isVendor ? `${userProfile?.vendorCode} Dashboard` : "Shop Dashboard"} description="Comprehensive overview of your online store's operations and performance." />
+      <PageHeader title={isVendor ? `${vendorName} Dashboard` : "Shop Dashboard"} description="Comprehensive overview of your online store's operations and performance." />
       <div className="flex-1 p-4 md:p-6 space-y-6 overflow-auto">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatsCard title="Total Sale" value={`₹${totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={gradientStyles[0]} />
@@ -351,3 +353,5 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
+
+    

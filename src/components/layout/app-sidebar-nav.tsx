@@ -57,8 +57,9 @@ export function AppSidebarNav({ user, userProfile, authLoading }: AppSidebarNavP
   const { toast } = useToast();
   const { open, toggleSidebar, isMobile, state, openMobile, setOpenMobile } = useSidebar();
   const [mounted, setMounted] = React.useState(false);
-  const isSuperAdmin = user?.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
   
+  // Correctly determine the user's role, prioritizing super admin status
+  const isSuperAdmin = user?.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
   const userRole = isSuperAdmin ? 'admin' : userProfile?.role;
 
 
@@ -227,3 +228,5 @@ export function AppSidebarNav({ user, userProfile, authLoading }: AppSidebarNavP
     </>
   );
 }
+
+    
