@@ -15,6 +15,7 @@ import {
   Sparkles,
   ShieldCheck,
   Store,
+  Crown,
 } from 'lucide-react';
 import {
   SidebarHeader,
@@ -36,13 +37,13 @@ import { useToast } from '@/hooks/use-toast'; // For potential error messages
 import type { UserProfile } from '@/types';
 
 const allNavItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'vendor'] },
-  { href: '/orders', label: 'Orders', icon: ClipboardList, roles: ['admin', 'vendor'] },
-  { href: '/admins', label: 'Admins', icon: ShieldCheck, roles: ['admin'] },
-  { href: '/vendors', label: 'Vendors', icon: Store, roles: ['admin'] },
-  { href: '/delivery', label: 'Delivery', icon: Truck, roles: ['admin'] },
-  { href: '/specials', label: 'Specials', icon: Sparkles, roles: ['admin'] },
-  { href: '/settings', label: 'Settings', icon: Settings, roles: ['admin'] },
+  { href: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'vendor', 'super-admin'] },
+  { href: '/orders', label: 'Orders', icon: ClipboardList, roles: ['admin', 'vendor', 'super-admin'] },
+  { href: '/admins', label: 'Admins', icon: ShieldCheck, roles: ['admin', 'super-admin'] },
+  { href: '/vendors', label: 'Vendors', icon: Store, roles: ['admin', 'super-admin'] },
+  { href: '/delivery', label: 'Delivery', icon: Truck, roles: ['admin', 'super-admin'] },
+  { href: '/specials', label: 'Specials', icon: Sparkles, roles: ['admin', 'super-admin'] },
+  { href: '/settings', label: 'Settings', icon: Settings, roles: ['admin', 'super-admin'] },
 ];
 
 interface AppSidebarNavProps {
@@ -58,9 +59,14 @@ export function AppSidebarNav({ user, userProfile, authLoading }: AppSidebarNavP
   const { open, toggleSidebar, isMobile, state, openMobile, setOpenMobile } = useSidebar();
   const [mounted, setMounted] = React.useState(false);
   
-  // Correctly determine the user's role, prioritizing super admin status
-  const isSuperAdmin = user?.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
-  const userRole = isSuperAdmin ? 'admin' : userProfile?.role;
+  // This logic now correctly waits for the profile to be loaded.
+  const userRole = React.useMemo(() => {
+    if (authLoading || !userProfile) {
+      return null; // Return null while loading to prevent premature role assignment
+    }
+    // The role from the database is the single source of truth.
+    return userProfile.role;
+  }, [userProfile, authLoading]);
 
 
   React.useEffect(() => {
@@ -83,7 +89,7 @@ export function AppSidebarNav({ user, userProfile, authLoading }: AppSidebarNavP
   const mainNavItems = allNavItems.filter(item => userRole && item.roles.includes(userRole));
 
 
-  if (!mounted || authLoading) {
+  if (!mounted || authLoading || !userRole) {
     return (
         <>
         <SidebarHeader className="p-4 border-b border-sidebar-border">
@@ -182,7 +188,7 @@ export function AppSidebarNav({ user, userProfile, authLoading }: AppSidebarNavP
               </Avatar>
               <div>
                 <p className="text-sm font-semibold text-sidebar-foreground">{user.displayName || user.email?.split('@')[0]}</p>
-                <p className="text-xs text-muted-foreground capitalize">{userRole}</p>
+                <p className="text-xs text-muted-foreground capitalize">{userRole.replace('-', ' ')}</p>
               </div>
             </div>
             <Button 
@@ -229,4 +235,3 @@ export function AppSidebarNav({ user, userProfile, authLoading }: AppSidebarNavP
   );
 }
 
-    
