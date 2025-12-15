@@ -35,11 +35,12 @@ import type { User } from 'firebase/auth';
 import { auth } from '@/lib/firebase'; // Import auth for client-side sign out
 import { useToast } from '@/hooks/use-toast'; // For potential error messages
 import type { UserProfile } from '@/types';
+import { useAppContext } from './app-content-wrapper';
 
 const allNavItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'vendor', 'super-admin'] },
   { href: '/orders', label: 'Orders', icon: ClipboardList, roles: ['admin', 'vendor', 'super-admin'] },
-  { href: '/admins', label: 'Admins', icon: ShieldCheck, roles: ['admin', 'super-admin'] },
+  { href: '/admins', label: 'Admins', icon: ShieldCheck, roles: ['super-admin'] },
   { href: '/vendors', label: 'Vendors', icon: Store, roles: ['admin', 'super-admin'] },
   { href: '/delivery', label: 'Delivery', icon: Truck, roles: ['admin', 'super-admin'] },
   { href: '/specials', label: 'Specials', icon: Sparkles, roles: ['admin', 'super-admin'] },
@@ -59,14 +60,19 @@ export function AppSidebarNav({ user, userProfile, authLoading }: AppSidebarNavP
   const { open, toggleSidebar, isMobile, state, openMobile, setOpenMobile } = useSidebar();
   const [mounted, setMounted] = React.useState(false);
   
-  // This logic now correctly waits for the profile to be loaded.
   const userRole = React.useMemo(() => {
-    if (authLoading || !userProfile) {
-      return null; // Return null while loading to prevent premature role assignment
+    if (authLoading) {
+      return null;
     }
-    // The role from the database is the single source of truth.
+    // Give precedence to the .env super admin email
+    if (user?.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL) {
+        return 'super-admin';
+    }
+    if (!userProfile) {
+        return null;
+    }
     return userProfile.role;
-  }, [userProfile, authLoading]);
+  }, [user, userProfile, authLoading]);
 
 
   React.useEffect(() => {
@@ -76,8 +82,6 @@ export function AppSidebarNav({ user, userProfile, authLoading }: AppSidebarNavP
   const handleLogout = async () => {
     try {
       await auth.signOut();
-      // onAuthStateChanged in AppContentWrapper will handle redirect logic
-      // but we can push to login page immediately for a faster UX
       router.push('/login'); 
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
     } catch (error) {
@@ -235,3 +239,4 @@ export function AppSidebarNav({ user, userProfile, authLoading }: AppSidebarNavP
   );
 }
 
+    

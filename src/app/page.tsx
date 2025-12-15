@@ -88,6 +88,11 @@ function DashboardContent() {
   }, [toast]);
   
   const vendorFilteredOrders = useMemo(() => {
+    // If the user is super admin, always return all orders.
+    if (isSuperAdmin) {
+      return orders;
+    }
+    // If user is not a vendor (e.g., admin), also return all orders.
     if (!isVendor || !userProfile?.vendorCode) {
       return orders;
     }
@@ -102,7 +107,7 @@ function DashboardContent() {
       const totalAmount = subTotal + taxAmount;
       return { ...order, items: vendorItems, subTotal, taxAmount, totalAmount };
     }).filter((order): order is Order => order !== null);
-  }, [orders, isVendor, userProfile]);
+  }, [orders, isVendor, isSuperAdmin, userProfile]);
   
 
   useEffect(() => {

@@ -62,7 +62,7 @@ function formatDateInIST(dateInput: string | Date | null | undefined): string {
 }
 
 export default function OrdersPage() {
-  const { userProfile } = useAppContext(); // Get user profile from context
+  const { user, userProfile } = useAppContext(); // Get user profile from context
   const [orders, setOrders] = useState<Order[]>([]);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
   const [vendorFilter, setVendorFilter] = useState<string>('all');
@@ -76,7 +76,8 @@ export default function OrdersPage() {
   const [allVendors, setAllVendors] = useState<string[]>([]);
   const [vendorMap, setVendorMap] = useState<Map<string, string>>(new Map());
 
-  const isVendor = userProfile?.role === 'vendor';
+  const isSuperAdmin = user?.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
+  const isVendor = !isSuperAdmin && userProfile?.role === 'vendor';
 
 
   useEffect(() => {
@@ -166,14 +167,13 @@ export default function OrdersPage() {
     const currentVendorCode = isVendor ? userProfile?.vendorCode : null;
     let vendorFilteredOrders = orders;
     
+    // If user is a vendor, filter to only include their orders and items.
     if (currentVendorCode) {
-        // If the user is a vendor, first filter the orders to only include those with their items.
         vendorFilteredOrders = orders.map(order => {
             const vendorItems = order.items.filter(item => item.vendorName === currentVendorCode);
             if (vendorItems.length === 0) {
-                return null; // This order doesn't belong to the vendor
+                return null;
             }
-            // Recalculate totals based on only the vendor's items in the order
             const subTotal = vendorItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
             const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
             const taxAmount = subTotal * taxRatio;
@@ -186,9 +186,10 @@ export default function OrdersPage() {
     let filtered = vendorFilteredOrders
     .filter(order => statusFilter === 'all' || order.status === statusFilter)
     .filter(order => {
-        if (isVendor) return true; // Vendor dropdown is hidden, so this filter is bypassed
+        // Bypass vendor dropdown filter for vendors and super admins (who see all)
+        if (isVendor || isSuperAdmin) return true;
         if (vendorFilter === 'all') return true;
-        // Check if any item's vendor name (from map) or code matches the filter
+        // For non-super-admin, non-vendor roles (like 'admin')
         return order.items.some(item => {
             if (!item.vendorName) return false;
             const displayName = vendorMap.get(item.vendorName) || item.vendorName;
@@ -196,18 +197,16 @@ export default function OrdersPage() {
         });
     })
     .map(order => {
-        if (isVendor) return order; // Vendor orders are already processed
+        if (isVendor || isSuperAdmin) return order; 
         if (vendorFilter === 'all') return order;
-        // If an admin selects a vendor, filter the items within the order
+        
         const vendorItems = order.items.filter(item => {
           if (!item.vendorName) return false;
           const displayName = vendorMap.get(item.vendorName) || item.vendorName;
           return displayName === vendorFilter;
         });
 
-        // Recalculate totals based on filtered items
         const subTotal = vendorItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
-        // Assuming a proportional tax calculation. This might need adjustment based on real tax rules.
         const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
         const taxAmount = subTotal * taxRatio;
         const totalAmount = subTotal + taxAmount;
@@ -215,15 +214,14 @@ export default function OrdersPage() {
         return { 
             ...order, 
             items: vendorItems,
-            // Overwrite totals for this filtered view
             subTotal,
             taxAmount,
             totalAmount,
         };
     })
-    .filter(order => order.items.length > 0) // Ensure order still has items after vendor filter
+    .filter(order => order.items.length > 0) 
     .filter(order => {
-      if (!dateRange?.from) return true; // No start date, no filter
+      if (!dateRange?.from) return true;
       
       const dateStringToFilter = order.paymentDate || order.timestamp;
       const orderDateInIST = new Date(new Date(dateStringToFilter).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
@@ -231,7 +229,6 @@ export default function OrdersPage() {
       const fromDate = new Date(dateRange.from);
       fromDate.setHours(0, 0, 0, 0);
 
-      // If only `from` is selected, treat `to` as the same day
       const toDate = dateRange.to ? new Date(dateRange.to) : new Date(dateRange.from);
       toDate.setHours(23, 59, 59, 999);
 
@@ -243,7 +240,7 @@ export default function OrdersPage() {
     );
 
     return getUniqueOrders(filtered);
-  }, [orders, statusFilter, vendorFilter, dateRange, searchTerm, vendorMap, userProfile, isVendor]);
+  }, [orders, statusFilter, vendorFilter, dateRange, searchTerm, vendorMap, userProfile, isVendor, isSuperAdmin]);
   
   const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -299,9 +296,6 @@ export default function OrdersPage() {
             doc.addPage();
         }
 
-        // IMPORTANT: Recalculate totals based on vendor if a filter is active
-        // The `originalOrder` from `filteredOrders` already has recalculated values if a vendor is selected.
-        // So we can use its values directly.
         const order = originalOrder;
 
         const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
@@ -747,6 +741,3 @@ export default function OrdersPage() {
 }
 
     
-
-    
-
