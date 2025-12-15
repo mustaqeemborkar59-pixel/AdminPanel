@@ -2,8 +2,8 @@
 // src/lib/firebase.ts
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
-import { getFirestore, type Firestore } from 'firebase/firestore';
-import { getDatabase, type Database as RealtimeDatabase } from 'firebase/database';
+import { getFirestore, type Firestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getDatabase, type Database as RealtimeDatabase, connectDatabaseEmulator } from 'firebase/database';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -31,6 +31,7 @@ if (!getApps().length) {
 // Initialize services
 auth = getAuth(app);
 db = getFirestore(app);
+
 
 // Conditionally initialize RTDB only if the databaseURL is provided and valid
 try {

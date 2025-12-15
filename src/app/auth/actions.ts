@@ -33,7 +33,7 @@ export async function createUserProfile(details: UserProfileOnSignup): Promise<{
       role: isSuperAdmin ? 'super-admin' : 'user', // Set role based on super admin check
     };
 
-    await setDoc(userRef, userProfile);
+    await setDoc(userRef, userProfile, { merge: true });
     return { success: true };
   } catch (error: any) {
     console.error('Firestore Profile Creation Error on Signup:', error);
