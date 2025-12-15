@@ -1,4 +1,3 @@
-
 "use server";
 
 import { redirect } from 'next/navigation';
@@ -35,7 +34,7 @@ function initializeAdminApp(): App {
 
   return initializeApp({
     credential: cert(serviceAccount),
-    databaseURL: `https://${serviceAccount.project_id}.firebaseio.com`
+    databaseURL: "https://sheetmaster-woo4-3652307-f6517-default-rtdb.firebaseio.com/"
   });
 }
 
