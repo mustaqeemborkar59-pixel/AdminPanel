@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Loader2 } from 'lucide-react';
 import { createRTDBUserProfileOnSignup } from '@/app/auth/actions';
 
 export function SignupForm() {
@@ -17,23 +17,25 @@ export function SignupForm() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
     if (!email || !password || !confirmPassword) {
-      alert("All fields are required.");
+      setError("All fields are required.");
       setIsLoading(false);
       return;
     }
     if (password.length < 6) {
-      alert("Password must be at least 6 characters long.");
+      setError("Password must be at least 6 characters long.");
       setIsLoading(false);
       return;
     }
     if (password !== confirmPassword) {
-      alert("Passwords do not match.");
+      setError("Passwords do not match.");
       setIsLoading(false);
       return;
     }
@@ -54,35 +56,34 @@ export function SignupForm() {
         if (!profileCreationResult.success) {
           // Log the user out if DB profile creation fails to avoid inconsistent states
           await auth.signOut();
-          alert(profileCreationResult.message || "Could not create your profile in the database. Please contact support.");
+          setError(profileCreationResult.message || "Could not create your profile. Please contact support.");
           setIsLoading(false);
           return;
         }
       }
-      // After successful signup and profile creation, onAuthStateChanged in AppContentWrapper
-      // will handle redirecting the user to the appropriate page (e.g., /pending-verification).
-      // We can push to a neutral page like '/' and let the wrapper handle the logic.
-      router.push('/');
-    } catch (error: any) {
-      setIsLoading(false); 
-      const firebaseError = error as AuthError;
+      // The AppContentWrapper now handles all redirection logic.
+      // We no longer need to push the router here.
+      // router.push('/');
+    } catch (e: any) {
+      const firebaseError = e as AuthError;
 
       if (firebaseError.code === 'auth/email-already-in-use') {
-        alert('This email is already in use. Please try a different email or log in.');
+        setError('This email is already in use. Please try a different email or log in.');
       } else if (firebaseError.code === 'auth/weak-password') {
-        alert('The password is too weak. Please choose a stronger password.');
+        setError('The password is too weak. Please choose a stronger password.');
       } else if (firebaseError.code === 'auth/invalid-email') {
-        alert('The email address is not valid.');
+        setError('The email address is not valid.');
       }
       else {
-        alert('An error occurred during sign up. Please try again later.');
+        setError('An error occurred during sign up. Please try again later.');
       }
+      setIsLoading(false); 
     } 
-    // No finally block needed as loading is handled in each branch
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {error && <p className="text-sm font-medium text-center text-destructive">{error}</p>}
       <div className="space-y-2">
         <Label htmlFor="email" className="font-body text-sm font-medium text-foreground/80">Email Address</Label>
         <Input 
@@ -127,7 +128,7 @@ export function SignupForm() {
       </div>
       <Button type="submit" className="w-full font-body font-semibold text-base py-3 h-auto" disabled={isLoading}>
         {isLoading ? (
-            <UserPlus className="mr-2 h-5 w-5 animate-spin" />
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
         ) : (
             <UserPlus className="mr-2 h-5 w-5" />
         )}

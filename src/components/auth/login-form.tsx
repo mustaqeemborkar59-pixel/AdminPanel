@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LogIn } from 'lucide-react';
+import { LogIn, Loader2 } from 'lucide-react';
 import { updateRTDBUserProfileOnLogin } from '@/app/auth/actions';
 
 export function LoginForm() {
@@ -16,13 +16,15 @@ export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
     if (!email || !password) {
-      alert("Email and password are required.");
+      setError("Email and password are required.");
       setIsLoading(false);
       return;
     }
@@ -32,44 +34,35 @@ export function LoginForm() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
       if (userCredential.user) {
-        const profileUpdateResult = await updateRTDBUserProfileOnLogin({
+        await updateRTDBUserProfileOnLogin({
           uid: userCredential.user.uid,
           email: userCredential.user.email,
           displayName: userCredential.user.displayName,
           photoURL: userCredential.user.photoURL,
         });
-
-        if (!profileUpdateResult.success) {
-          alert(profileUpdateResult.message || "Could not update your profile in the database.");
-          // Decide if you want to stop redirect on DB failure
-        }
       }
-      // onAuthStateChanged in AppContentWrapper will handle redirect to dashboard
-      // Forcing a push might be redundant if onAuthStateChanged is quick,
-      // but can provide a more immediate UX.
-      router.push('/'); 
-    } catch (error: any) {
-      setIsLoading(false); // Set loading to false immediately upon catching an error.
-      const firebaseError = error as AuthError;
+      // The AppContentWrapper now handles all redirection logic.
+      // We no longer need to push the router here.
+      // router.push('/'); 
+    } catch (e: any) {
+      const firebaseError = e as AuthError;
       if (firebaseError.code === 'auth/invalid-credential') {
-        alert('Invalid email or password. Please try again.');
+        setError('Invalid email or password. Please try again.');
       } else if (firebaseError.code === 'auth/user-disabled') {
-        alert('This user account has been disabled.');
+        setError('This user account has been disabled.');
       } else if (firebaseError.code === 'auth/invalid-email') {
-        alert('The email address is not valid.');
+        setError('The email address is not valid.');
       }
       else {
-        alert('An error occurred during sign in. Please try again later.');
+        setError('An error occurred during sign in. Please try again later.');
       }
-    } finally {
-      // Ensuring isLoading is false, though it should be set in the catch block too.
-      // If successful login leads to unmount, this might not run for that instance.
-      if (isLoading) setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {error && <p className="text-sm font-medium text-center text-destructive">{error}</p>}
       <div className="space-y-2">
         <Label htmlFor="email" className="font-body text-sm font-medium text-foreground/80">Email Address</Label>
         <Input 
@@ -100,7 +93,7 @@ export function LoginForm() {
       </div>
       <Button type="submit" className="w-full font-body font-semibold text-base py-3 h-auto" disabled={isLoading}>
         {isLoading ? (
-          <LogIn className="mr-2 h-5 w-5 animate-spin" />
+          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
         ) : (
           <LogIn className="mr-2 h-5 w-5" />
         )}
