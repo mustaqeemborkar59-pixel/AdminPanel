@@ -70,31 +70,39 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   useEffect(() => {
     if (loading) return; // Don't do anything until initial auth check and profile fetch is done
 
-    if (user) {
-      // User is authenticated
+    if (user && userProfile) { // Ensure we have both user and profile
       const isSuperAdmin = user.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
-      const role = userProfile?.role;
+      const { role, vendorCode } = userProfile;
       
+      // Condition for being in a pending state
+      const isPending = (role === 'user' && !isSuperAdmin) || (role === 'vendor' && !vendorCode);
+      
+      // Condition for being fully approved
+      const isApproved = role === 'admin' || isSuperAdmin || (role === 'vendor' && !!vendorCode);
+
       if (isAuthPage) {
         router.replace('/');
         return;
       }
       
-      // CRITICAL: This is the main access control logic.
-      // If the user's role is 'user' (and they are not the designated super admin),
-      // they MUST be on the pending page. If they are anywhere else, redirect them.
-      if (role === 'user' && !isSuperAdmin && !isPendingPage) {
+      // If user is in a pending state but not on the pending page, redirect them.
+      if (isPending && !isPendingPage) {
         router.replace('/pending-verification');
         return;
       }
 
-      // If a user has been approved (role is not 'user' anymore) but they land on the pending page,
-      // redirect them to the dashboard.
-      if (role && role !== 'user' && isPendingPage) {
+      // If a user is fully approved but lands on the pending page, redirect them away.
+      if (isApproved && isPendingPage) {
         router.replace('/');
         return;
       }
 
+    } else if (user && !userProfile) {
+        // This case can happen for a brief moment after signup before the DB profile is created.
+        // It's safest to redirect to pending verification until the profile is confirmed.
+        if (!isPendingPage && !isAuthPage) {
+             router.replace('/pending-verification');
+        }
     } else {
       // User is not authenticated.
       // If they are trying to access a protected page, redirect to login.
@@ -118,15 +126,15 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     return <>{children}</>;
   }
 
-  // If a logged in user with role 'user' somehow slips past the redirect, show a loader
-  // while the redirect to /pending-verification happens.
-  if (user && userProfile?.role === 'user' && user.email !== process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL) {
+  // If a logged in user is still in a pending state (e.g., vendor without code), show loader while redirect happens.
+  if (user && userProfile && ((userProfile.role === 'user' && user.email !== process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL) || (userProfile.role === 'vendor' && !userProfile.vendorCode))) {
        return (
          <div className="flex items-center justify-center min-h-screen bg-background">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
         </div>
       );
   }
+
 
   // User is authenticated and verified, show the main application layout
   return (
