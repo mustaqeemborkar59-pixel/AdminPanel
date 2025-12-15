@@ -43,11 +43,11 @@ export default function AdminsPage() {
         setDataLoading(true);
         
         const usersResult = await getAllUsersFromRTDB();
-        if (usersResult.success && usersResult.data) {
+        if (usersResult.success && usersResult.data && currentUserProfile) {
             // Filter out the current super admin from the list to prevent role change
             const filteredUsers = usersResult.data.filter(user => user.uid !== currentUserProfile.uid);
             setUsers(filteredUsers);
-        } else {
+        } else if (!usersResult.success) {
           toast({
             variant: "destructive",
             title: "Failed to load users",
@@ -58,7 +58,7 @@ export default function AdminsPage() {
         const vendorsResult = await getVendorsFromRTDB();
         if (vendorsResult.success && vendorsResult.data) {
           setVendors(vendorsResult.data);
-        } else {
+        } else if (!vendorsResult.success) {
            toast({
             variant: "destructive",
             title: "Failed to load vendors",
@@ -70,6 +70,9 @@ export default function AdminsPage() {
       };
       
       fetchInitialData();
+    } else if (!authLoading && !isCurrentUserSuperAdmin) {
+        // If the user is definitively not a super admin, stop the data loader
+        setDataLoading(false);
     }
   }, [authLoading, isCurrentUserSuperAdmin, currentUserProfile, toast]);
 
@@ -110,7 +113,7 @@ export default function AdminsPage() {
     }
   };
   
-  // Wait for auth check to complete
+  // Wait for auth check to complete before making any decision.
   if (authLoading) {
       return (
         <div className="flex flex-col h-full">
