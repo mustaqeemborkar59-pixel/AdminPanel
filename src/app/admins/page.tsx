@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { getAllUsersFromRTDB, updateUserRoleInRTDB } from '@/app/auth/actions';
-import type { UserProfile } from '@/types';
+import { getVendorsFromRTDB } from '@/app/vendors/actions';
+import type { UserProfile, Vendor } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ShieldCheck, Store, User, Lock } from 'lucide-react';
 import {
@@ -29,10 +30,42 @@ import { app } from '@/lib/firebase';
 
 export default function AdminsPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+
+  const fetchInitialData = async () => {
+    setIsLoading(true);
+    // Fetch both users and vendors
+    const usersResult = await getAllUsersFromRTDB();
+    if (usersResult.success && usersResult.data) {
+      const superAdminEmail = process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
+      const filteredUsers = usersResult.data.filter(user => user.email !== superAdminEmail);
+      setUsers(filteredUsers);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Failed to load users",
+        description: usersResult.message || "Could not fetch user profiles.",
+      });
+    }
+
+    const vendorsResult = await getVendorsFromRTDB();
+    if (vendorsResult.success && vendorsResult.data) {
+      setVendors(vendorsResult.data);
+    } else {
+       toast({
+        variant: "destructive",
+        title: "Failed to load vendors",
+        description: vendorsResult.message || "Could not fetch vendors.",
+      });
+    }
+
+    setIsLoading(false);
+  };
+
 
   useEffect(() => {
     const auth = getAuth(app);
@@ -41,13 +74,12 @@ export default function AdminsPage() {
         const superAdminEmail = process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
         if (user.email === superAdminEmail) {
           setIsSuperAdmin(true);
-          fetchUsers(); // Fetch users only if super admin
+          fetchInitialData(); // Fetch users and vendors only if super admin
         } else {
           setIsSuperAdmin(false);
           setIsLoading(false);
         }
       } else {
-        // No user logged in
         setIsSuperAdmin(false);
         setIsLoading(false);
       }
@@ -57,35 +89,14 @@ export default function AdminsPage() {
     return () => unsubscribe();
   }, []);
 
-
-  const fetchUsers = async () => {
-    setIsLoading(true);
-    const result = await getAllUsersFromRTDB();
-    if (result.success && result.data) {
-      // Filter out the super admin from the list to prevent role change
-      const superAdminEmail = process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
-      const filteredUsers = result.data.filter(user => user.email !== superAdminEmail);
-      setUsers(filteredUsers);
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Failed to load users",
-        description: result.message || "Could not fetch user profiles.",
-      });
-    }
-    setIsLoading(false);
-  };
-
-
-  const handleRoleChange = async (userId: string, newRole: 'admin' | 'vendor' | 'user') => {
-    const result = await updateUserRoleInRTDB(userId, newRole);
+  const handleRoleChange = async (userId: string, newRole: 'admin' | 'vendor' | 'user', vendorCode?: string) => {
+    const result = await updateUserRoleInRTDB(userId, newRole, vendorCode);
     if (result.success) {
       toast({
         title: "Role Updated",
         description: "The user's role has been successfully updated.",
       });
-      // Refresh the user list to show the new role
-      await fetchUsers();
+      await fetchInitialData(); // Refresh all data
     } else {
       toast({
         variant: "destructive",
@@ -95,18 +106,18 @@ export default function AdminsPage() {
     }
   };
 
-  const getRoleBadge = (role?: 'admin' | 'vendor' | 'user') => {
-    switch (role) {
+  const getRoleBadge = (user: UserProfile) => {
+    switch (user.role) {
       case 'admin':
         return <Badge variant="default" className="bg-primary hover:bg-primary"><ShieldCheck className="h-3 w-3 mr-1" />Admin</Badge>;
       case 'vendor':
-        return <Badge variant="secondary"><Store className="h-3 w-3 mr-1" />Vendor</Badge>;
+        const vendorName = vendors.find(v => v.code === user.vendorCode)?.name || user.vendorCode;
+        return <Badge variant="secondary"><Store className="h-3 w-3 mr-1" />Vendor ({vendorName})</Badge>;
       default:
         return <Badge variant="outline"><User className="h-3 w-3 mr-1" />User</Badge>;
     }
   };
 
-  // Show a loading state until auth check is complete
   if (!authChecked) {
       return (
         <div className="flex flex-col h-full">
@@ -121,7 +132,6 @@ export default function AdminsPage() {
       );
   }
   
-  // If not super admin, show access denied
   if (!isSuperAdmin) {
     return (
         <div className="flex flex-col h-full">
@@ -138,7 +148,6 @@ export default function AdminsPage() {
     );
   }
 
-  // If super admin, show the management UI
   return (
     <div className="flex flex-col h-full">
       <PageHeader
@@ -156,9 +165,8 @@ export default function AdminsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="font-headline">User</TableHead>
-                  <TableHead className="font-headline">Email</TableHead>
                   <TableHead className="font-headline text-center">Current Role</TableHead>
-                  <TableHead className="text-right font-headline">Change Role</TableHead>
+                  <TableHead className="text-right font-headline">Change Role / Assign Vendor</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -170,25 +178,45 @@ export default function AdminsPage() {
                           <AvatarImage src={user.photoURL} alt={user.displayName} data-ai-hint="user avatar"/>
                           <AvatarFallback>{user.displayName?.[0] || 'U'}</AvatarFallback>
                         </Avatar>
-                        <span>{user.displayName}</span>
+                        <div>
+                          <span>{user.displayName}</span>
+                          <p className="text-xs text-muted-foreground">{user.email}</p>
+                        </div>
                       </div>
                     </TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell className="text-center">{getRoleBadge(user.role)}</TableCell>
+                    <TableCell className="text-center">{getRoleBadge(user)}</TableCell>
                     <TableCell className="text-right">
-                       <Select
-                          value={user.role || 'user'}
-                          onValueChange={(value) => handleRoleChange(user.uid, value as 'admin' | 'vendor' | 'user')}
-                        >
-                          <SelectTrigger className="w-[120px] ml-auto h-9">
-                            <SelectValue placeholder="Select role" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="user">User</SelectItem>
-                            <SelectItem value="vendor">Vendor</SelectItem>
-                            <SelectItem value="admin">Admin</SelectItem>
-                          </SelectContent>
-                        </Select>
+                       <div className="flex justify-end items-center gap-2">
+                         {user.role === 'vendor' && (
+                            <Select
+                                value={user.vendorCode || ''}
+                                onValueChange={(vendorCode) => handleRoleChange(user.uid, 'vendor', vendorCode)}
+                                disabled={vendors.length === 0}
+                            >
+                                <SelectTrigger className="w-[180px] h-9">
+                                    <SelectValue placeholder="Assign Vendor" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {vendors.map(vendor => (
+                                        <SelectItem key={vendor.id} value={vendor.code}>{vendor.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                         )}
+                         <Select
+                            value={user.role || 'user'}
+                            onValueChange={(value) => handleRoleChange(user.uid, value as 'admin' | 'vendor' | 'user', user.vendorCode)}
+                          >
+                            <SelectTrigger className="w-[120px] ml-auto h-9">
+                              <SelectValue placeholder="Select role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="user">User</SelectItem>
+                              <SelectItem value="vendor">Vendor</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
+                       </div>
                     </TableCell>
                   </TableRow>
                 ))}

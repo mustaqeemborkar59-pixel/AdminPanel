@@ -99,6 +99,7 @@ export interface UserProfile {
   address?: string;
   photoURL?: string;
   role: 'admin' | 'vendor' | 'user'; // Role is now mandatory
+  vendorCode?: string | null; // Associated vendor code
 }
 
 export interface Vendor {

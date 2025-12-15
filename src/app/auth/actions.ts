@@ -156,13 +156,25 @@ export async function getAllUsersFromRTDB(): Promise<{ success: boolean; data?: 
     }
 }
 
-export async function updateUserRoleInRTDB(userId: string, role: 'admin' | 'vendor' | 'user'): Promise<{ success: boolean; message?: string }> {
+export async function updateUserRoleInRTDB(userId: string, role: 'admin' | 'vendor' | 'user', vendorCode?: string): Promise<{ success: boolean; message?: string }> {
     if (!rtdb) {
         return { success: false, message: "Realtime Database is not configured." };
     }
     try {
         const userRef = ref(rtdb, `users/${userId}`);
-        await update(userRef, { role: role });
+        const updates: Partial<UserProfile> = { role };
+        
+        if (role === 'vendor') {
+            // If a vendor code is provided, set it. If not, it remains unchanged unless explicitly cleared.
+            if(vendorCode) {
+                updates.vendorCode = vendorCode;
+            }
+        } else {
+            // If the role is changed to anything other than 'vendor', remove the vendorCode.
+            updates.vendorCode = null; // Use null to remove the field in Firebase RTDB
+        }
+
+        await update(userRef, updates);
         return { success: true };
     } catch (error: any) {
         console.error('Failed to update user role in RTDB:', error);
