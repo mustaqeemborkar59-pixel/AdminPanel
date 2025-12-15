@@ -5,7 +5,7 @@ import React, { useState, useEffect, type ReactNode, createContext, useContext }
 import { usePathname, useRouter } from 'next/navigation';
 import { type User } from 'firebase/auth';
 import { useUser } from '@/firebase';
-import { getUserProfile, updateUserRole } from '@/app/auth/actions';
+import { getUserProfile, updateUserRole, createUserProfile } from '@/app/auth/actions';
 import type { UserProfile } from '@/types';
 import { Loader2 } from 'lucide-react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
@@ -46,40 +46,68 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   const loading = authLoading || profileLoading;
 
   useEffect(() => {
-    if (user && !authLoading) {
+    const syncUserProfile = async (currentUser: User) => {
       setProfileLoading(true);
-      getUserProfile(user.uid).then(async (profileResult) => {
-        let finalProfile = profileResult.success ? profileResult.data : null;
+      
+      let profileResult = await getUserProfile(currentUser.uid);
 
-        // ** Self-Correction Logic for Super Admin **
-        // Check if the logged-in user IS the super admin but their role in DB is NOT super-admin
-        const isSuperAdminByEmail = user.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
-        
-        if (isSuperAdminByEmail && finalProfile && finalProfile.role !== 'super-admin') {
-            console.log("Correcting user role to super-admin for:", user.email);
-            const updateResult = await updateUserRole(user.uid, 'super-admin');
-            if (updateResult.success) {
-                // If role updated successfully, re-fetch the profile to get the latest data
-                const updatedProfileResult = await getUserProfile(user.uid);
-                if (updatedProfileResult.success && updatedProfileResult.data) {
-                    finalProfile = updatedProfileResult.data;
-                    toast({
-                        title: "Role Corrected",
-                        description: "Your role has been updated to Super Admin.",
-                    });
-                }
-            } else {
-                 toast({
-                    variant: "destructive",
-                    title: "Role Correction Failed",
-                    description: updateResult.message || "Could not update your role automatically.",
-                });
-            }
+      // ** Core Logic: Ensure Firestore Profile Exists **
+      // If profile doesn't exist, create it. This is the self-healing mechanism.
+      if (!profileResult.success || !profileResult.data) {
+        console.log("Profile not found for user, creating one...");
+        const creationResult = await createUserProfile({
+            uid: currentUser.uid,
+            email: currentUser.email,
+            displayName: currentUser.displayName || currentUser.email?.split('@')[0],
+            photoURL: currentUser.photoURL,
+        });
+
+        if (creationResult.success) {
+            // Re-fetch the profile after creating it to ensure we have the correct data
+            profileResult = await getUserProfile(currentUser.uid);
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Critical Profile Error",
+                description: "Failed to create a user profile. Please contact support.",
+            });
+            setUserProfile(null);
+            setProfileLoading(false);
+            return; // Stop execution if profile can't be created
         }
-        
-        setUserProfile(finalProfile || null);
-        setProfileLoading(false);
-      });
+      }
+
+      let finalProfile = profileResult.success ? profileResult.data : null;
+
+      // ** Self-Correction Logic for Super Admin **
+      const isSuperAdminByEmail = currentUser.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
+      if (isSuperAdminByEmail && finalProfile && finalProfile.role !== 'super-admin') {
+          console.log("Correcting user role to super-admin for:", currentUser.email);
+          const updateResult = await updateUserRole(currentUser.uid, 'super-admin');
+          if (updateResult.success) {
+              const updatedProfileResult = await getUserProfile(currentUser.uid);
+              if (updatedProfileResult.success && updatedProfileResult.data) {
+                  finalProfile = updatedProfileResult.data;
+                  toast({
+                      title: "Role Corrected",
+                      description: "Your role has been updated to Super Admin.",
+                  });
+              }
+          } else {
+               toast({
+                  variant: "destructive",
+                  title: "Role Correction Failed",
+                  description: updateResult.message || "Could not update your role automatically.",
+              });
+          }
+      }
+      
+      setUserProfile(finalProfile || null);
+      setProfileLoading(false);
+    };
+
+    if (user && !authLoading) {
+      syncUserProfile(user);
     } else if (!user && !authLoading) {
       setUserProfile(null);
       setProfileLoading(false);
@@ -139,6 +167,8 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   const role = userProfile?.role;
   const isApproved = role === 'admin' || role === 'super-admin' || (role === 'vendor' && !!userProfile.vendorCode);
 
+  // This check is important. If, after all checks, the user is still not approved (e.g., profile creation failed),
+  // keep them on a loading/pending screen instead of showing the full layout.
   if (user && !isApproved) {
        return (
          <div className="flex items-center justify-center min-h-screen bg-background">
