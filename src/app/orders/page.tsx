@@ -2,7 +2,7 @@
 "use client";
 import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
-import { type Order, type OrderItem, type OrderStatus, type Vendor } from '@/types';
+import { type Order, type OrderItem, type OrderStatus, type Vendor, type UserProfile } from '@/types';
 import { OrderListItem } from '@/components/orders/order-list-item';
 import {
   DropdownMenu,
@@ -36,6 +36,7 @@ import { addDays, format, type DateRange } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { useAppContext } from '@/components/layout/app-content-wrapper';
 
 
 const orderStatuses: OrderStatus[] = ['pending', 'queue', 'processing', 'dispatch', 'completed', 'hold', 'failed', 'cancelled'];
@@ -61,6 +62,7 @@ function formatDateInIST(dateInput: string | Date | null | undefined): string {
 }
 
 export default function OrdersPage() {
+  const { userProfile } = useAppContext(); // Get user profile from context
   const [orders, setOrders] = useState<Order[]>([]);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
   const [vendorFilter, setVendorFilter] = useState<string>('all');
@@ -73,6 +75,8 @@ export default function OrdersPage() {
   
   const [allVendors, setAllVendors] = useState<string[]>([]);
   const [vendorMap, setVendorMap] = useState<Map<string, string>>(new Map());
+
+  const isVendor = userProfile?.role === 'vendor';
 
 
   useEffect(() => {
@@ -157,9 +161,32 @@ export default function OrdersPage() {
   };
 
   const filteredOrders = useMemo(() => {
-    let filtered = orders
+    
+    // Vendor Role Filtering Logic
+    const currentVendorCode = isVendor ? userProfile?.vendorCode : null;
+    let vendorFilteredOrders = orders;
+    
+    if (currentVendorCode) {
+        // If the user is a vendor, first filter the orders to only include those with their items.
+        vendorFilteredOrders = orders.map(order => {
+            const vendorItems = order.items.filter(item => item.vendorName === currentVendorCode);
+            if (vendorItems.length === 0) {
+                return null; // This order doesn't belong to the vendor
+            }
+            // Recalculate totals based on only the vendor's items in the order
+            const subTotal = vendorItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
+            const taxAmount = subTotal * taxRatio;
+            const totalAmount = subTotal + taxAmount;
+            return { ...order, items: vendorItems, subTotal, taxAmount, totalAmount };
+        }).filter((order): order is Order => order !== null);
+    }
+
+
+    let filtered = vendorFilteredOrders
     .filter(order => statusFilter === 'all' || order.status === statusFilter)
     .filter(order => {
+        if (isVendor) return true; // Vendor dropdown is hidden, so this filter is bypassed
         if (vendorFilter === 'all') return true;
         // Check if any item's vendor name (from map) or code matches the filter
         return order.items.some(item => {
@@ -169,8 +196,9 @@ export default function OrdersPage() {
         });
     })
     .map(order => {
+        if (isVendor) return order; // Vendor orders are already processed
         if (vendorFilter === 'all') return order;
-        // If a vendor is selected, filter the items within the order
+        // If an admin selects a vendor, filter the items within the order
         const vendorItems = order.items.filter(item => {
           if (!item.vendorName) return false;
           const displayName = vendorMap.get(item.vendorName) || item.vendorName;
@@ -215,7 +243,7 @@ export default function OrdersPage() {
     );
 
     return getUniqueOrders(filtered);
-  }, [orders, statusFilter, vendorFilter, dateRange, searchTerm, vendorMap]);
+  }, [orders, statusFilter, vendorFilter, dateRange, searchTerm, vendorMap, userProfile, isVendor]);
   
   const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -576,24 +604,26 @@ export default function OrdersPage() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-full sm:w-auto" disabled={allVendors.length === 0}>
-                <Building className="mr-2 h-4 w-4" />
-                {vendorFilter === 'all' ? 'Filter by Vendor' : vendorFilter}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56">
-              <DropdownMenuLabel>Vendor</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup value={vendorFilter} onValueChange={setVendorFilter}>
-                <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
-                {allVendors.map(vendor => (
-                  <DropdownMenuRadioItem key={vendor} value={vendor}>{vendor}</DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {!isVendor && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full sm:w-auto" disabled={allVendors.length === 0}>
+                  <Building className="mr-2 h-4 w-4" />
+                  {vendorFilter === 'all' ? 'Filter by Vendor' : vendorFilter}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>Vendor</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup value={vendorFilter} onValueChange={setVendorFilter}>
+                  <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
+                  {allVendors.map(vendor => (
+                    <DropdownMenuRadioItem key={vendor} value={vendor}>{vendor}</DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

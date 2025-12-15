@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, ReactNode, Suspense } from 'react';
+import { useState, useEffect, ReactNode, Suspense, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format, eachDayOfInterval, startOfTomorrow } from 'date-fns';
 import type { DateRange } from "react-day-picker";
+import { useAppContext } from '@/components/layout/app-content-wrapper';
 
 // --- Initial Data (adapted for e-commerce) ---
 const initialStaffData: StaffMember[] = [
@@ -47,6 +48,7 @@ const gradientStyles = [
 
 function DashboardContent() {
   const { toast } = useToast();
+  const { userProfile } = useAppContext(); // Get user profile
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -63,6 +65,7 @@ function DashboardContent() {
     return { from: sixDaysAgo, to: today };
   });
 
+  const isVendor = userProfile?.role === 'vendor';
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -82,15 +85,33 @@ function DashboardContent() {
     fetchOrders();
   }, [toast]);
   
+  const vendorFilteredOrders = useMemo(() => {
+    if (!isVendor || !userProfile?.vendorCode) {
+      return orders;
+    }
+    // If the user is a vendor, filter orders and recalculate totals.
+    return orders.map(order => {
+      const vendorItems = order.items.filter(item => item.vendorName === userProfile.vendorCode);
+      if (vendorItems.length === 0) return null;
+      
+      const subTotal = vendorItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
+      const taxAmount = subTotal * taxRatio;
+      const totalAmount = subTotal + taxAmount;
+      return { ...order, items: vendorItems, subTotal, taxAmount, totalAmount };
+    }).filter((order): order is Order => order !== null);
+  }, [orders, isVendor, userProfile]);
+  
+
   useEffect(() => {
-    if (orders.length > 0) {
+    if (vendorFilteredOrders.length > 0) {
       // Calculate total sales only from orders with a payment date.
-      const validOrdersForRevenue = orders.filter(order => order.paymentDate);
+      const validOrdersForRevenue = vendorFilteredOrders.filter(order => order.paymentDate);
 
       const currentTotalSales = validOrdersForRevenue.reduce((sum, order) => sum + order.totalAmount, 0);
-      const currentTotalOrders = orders.length;
+      const currentTotalOrders = vendorFilteredOrders.length;
       
-      const uniqueEmails = new Set(orders.map(order => order.gmail).filter(Boolean));
+      const uniqueEmails = new Set(vendorFilteredOrders.map(order => order.gmail).filter(Boolean));
       setNewCustomers(uniqueEmails.size);
 
       setTotalSales(currentTotalSales);
@@ -105,7 +126,7 @@ function DashboardContent() {
       fromDate.setHours(0,0,0,0);
       toDate.setHours(23,59,59,999);
 
-      const recentPaidOrders = orders.filter(order => {
+      const recentPaidOrders = vendorFilteredOrders.filter(order => {
           if (!order.paymentDate) return false;
           const paymentDateInIST = new Date(new Date(order.paymentDate).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
           return paymentDateInIST >= fromDate && paymentDateInIST <= toDate;
@@ -135,7 +156,7 @@ function DashboardContent() {
 
       // --- Sales Details List Data Processing ---
       const statusCounts: {[key in OrderStatus]?: number} = {};
-      orders.forEach(order => {
+      vendorFilteredOrders.forEach(order => {
         const statusKey = order.status || 'unknown';
         statusCounts[statusKey] = (statusCounts[statusKey] || 0) + 1;
       });
@@ -166,9 +187,13 @@ function DashboardContent() {
        setSalesDetailsData([]);
     }
 
-    // Static data remains for now
-    setActiveStaffCount(initialStaffData.filter(staff => staff.status === 'on-duty').length);
-  }, [orders, dateRange]);
+    // Static data remains for now unless we implement vendor-specific staff
+    if (!isVendor) {
+      setActiveStaffCount(initialStaffData.filter(staff => staff.status === 'on-duty').length);
+    } else {
+       setActiveStaffCount(0); // Or fetch vendor-specific staff
+    }
+  }, [vendorFilteredOrders, dateRange, isVendor]);
 
 
   if (isLoading) {
@@ -184,13 +209,13 @@ function DashboardContent() {
 
   return (
     <div className="flex flex-col h-full">
-      <PageHeader title="Shop Dashboard" description="Comprehensive overview of your online store's operations and performance." />
+      <PageHeader title={isVendor ? `${userProfile?.vendorCode} Dashboard` : "Shop Dashboard"} description="Comprehensive overview of your online store's operations and performance." />
       <div className="flex-1 p-4 md:p-6 space-y-6 overflow-auto">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatsCard title="Total Sale" value={`₹${totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={gradientStyles[0]} />
           <StatsCard title="Total Orders" value={totalOrders.toString()} icon={<ShoppingBag className="h-5 w-5 text-white/70" />} className={gradientStyles[1]} />
-          <StatsCard title="Active Staff" value={activeStaffCount.toString()} icon={<UsersRound className="h-5 w-5 text-white/70" />} className={gradientStyles[1]} />
-           <StatsCard title="New Customers" value={newCustomers.toLocaleString()} icon={<Users className="h-5 w-5 text-white/70" />} className={gradientStyles[3]} />
+          {!isVendor && <StatsCard title="Active Staff" value={activeStaffCount.toString()} icon={<UsersRound className="h-5 w-5 text-white/70" />} className={gradientStyles[1]} />}
+          <StatsCard title="New Customers" value={newCustomers.toLocaleString()} icon={<Users className="h-5 w-5 text-white/70" />} className={gradientStyles[3]} />
         </div>
 
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-5">
@@ -326,5 +351,3 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
-
-    

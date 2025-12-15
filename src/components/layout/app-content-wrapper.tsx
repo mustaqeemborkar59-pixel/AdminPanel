@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, type ReactNode } from 'react';
+import React, { useState, useEffect, type ReactNode, createContext, useContext } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { getAuth, onAuthStateChanged, type User } from 'firebase/auth';
 import { app } from '@/lib/firebase';
@@ -11,6 +11,22 @@ import { Loader2 } from 'lucide-react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebarNav } from '@/components/layout/app-sidebar-nav';
 import { Header } from '@/components/layout/header';
+
+interface AppContextType {
+  user: User | null;
+  userProfile: UserProfile | null;
+  authLoading: boolean;
+}
+
+// Create a context to provide user and profile data to child components
+const AppContext = createContext<AppContextType | null>(null);
+export const useAppContext = () => {
+    const context = useContext(AppContext);
+    if (!context) {
+        throw new Error("useAppContext must be used within an AppContentWrapper");
+    }
+    return context;
+};
 
 interface AppContentWrapperProps {
   children: ReactNode;
@@ -114,16 +130,18 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
 
   // User is authenticated and verified, show the main application layout
   return (
-    <SidebarProvider defaultOpen>
-      <Sidebar>
-        <AppSidebarNav user={user} authLoading={loading} />
-      </Sidebar>
-      <SidebarInset className="flex flex-col">
-        <Header />
-        <main className="flex-1 overflow-y-auto bg-background">
-          {children}
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+    <AppContext.Provider value={{ user, userProfile, authLoading: loading }}>
+      <SidebarProvider defaultOpen>
+        <Sidebar>
+          <AppSidebarNav user={user} userProfile={userProfile} authLoading={loading} />
+        </Sidebar>
+        <SidebarInset className="flex flex-col">
+          <Header />
+          <main className="flex-1 overflow-y-auto bg-background">
+            {children}
+          </main>
+        </SidebarInset>
+      </SidebarProvider>
+    </AppContext.Provider>
   );
 }

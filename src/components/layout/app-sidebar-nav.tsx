@@ -33,28 +33,34 @@ import React from 'react';
 import type { User } from 'firebase/auth'; 
 import { auth } from '@/lib/firebase'; // Import auth for client-side sign out
 import { useToast } from '@/hooks/use-toast'; // For potential error messages
+import type { UserProfile } from '@/types';
 
-const mainNavItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/orders', label: 'Orders', icon: ClipboardList },
-  { href: '/admins', label: 'Admins', icon: ShieldCheck },
-  { href: '/vendors', label: 'Vendors', icon: Store },
-  { href: '/delivery', label: 'Delivery', icon: Truck },
-  { href: '/specials', label: 'Specials', icon: Sparkles },
-  { href: '/settings', label: 'Settings', icon: Settings },
+const allNavItems = [
+  { href: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'vendor'] },
+  { href: '/orders', label: 'Orders', icon: ClipboardList, roles: ['admin', 'vendor'] },
+  { href: '/admins', label: 'Admins', icon: ShieldCheck, roles: ['admin'] },
+  { href: '/vendors', label: 'Vendors', icon: Store, roles: ['admin'] },
+  { href: '/delivery', label: 'Delivery', icon: Truck, roles: ['admin'] },
+  { href: '/specials', label: 'Specials', icon: Sparkles, roles: ['admin'] },
+  { href: '/settings', label: 'Settings', icon: Settings, roles: ['admin'] },
 ];
 
 interface AppSidebarNavProps {
   user: User | null;
+  userProfile: UserProfile | null;
   authLoading: boolean;
 }
 
-export function AppSidebarNav({ user, authLoading }: AppSidebarNavProps) {
+export function AppSidebarNav({ user, userProfile, authLoading }: AppSidebarNavProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
   const { open, toggleSidebar, isMobile, state, openMobile, setOpenMobile } = useSidebar();
   const [mounted, setMounted] = React.useState(false);
+  const isSuperAdmin = user?.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
+  
+  const userRole = isSuperAdmin ? 'admin' : userProfile?.role;
+
 
   React.useEffect(() => {
     setMounted(true);
@@ -73,6 +79,9 @@ export function AppSidebarNav({ user, authLoading }: AppSidebarNavProps) {
     }
   };
 
+  const mainNavItems = allNavItems.filter(item => userRole && item.roles.includes(userRole));
+
+
   if (!mounted || authLoading) {
     return (
         <>
@@ -81,7 +90,7 @@ export function AppSidebarNav({ user, authLoading }: AppSidebarNavProps) {
              </div>
         </SidebarHeader>
         <SidebarContent className="flex-1 px-2 py-2">
-            {mainNavItems.map((item) => ( 
+            {allNavItems.map((item) => ( 
               <SidebarMenuItem key={item.href + "-skeleton"}>
                 <div className="flex items-center font-medium text-sm h-10 p-2">
                   <item.icon className="h-5 w-5 text-sidebar-foreground/70 mr-2" />
@@ -172,7 +181,7 @@ export function AppSidebarNav({ user, authLoading }: AppSidebarNavProps) {
               </Avatar>
               <div>
                 <p className="text-sm font-semibold text-sidebar-foreground">{user.displayName || user.email?.split('@')[0]}</p>
-                <p className="text-xs text-muted-foreground">Admin</p>
+                <p className="text-xs text-muted-foreground capitalize">{userRole}</p>
               </div>
             </div>
             <Button 
