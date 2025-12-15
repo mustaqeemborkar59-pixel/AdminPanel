@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { UserPlus, Loader2 } from 'lucide-react';
-import { createRTDBUserProfileOnSignup } from '@/app/auth/actions';
+import { createUserProfile } from '@/app/auth/actions'; // Using new Firestore action
 
 export function SignupForm() {
   const router = useRouter();
@@ -45,7 +45,7 @@ export function SignupForm() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
       if (userCredential.user) {
-        const profileCreationResult = await createRTDBUserProfileOnSignup({
+        const profileCreationResult = await createUserProfile({ // Using new Firestore action
           uid: userCredential.user.uid,
           email: userCredential.user.email,
           displayName: userCredential.user.email?.split('@')[0], // Default display name
@@ -61,8 +61,6 @@ export function SignupForm() {
         }
       }
       // The AppContentWrapper now handles all redirection logic.
-      // We no longer need to push the router here.
-      // router.push('/');
     } catch (e: any) {
       const firebaseError = e as AuthError;
 

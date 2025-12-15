@@ -2,7 +2,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
-import { getAllUsersFromRTDB, updateUserRoleInRTDB } from '@/app/auth/actions';
+import { getAllUsers, updateUserRole } from '@/app/auth/actions'; // Using Firestore actions
 import { getVendorsFromRTDB } from '@/app/vendors/actions';
 import type { UserProfile, Vendor } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -37,14 +37,12 @@ export default function AdminsPage() {
   const isCurrentUserSuperAdmin = currentUserProfile?.role === 'super-admin';
 
   useEffect(() => {
-    // Only fetch data if the user is a super admin and auth is checked
     if (!authLoading && isCurrentUserSuperAdmin) {
       const fetchInitialData = async () => {
         setDataLoading(true);
         
-        const usersResult = await getAllUsersFromRTDB();
+        const usersResult = await getAllUsers(); // Firestore action
         if (usersResult.success && usersResult.data && currentUserProfile) {
-            // Filter out the current super admin from the list to prevent role change
             const filteredUsers = usersResult.data.filter(user => user.uid !== currentUserProfile.uid);
             setUsers(filteredUsers);
         } else if (!usersResult.success) {
@@ -58,7 +56,7 @@ export default function AdminsPage() {
         const vendorsResult = await getVendorsFromRTDB();
         if (vendorsResult.success && vendorsResult.data) {
           setVendors(vendorsResult.data);
-        } else if (!vendorsResult.success) {
+        } else {
            toast({
             variant: "destructive",
             title: "Failed to load vendors",
@@ -71,21 +69,19 @@ export default function AdminsPage() {
       
       fetchInitialData();
     } else if (!authLoading && !isCurrentUserSuperAdmin) {
-        // If the user is definitively not a super admin, stop the data loader
         setDataLoading(false);
     }
   }, [authLoading, isCurrentUserSuperAdmin, currentUserProfile, toast]);
 
 
   const handleRoleChange = async (userId: string, newRole: 'admin' | 'vendor' | 'user' | 'super-admin', vendorCode?: string) => {
-    const result = await updateUserRoleInRTDB(userId, newRole, vendorCode);
+    const result = await updateUserRole(userId, newRole, vendorCode); // Firestore action
     if (result.success) {
       toast({
         title: "Role Updated",
         description: "The user's role has been successfully updated.",
       });
-      // Refresh users list after role change
-      const usersResult = await getAllUsersFromRTDB();
+      const usersResult = await getAllUsers(); // Firestore action
        if (usersResult.success && usersResult.data && currentUserProfile) {
             const filteredUsers = usersResult.data.filter(user => user.uid !== currentUserProfile.uid);
             setUsers(filteredUsers);
@@ -113,7 +109,6 @@ export default function AdminsPage() {
     }
   };
   
-  // Wait for auth check to complete before making any decision.
   if (authLoading) {
       return (
         <div className="flex flex-col h-full">
@@ -128,7 +123,6 @@ export default function AdminsPage() {
       );
   }
   
-  // After auth check, if user is not a super admin, deny access.
   if (!isCurrentUserSuperAdmin) {
     return (
         <div className="flex flex-col h-full">
@@ -145,7 +139,6 @@ export default function AdminsPage() {
     );
   }
 
-  // If super admin, show the management page.
   return (
     <div className="flex flex-col h-full">
       <PageHeader

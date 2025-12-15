@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LogIn, Loader2 } from 'lucide-react';
-import { updateRTDBUserProfileOnLogin } from '@/app/auth/actions';
+import { updateUserProfile } from '@/app/auth/actions'; // Using new Firestore action
 
 export function LoginForm() {
   const router = useRouter();
@@ -34,14 +34,12 @@ export function LoginForm() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
       if (userCredential.user) {
-        await updateRTDBUserProfileOnLogin(userCredential.user.uid, {
+        await updateUserProfile(userCredential.user.uid, { // Using new Firestore action
           displayName: userCredential.user.displayName,
           photoURL: userCredential.user.photoURL,
         });
       }
       // The AppContentWrapper now handles all redirection logic.
-      // We no longer need to push the router here.
-      // router.push('/'); 
     } catch (e: any) {
       const firebaseError = e as AuthError;
       if (firebaseError.code === 'auth/invalid-credential') {

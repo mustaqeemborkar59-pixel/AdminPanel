@@ -5,7 +5,7 @@ import React, { useState, useEffect, type ReactNode, createContext, useContext }
 import { usePathname, useRouter } from 'next/navigation';
 import { getAuth, onAuthStateChanged, type User } from 'firebase/auth';
 import { app } from '@/lib/firebase';
-import { getRTDBUserProfile } from '@/app/auth/actions'; // We need this to check role
+import { getUserProfile } from '@/app/auth/actions'; // Using new Firestore action
 import type { UserProfile } from '@/types';
 import { Loader2 } from 'lucide-react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
@@ -18,7 +18,6 @@ interface AppContextType {
   authLoading: boolean;
 }
 
-// Create a context to provide user and profile data to child components
 const AppContext = createContext<AppContextType | null>(null);
 export const useAppContext = () => {
     const context = useContext(AppContext);
@@ -45,20 +44,16 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   useEffect(() => {
     const authInstance = getAuth(app);
     const unsubscribe = onAuthStateChanged(authInstance, async (currentUser) => {
-      setLoading(true); // Start loading on any auth state change
+      setLoading(true);
       if (currentUser) {
         setUser(currentUser);
-        // User is logged in, now fetch their profile from RTDB to check the role
-        const profileResult = await getRTDBUserProfile(currentUser.uid);
+        const profileResult = await getUserProfile(currentUser.uid); // Using new Firestore action
         if (profileResult.success && profileResult.data) {
           setUserProfile(profileResult.data);
         } else {
-          // Profile doesn't exist or failed to fetch. This can happen right after signup
-          // if there's a race condition. Treat as unverified for now.
           setUserProfile(null); 
         }
       } else {
-        // No user is logged in
         setUser(null);
         setUserProfile(null);
       }
@@ -68,53 +63,42 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   }, []);
 
   useEffect(() => {
-    if (loading) return; // Don't do anything until initial auth check and profile fetch is done
+    if (loading) return;
 
-    if (user && userProfile) { // Ensure we have both user and profile
-      const isSuperAdmin = user.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
+    if (user && userProfile) {
+      // Prioritize .env check for super admin for immediate access
+      const isEnvSuperAdmin = user.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
       const { role, vendorCode } = userProfile;
       
-      // Condition for being in a pending state:
-      // 1. Role is 'user' AND they are not the super admin.
-      // 2. Role is 'vendor' BUT they haven't been assigned a vendorCode yet.
-      const isPending = (!isSuperAdmin && role === 'user') || (role === 'vendor' && !vendorCode);
-      
-      // Condition for being fully approved
-      const isApproved = role === 'admin' || isSuperAdmin || (role === 'vendor' && !!vendorCode);
+      const isPending = !isEnvSuperAdmin && (role === 'user' || (role === 'vendor' && !vendorCode));
+      const isApproved = isEnvSuperAdmin || role === 'admin' || (role === 'vendor' && !!vendorCode);
 
       if (isAuthPage) {
         router.replace('/');
         return;
       }
       
-      // If user is in a pending state but not on the pending page, redirect them.
       if (isPending && !isPendingPage) {
         router.replace('/pending-verification');
         return;
       }
 
-      // If a user is fully approved but lands on the pending page, redirect them away.
       if (isApproved && isPendingPage) {
         router.replace('/');
         return;
       }
 
     } else if (user && !userProfile) {
-        // This case can happen for a brief moment after signup before the DB profile is created.
-        // It's safest to redirect to pending verification until the profile is confirmed.
         if (!isPendingPage && !isAuthPage) {
              router.replace('/pending-verification');
         }
     } else {
-      // User is not authenticated.
-      // If they are trying to access a protected page, redirect to login.
       if (!isAuthPage && !isPendingPage) {
         router.replace('/login');
       }
     }
   }, [user, userProfile, loading, pathname, router, isAuthPage, isPendingPage]);
 
-  // Global loader: active during initial auth check and while redirecting.
   if (loading || (user && isAuthPage) || (!user && !isAuthPage && !isPendingPage)) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
@@ -123,7 +107,6 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     );
   }
   
-  // If user is on an auth or pending page, render the page without the main layout.
   if (isAuthPage || isPendingPage) {
     return (
       <AppContext.Provider value={{ user, userProfile, authLoading: loading }}>
@@ -131,10 +114,9 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
       </AppContext.Provider>
     );
   }
-
-  // If a logged in user is still in a pending state, show loader while redirect happens.
-  const isSuperAdmin = user?.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
-  if (user && userProfile && !isSuperAdmin && ((userProfile.role === 'user') || (userProfile.role === 'vendor' && !userProfile.vendorCode))) {
+  
+  const isEnvSuperAdmin = user?.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
+  if (user && userProfile && !isEnvSuperAdmin && ((userProfile.role === 'user') || (userProfile.role === 'vendor' && !userProfile.vendorCode))) {
        return (
          <div className="flex items-center justify-center min-h-screen bg-background">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -142,8 +124,6 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
       );
   }
 
-
-  // User is authenticated and verified, show the main application layout
   return (
     <AppContext.Provider value={{ user, userProfile, authLoading: loading }}>
       <SidebarProvider defaultOpen>
@@ -160,5 +140,3 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     </AppContext.Provider>
   );
 }
-
-    
