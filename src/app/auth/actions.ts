@@ -31,6 +31,7 @@ export async function createUserProfile(details: UserProfileOnSignup): Promise<{
     // Explicitly set the role to 'super-admin' if it is, otherwise default to 'user'
     const userProfile: UserProfile = {
       uid: details.uid,
+      id: details.uid, // Add this ID field to match security rules
       email: details.email || 'No email',
       displayName: details.displayName || 'New User',
       photoURL: details.photoURL || '',
