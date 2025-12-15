@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -223,6 +224,10 @@
           "type": "string",
           "description": "Unique identifier for the reservation entity."
         },
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who made the reservation. (Relationship: User 1:N Reservation)"
+        },
         "name": {
           "type": "string",
           "description": "The name of the person who made the reservation."
@@ -251,6 +256,7 @@
       },
       "required": [
         "id",
+        "userId",
         "name",
         "phone",
         "tableNumber",

@@ -1,3 +1,4 @@
+
 /**
  * Core Philosophy: This ruleset enforces a multi-tiered access model for a restaurant management system.
  * The primary security principles are user ownership, role-based access for staff, and public access for general data.
@@ -174,11 +175,9 @@ service cloud.firestore {
      * @principle Enforces document ownership via a denormalized 'userId' field. Grants privileged access to staff roles.
      */
     match /reservations/{reservationId} {
-      // CRITICAL: The 'Reservation' entity is missing a 'userId' field for ownership tracking.
-      // These rules enforce that a 'userId' field MUST be added by the client on creation to secure the document.
       allow get: if resource.data.userId == request.auth.uid || isStaffOrAdmin();
       allow list: if isStaffOrAdmin();
-      allow create: if request.resource.data.userId == request.auth.uid; // TODO: Add a 'userId' field to the Reservation data model.
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if resource.data.userId == request.auth.uid || isStaffOrAdmin();
       allow delete: if resource.data.userId == request.auth.uid || isStaffOrAdmin();
     }
