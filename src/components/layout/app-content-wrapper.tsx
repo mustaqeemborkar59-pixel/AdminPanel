@@ -36,7 +36,8 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
         if (profileResult.success && profileResult.data) {
           setUserProfile(profileResult.data);
         } else {
-          // Profile doesn't exist or failed to fetch, treat as unverified
+          // Profile doesn't exist or failed to fetch. This can happen right after signup.
+          // Treat as unverified. The next effect will handle redirects.
           setUserProfile(null); 
         }
       } else {
@@ -57,28 +58,30 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
       const isSuperAdmin = user.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
       const role = userProfile?.role;
       
+      // If a logged-in user is on an auth page, they should be redirected home.
       if (isAuthPage) {
-        // Logged-in user on an auth page, redirect to home
         router.replace('/');
         return;
       }
       
+      // If the user has the 'user' role (and is not the super admin) and is not already on the pending page,
+      // redirect them to the pending verification page. This is the core of the access control.
       if (role === 'user' && !isSuperAdmin && !isPendingPage) {
-        // This is a new, unverified user. Redirect them to the pending page.
-        // We also check if they are the super admin, who should have access everywhere.
         router.replace('/pending-verification');
         return;
       }
 
-      if (role !== 'user' && isPendingPage) {
-        // User is verified but somehow on the pending page, redirect home.
+      // If the user is verified (role is not 'user') but they are on the pending page,
+      // it means they've been approved. Redirect them home.
+      if (role && role !== 'user' && isPendingPage) {
         router.replace('/');
         return;
       }
 
     } else {
-      // No user is logged in
-      if (!isAuthPage && !isPendingPage) { // Allow access to pending page even if logged out, for display
+      // No user is logged in.
+      // If they are not on a public page (auth or pending), redirect them to login.
+      if (!isAuthPage && !isPendingPage) {
         router.replace('/login');
       }
     }
@@ -95,7 +98,7 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
 
   // If we are on a page that doesn't require the main layout
   if (isAuthPage || isPendingPage) {
-    // If user is present but on these pages, a redirect is in progress. Show a loader.
+    // If a logged-in user is on an auth page, a redirect is in progress. Show a loader to prevent flicker.
     if(user && isAuthPage) {
       return (
          <div className="flex items-center justify-center min-h-screen bg-background">
@@ -106,7 +109,7 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     return <>{children}</>;
   }
   
-  // If user is not authenticated on a protected page, redirect is happening
+  // If user is not authenticated on a protected page, a redirect is happening. Show loader.
   if (!user) {
      return (
       <div className="flex items-center justify-center min-h-screen bg-background">

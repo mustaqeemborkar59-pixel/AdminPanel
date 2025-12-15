@@ -52,15 +52,19 @@ export function SignupForm() {
         });
 
         if (!profileCreationResult.success) {
-          alert(profileCreationResult.message || "Could not create your profile in the database. Please contact support if this persists.");
-          // Decide if you want to stop redirect on DB failure
+          // Log the user out if DB profile creation fails to avoid inconsistent states
+          await auth.signOut();
+          alert(profileCreationResult.message || "Could not create your profile in the database. Please contact support.");
+          setIsLoading(false);
+          return;
         }
       }
-      // onAuthStateChanged in AppContentWrapper will handle redirect to dashboard
-      // or the pending verification page.
+      // After successful signup and profile creation, onAuthStateChanged in AppContentWrapper
+      // will handle redirecting the user to the appropriate page (e.g., /pending-verification).
+      // We can push to a neutral page like '/' and let the wrapper handle the logic.
       router.push('/');
     } catch (error: any) {
-      setIsLoading(false); // Set loading to false immediately upon catching an error.
+      setIsLoading(false); 
       const firebaseError = error as AuthError;
 
       if (firebaseError.code === 'auth/email-already-in-use') {
@@ -73,11 +77,8 @@ export function SignupForm() {
       else {
         alert('An error occurred during sign up. Please try again later.');
       }
-    } finally {
-      // Ensuring isLoading is false, though it should be set in the catch block too.
-      // If successful signup leads to unmount, this might not run for that instance.
-      if (isLoading) setIsLoading(false);
-    }
+    } 
+    // No finally block needed as loading is handled in each branch
   };
 
   return (
