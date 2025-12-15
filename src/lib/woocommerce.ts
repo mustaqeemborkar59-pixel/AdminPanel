@@ -3,35 +3,36 @@
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 import { Order, OrderItem, OrderStatus, type UpdateOrderAddressPayload, type MenuItem } from '@/types';
 
-// Check if the required environment variables are available at runtime.
-const isWooCommerceConfigured = () => {
-  return (
-    process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL &&
-    process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL !== 'https://your-store-url.com' &&
-    process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_KEY &&
-    process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_SECRET
-  );
-};
+// This function will be called every time we need the API instance.
+// This makes it robust against server hot-reloads where process.env might not be available initially.
+const getWooCommerceApi = (): WooCommerceRestApi => {
+  const storeUrl = process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL;
+  const consumerKey = process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_KEY;
+  const consumerSecret = process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_SECRET;
 
+  if (!storeUrl || storeUrl === 'https://your-store-url.com' || !consumerKey || !consumerSecret) {
+    throw new Error('WooCommerce environment variables are not set correctly. Please check your .env file.');
+  }
 
-let api: WooCommerceRestApi | undefined;
-
-if (isWooCommerceConfigured()) {
   try {
-    // Basic validation to ensure the URL is somewhat valid before initializing
-    new URL(process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL!);
-    api = new WooCommerceRestApi({
-      url: process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL!,
-      consumerKey: process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_KEY!,
-      consumerSecret: process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_SECRET!,
+    // Validate URL format before creating the instance
+    new URL(storeUrl);
+    return new WooCommerceRestApi({
+      url: storeUrl,
+      consumerKey: consumerKey,
+      consumerSecret: consumerSecret,
       version: "wc/v3",
-      timeout: 60000, // 60-second timeout
+      timeout: 60000,
     });
   } catch (error) {
     console.error("Failed to initialize WooCommerce API. Please check the store URL in your .env file.", error);
-    api = undefined;
+    if (error instanceof TypeError) { // Catches invalid URL error
+      throw new Error(`Invalid WooCommerce store URL format: ${storeUrl}`);
+    }
+    throw error; // Re-throw other errors
   }
-}
+};
+
 
 const formatAddress = (address: any): string => {
   if (!address || !Object.keys(address).some(key => address[key])) {
@@ -53,7 +54,6 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
 
   const items: OrderItem[] = (wcOrder.line_items || []).map((item: any) => {
     let itemVendorName: string | undefined = undefined;
-    // Ensure SKU is a string before trying to access string properties or methods
     if (item.sku && typeof item.sku === 'string' && item.sku.includes('-')) {
       itemVendorName = item.sku.split('-')[0];
       if (!primaryVendorName) {
@@ -74,21 +74,22 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
   const billingAddress = formatAddress(wcOrder.billing);
   const shippingAddress = formatAddress(wcOrder.shipping);
 
-  // Find alternate phone from meta data
   const altPhoneMeta = wcOrder.meta_data.find((m: any) => m.key === '_billing_alternate_phone');
   const altPhone = altPhoneMeta ? altPhoneMeta.value : undefined;
 
+  // Ensure timestamp is a valid ISO string, providing a fallback.
+  const timestamp = wcOrder.date_created_gmt ? wcOrder.date_created_gmt + 'Z' : new Date(0).toISOString();
 
   return {
     id: String(wcOrder.id),
     customerName: `${wcOrder.billing.first_name} ${wcOrder.billing.last_name}`,
     phone: wcOrder.billing.phone,
-    altPhone: altPhone, // Assign the found alternate phone number
+    altPhone: altPhone,
     pincode: wcOrder.billing.postcode,
     gmail: wcOrder.billing.email,
     items: items,
     status: wcOrder.status as OrderStatus,
-    orderType: 'delivery', // Defaulting to delivery
+    orderType: 'delivery',
     billingAddress: billingAddress,
     billing_city: wcOrder.billing.city,
     billing_state: wcOrder.billing.state,
@@ -98,7 +99,7 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
     totalAmount: parseFloat(wcOrder.total || '0'),
     subTotal: subTotal,
     taxAmount: parseFloat(wcOrder.total_tax || '0'),
-    timestamp: wcOrder.date_created_gmt ? wcOrder.date_created_gmt + 'Z' : new Date(0).toISOString(),
+    timestamp: timestamp,
     paymentMethod: wcOrder.payment_method_title,
     paymentDate: wcOrder.date_paid_gmt ? wcOrder.date_paid_gmt + 'Z' : null,
     vendorName: primaryVendorName
@@ -106,15 +107,12 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
 };
 
 export const getOrders = async (): Promise<Order[]> => {
-  if (!api || !isWooCommerceConfigured()) {
-    // Throw an error that will be caught by the server action and displayed to the user.
-    throw new Error('WooCommerce environment variables are not set correctly. Please check your .env file and ensure WOOCOMMERCE_STORE_URL, WOOCOMMERCE_CONSUMER_KEY, and WOOCOMMERCE_CONSUMER_SECRET are set correctly.');
-  }
+  const api = getWooCommerceApi(); // Get a fresh API instance
   
   try {
     let allWCOrders: any[] = [];
     let page = 1;
-    const perPage = 100; // Max per_page is 100
+    const perPage = 100;
     let keepFetching = true;
 
     while (keepFetching) {
@@ -144,11 +142,8 @@ export const getOrders = async (): Promise<Order[]> => {
 
   } catch (error: any) {
     console.error("Error fetching data from WooCommerce:", error);
-     if (error.code === 'ENOTFOUND' || error.message.includes('getaddrinfo ENOTFOUND')) {
-      throw new Error(`Could not connect to WooCommerce store. Hostname not found. Please check the store URL in your .env file: ${process.env.WOOCOMMERCE_STORE_URL}`);
-    }
-    if (error.message.includes('Failed to parse URL')) {
-        throw new Error(`Invalid WooCommerce store URL. Please check the format in your .env file: ${process.env.WOOCOMMERCE_STORE_URL}`);
+     if (error.code === 'ENOTFOUND' || (error.message && error.message.includes('getaddrinfo ENOTFOUND'))) {
+      throw new Error(`Could not connect to WooCommerce store. Hostname not found. Please check the store URL in your .env file.`);
     }
     // Re-throw a generic but informative error for other cases.
     throw new Error('Failed to communicate with WooCommerce API. Verify store URL, keys, and network connection.');
@@ -157,10 +152,7 @@ export const getOrders = async (): Promise<Order[]> => {
 
 
 export const updateOrderStatus = async (orderId: string, status: OrderStatus): Promise<boolean> => {
-   if (!api) {
-    console.error('WooCommerce API is not configured. Cannot update order status.');
-    return false;
-  }
+   const api = getWooCommerceApi(); // Get a fresh API instance
    try {
     const response = await api.put(`orders/${orderId}`, {
       status: status
@@ -169,32 +161,25 @@ export const updateOrderStatus = async (orderId: string, status: OrderStatus): P
     return response.status === 200;
   } catch (error) {
     console.error(`Failed to update order ${orderId} status in WooCommerce:`, error);
-    // You could re-throw a more specific error here to be handled by the server action
     throw new Error('Failed to update order status in WooCommerce.');
   }
 };
 
 export const updateOrderAddress = async (orderId: string, payload: UpdateOrderAddressPayload): Promise<boolean> => {
-  if (!api) {
-    console.error('WooCommerce API is not configured. Cannot update order address.');
-    return false;
-  }
+  const api = getWooCommerceApi(); // Get a fresh API instance
   try {
     const data: { billing: Partial<UpdateOrderAddressPayload>, meta_data?: any[] } = {
       billing: {}
     };
 
-    // Map all possible fields from the payload to the billing object
     const fields: (keyof UpdateOrderAddressPayload)[] = ['first_name', 'last_name', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country', 'email', 'phone'];
     
     fields.forEach(field => {
-      // Allow sending empty strings to clear a field in WC
       if (payload[field] !== undefined) {
         data.billing[field] = payload[field];
       }
     });
     
-    // Handle alternate phone as meta data
     if (payload.alternate_phone !== undefined) {
       data.meta_data = [{
         key: '_billing_alternate_phone',
@@ -202,10 +187,9 @@ export const updateOrderAddress = async (orderId: string, payload: UpdateOrderAd
       }];
     }
 
-
     if (Object.keys(data.billing).length === 0 && !data.meta_data) {
       console.log("No address data to update.");
-      return true; // Nothing to update, so we can consider it successful.
+      return true;
     }
     
     const response = await api.put(`orders/${orderId}`, data);
@@ -222,9 +206,7 @@ const mapWCProductToMenuItem = (product: any): MenuItem => {
   return {
     id: String(product.id),
     name: product.name,
-    // If it's on sale, price is the sale_price. Otherwise, it's the regular_price (or the price field as a fallback).
     price: parseFloat(isSale ? product.sale_price : product.regular_price || product.price || '0'),
-    // Only set regularPrice if the item is on sale and the prices are different.
     regularPrice: isSale && parseFloat(product.regular_price) > parseFloat(product.sale_price)
       ? parseFloat(product.regular_price)
       : undefined,
@@ -236,9 +218,7 @@ const mapWCProductToMenuItem = (product: any): MenuItem => {
 }
 
 export const getProducts = async (): Promise<MenuItem[]> => {
-  if (!api || !isWooCommerceConfigured()) {
-    throw new Error('WooCommerce environment variables are not set correctly.');
-  }
+  const api = getWooCommerceApi(); // Get a fresh API instance
 
   try {
     let allProducts: any[] = [];
@@ -270,11 +250,8 @@ export const getProducts = async (): Promise<MenuItem[]> => {
     return products;
   } catch (error: any) {
     console.error("Error fetching products from WooCommerce:", error);
-    if (error.code === 'ENOTFOUND' || error.message.includes('getaddrinfo ENOTFOUND')) {
-      throw new Error(`Could not connect to WooCommerce store. Hostname not found. Please check the store URL in your .env file: ${process.env.WOOCOMMERCE_STORE_URL}`);
-    }
-     if (error.message.includes('Failed to parse URL')) {
-        throw new Error(`Invalid WooCommerce store URL. Please check the format in your .env file: ${process.env.WOOCOMMERCE_STORE_URL}`);
+    if (error.code === 'ENOTFOUND' || (error.message && error.message.includes('getaddrinfo ENOTFOUND'))) {
+       throw new Error(`Could not connect to WooCommerce store. Hostname not found. Please check the store URL in your .env file.`);
     }
     throw new Error('Failed to communicate with WooCommerce API to fetch products.');
   }
