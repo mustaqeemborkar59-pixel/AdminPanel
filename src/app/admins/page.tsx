@@ -6,7 +6,7 @@ import { getAllUsersFromRTDB, updateUserRoleInRTDB } from '@/app/auth/actions';
 import { getVendorsFromRTDB } from '@/app/vendors/actions';
 import type { UserProfile, Vendor } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ShieldCheck, Store, User, Lock } from 'lucide-react';
+import { Loader2, ShieldCheck, Store, User, Lock, Crown } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -25,78 +25,68 @@ import {
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { app } from '@/lib/firebase';
+import { useAppContext } from '@/components/layout/app-content-wrapper';
 
 export default function AdminsPage() {
+  const { userProfile: currentUserProfile, authLoading } = useAppContext();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
   const { toast } = useToast();
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-  const [authChecked, setAuthChecked] = useState(false);
 
-  const fetchInitialData = async () => {
-    setIsLoading(true);
-    // Fetch both users and vendors
-    const usersResult = await getAllUsersFromRTDB();
-    if (usersResult.success && usersResult.data) {
-      const superAdminEmail = process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
-      const filteredUsers = usersResult.data.filter(user => user.email !== superAdminEmail);
-      setUsers(filteredUsers);
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Failed to load users",
-        description: usersResult.message || "Could not fetch user profiles.",
-      });
-    }
-
-    const vendorsResult = await getVendorsFromRTDB();
-    if (vendorsResult.success && vendorsResult.data) {
-      setVendors(vendorsResult.data);
-    } else {
-       toast({
-        variant: "destructive",
-        title: "Failed to load vendors",
-        description: vendorsResult.message || "Could not fetch vendors.",
-      });
-    }
-
-    setIsLoading(false);
-  };
-
+  const isCurrentUserSuperAdmin = currentUserProfile?.role === 'super-admin';
 
   useEffect(() => {
-    const auth = getAuth(app);
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const superAdminEmail = process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
-        if (user.email === superAdminEmail) {
-          setIsSuperAdmin(true);
-          fetchInitialData(); // Fetch users and vendors only if super admin
+    // Only fetch data if the user is a super admin and auth is checked
+    if (!authLoading && isCurrentUserSuperAdmin) {
+      const fetchInitialData = async () => {
+        setDataLoading(true);
+        
+        const usersResult = await getAllUsersFromRTDB();
+        if (usersResult.success && usersResult.data) {
+            // Filter out the current super admin from the list to prevent role change
+            const filteredUsers = usersResult.data.filter(user => user.uid !== currentUserProfile.uid);
+            setUsers(filteredUsers);
         } else {
-          setIsSuperAdmin(false);
-          setIsLoading(false);
+          toast({
+            variant: "destructive",
+            title: "Failed to load users",
+            description: usersResult.message || "Could not fetch user profiles.",
+          });
         }
-      } else {
-        setIsSuperAdmin(false);
-        setIsLoading(false);
-      }
-      setAuthChecked(true);
-    });
 
-    return () => unsubscribe();
-  }, []);
+        const vendorsResult = await getVendorsFromRTDB();
+        if (vendorsResult.success && vendorsResult.data) {
+          setVendors(vendorsResult.data);
+        } else {
+           toast({
+            variant: "destructive",
+            title: "Failed to load vendors",
+            description: vendorsResult.message || "Could not fetch vendors.",
+          });
+        }
 
-  const handleRoleChange = async (userId: string, newRole: 'admin' | 'vendor' | 'user', vendorCode?: string) => {
+        setDataLoading(false);
+      };
+      
+      fetchInitialData();
+    }
+  }, [authLoading, isCurrentUserSuperAdmin, currentUserProfile, toast]);
+
+
+  const handleRoleChange = async (userId: string, newRole: 'admin' | 'vendor' | 'user' | 'super-admin', vendorCode?: string) => {
     const result = await updateUserRoleInRTDB(userId, newRole, vendorCode);
     if (result.success) {
       toast({
         title: "Role Updated",
         description: "The user's role has been successfully updated.",
       });
-      await fetchInitialData(); // Refresh all data
+      // Refresh users list after role change
+      const usersResult = await getAllUsersFromRTDB();
+       if (usersResult.success && usersResult.data && currentUserProfile) {
+            const filteredUsers = usersResult.data.filter(user => user.uid !== currentUserProfile.uid);
+            setUsers(filteredUsers);
+        }
     } else {
       toast({
         variant: "destructive",
@@ -108,6 +98,8 @@ export default function AdminsPage() {
 
   const getRoleBadge = (user: UserProfile) => {
     switch (user.role) {
+      case 'super-admin':
+        return <Badge variant="default" className="bg-amber-500 hover:bg-amber-500"><Crown className="h-3 w-3 mr-1" />Super Admin</Badge>;
       case 'admin':
         return <Badge variant="default" className="bg-primary hover:bg-primary"><ShieldCheck className="h-3 w-3 mr-1" />Admin</Badge>;
       case 'vendor':
@@ -117,8 +109,9 @@ export default function AdminsPage() {
         return <Badge variant="outline"><User className="h-3 w-3 mr-1" />User</Badge>;
     }
   };
-
-  if (!authChecked) {
+  
+  // Wait for auth check to complete
+  if (authLoading) {
       return (
         <div className="flex flex-col h-full">
             <PageHeader
@@ -132,7 +125,8 @@ export default function AdminsPage() {
       );
   }
   
-  if (!isSuperAdmin) {
+  // After auth check, if user is not a super admin, deny access.
+  if (!isCurrentUserSuperAdmin) {
     return (
         <div className="flex flex-col h-full">
             <PageHeader
@@ -148,6 +142,7 @@ export default function AdminsPage() {
     );
   }
 
+  // If super admin, show the management page.
   return (
     <div className="flex flex-col h-full">
       <PageHeader
@@ -155,7 +150,7 @@ export default function AdminsPage() {
         description="Manage roles and permissions for all application users."
       />
       <div className="flex-1 p-4 md:p-6 overflow-auto">
-        {isLoading ? (
+        {dataLoading ? (
           <div className="flex justify-center items-center h-full">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
@@ -205,15 +200,16 @@ export default function AdminsPage() {
                          )}
                          <Select
                             value={user.role || 'user'}
-                            onValueChange={(value) => handleRoleChange(user.uid, value as 'admin' | 'vendor' | 'user', user.vendorCode)}
+                            onValueChange={(value) => handleRoleChange(user.uid, value as 'admin' | 'vendor' | 'user' | 'super-admin', user.vendorCode)}
                           >
-                            <SelectTrigger className="w-[120px] ml-auto h-9">
+                            <SelectTrigger className="w-[140px] ml-auto h-9">
                               <SelectValue placeholder="Select role" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="user">User</SelectItem>
                               <SelectItem value="vendor">Vendor</SelectItem>
                               <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="super-admin">Super Admin</SelectItem>
                             </SelectContent>
                           </Select>
                        </div>

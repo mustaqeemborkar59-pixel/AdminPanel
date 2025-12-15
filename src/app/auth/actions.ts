@@ -27,14 +27,19 @@ export async function createRTDBUserProfileOnSignup(details: UserProfileOnSignup
   }
   try {
     const userRef = ref(rtdb, `users/${details.uid}`);
-    // Explicitly set the role to 'user' for every new signup
+    
+    // Check if the signing-up user is the super admin based on the .env file
+    const isSuperAdmin = details.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
+    
+    // Explicitly set the role to 'super-admin' if it is, otherwise default to 'user'
     const userProfile: UserProfile = {
       uid: details.uid,
       email: details.email || 'No email',
       displayName: details.displayName || 'New User',
       photoURL: details.photoURL || '',
-      role: 'user', // Default role
+      role: isSuperAdmin ? 'super-admin' : 'user', // Set role based on super admin check
     };
+
     await set(userRef, userProfile);
     return { success: true };
   } catch (error: any) {
@@ -156,7 +161,7 @@ export async function getAllUsersFromRTDB(): Promise<{ success: boolean; data?: 
     }
 }
 
-export async function updateUserRoleInRTDB(userId: string, role: 'admin' | 'vendor' | 'user', vendorCode?: string): Promise<{ success: boolean; message?: string }> {
+export async function updateUserRoleInRTDB(userId: string, role: 'admin' | 'vendor' | 'user' | 'super-admin', vendorCode?: string): Promise<{ success: boolean; message?: string }> {
     if (!rtdb) {
         return { success: false, message: "Realtime Database is not configured." };
     }
