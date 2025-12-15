@@ -123,8 +123,11 @@ export const getOrders = async (): Promise<Order[]> => {
         order: 'desc',
       });
 
-       if (response.status !== 200) {
-        throw new Error(`Failed to fetch orders on page ${page}: ${response.statusText}`);
+      // Correctly check for response status. The status is on the request's response object.
+       if (response?.request?.res?.statusCode !== 200) {
+        const status = response?.request?.res?.statusCode;
+        const statusText = response?.request?.res?.statusMessage;
+        throw new Error(`Failed to fetch orders on page ${page}. Status: ${status} ${statusText}`);
       }
 
       const fetchedOrders = response.data;
@@ -232,8 +235,10 @@ export const getProducts = async (): Promise<MenuItem[]> => {
         page: page,
       });
 
-      if (response.status !== 200) {
-        throw new Error(`Failed to fetch products on page ${page}: ${response.statusText}`);
+      if (response?.request?.res?.statusCode !== 200) {
+        const status = response?.request?.res?.statusCode;
+        const statusText = response?.request?.res?.statusMessage;
+        throw new Error(`Failed to fetch products on page ${page}. Status: ${status} ${statusText}`);
       }
 
       const fetchedProducts = response.data;
