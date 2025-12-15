@@ -53,7 +53,7 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
 
   const items: OrderItem[] = (wcOrder.line_items || []).map((item: any) => {
     let itemVendorName: string | undefined = undefined;
-    // Ensure SKU is a string and contains a hyphen before splitting
+    // Ensure SKU is a string before trying to access string properties or methods
     if (item.sku && typeof item.sku === 'string' && item.sku.includes('-')) {
       itemVendorName = item.sku.split('-')[0];
       if (!primaryVendorName) {
@@ -98,7 +98,7 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
     totalAmount: parseFloat(wcOrder.total),
     subTotal: subTotal,
     taxAmount: parseFloat(wcOrder.total_tax),
-    timestamp: wcOrder.date_created_gmt + 'Z',
+    timestamp: wcOrder.date_created_gmt ? wcOrder.date_created_gmt + 'Z' : new Date(0).toISOString(),
     paymentMethod: wcOrder.payment_method_title,
     paymentDate: wcOrder.date_paid_gmt ? wcOrder.date_paid_gmt + 'Z' : null,
     vendorName: primaryVendorName
@@ -188,7 +188,7 @@ export const updateOrderAddress = async (orderId: string, payload: UpdateOrderAd
     const fields: (keyof UpdateOrderAddressPayload)[] = ['first_name', 'last_name', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country', 'email', 'phone'];
     
     fields.forEach(field => {
-      // Allow empty strings to clear a field in WC
+      // Allow sending empty strings to clear a field in WC
       if (payload[field] !== undefined) {
         data.billing[field] = payload[field];
       }
@@ -279,5 +279,3 @@ export const getProducts = async (): Promise<MenuItem[]> => {
     throw new Error('Failed to communicate with WooCommerce API to fetch products.');
   }
 };
-
-    

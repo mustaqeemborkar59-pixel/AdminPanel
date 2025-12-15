@@ -126,4 +126,3 @@ export interface CompanyDetails {
   city: string;
   email: string;
 }
-    

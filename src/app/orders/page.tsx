@@ -44,20 +44,27 @@ const ITEMS_PER_PAGE = 10;
 // New timezone-aware formatting function
 function formatDateInIST(dateInput: string | Date | null | undefined): string {
   if (!dateInput) return 'N/A';
-  const date = new Date(dateInput);
-  const options: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: 'short',
-    day: '2-digit',
-    timeZone: 'Asia/Kolkata'
-  };
-  
-  const formattedParts = new Intl.DateTimeFormat('en-GB', options).formatToParts(date);
-  const day = formattedParts.find(p => p.type === 'day')?.value;
-  const month = formattedParts.find(p => p.type === 'month')?.value;
-  const year = formattedParts.find(p => p.type === 'year')?.value;
+  try {
+    const date = new Date(dateInput);
+    if (isNaN(date.getTime())) return 'Invalid Date';
+    
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+      timeZone: 'Asia/Kolkata'
+    };
+    
+    const formattedParts = new Intl.DateTimeFormat('en-GB', options).formatToParts(date);
+    const day = formattedParts.find(p => p.type === 'day')?.value;
+    const month = formattedParts.find(p => p.type === 'month')?.value;
+    const year = formattedParts.find(p => p.type === 'year')?.value;
 
-  return `${day} ${month}, ${year}`;
+    return `${day} ${month}, ${year}`;
+  } catch (error) {
+    console.error("Error formatting date:", dateInput, error);
+    return 'Invalid Date';
+  }
 }
 
 export default function OrdersPage() {
@@ -114,7 +121,7 @@ export default function OrdersPage() {
   useEffect(() => {
      if (orders.length > 0) {
         const vendorCodes = new Set(
-          orders.flatMap(order => order.items.map(item => item.vendorName).filter(Boolean) as string[])
+          orders.flatMap(order => order.items.map(item => item.vendorName).filter((v): v is string => !!v))
         );
         // Now map codes to names, falling back to code if name not found
         const vendorDisplayNames = Array.from(vendorCodes).map(code => vendorMap.get(code) || code);
@@ -162,86 +169,68 @@ export default function OrdersPage() {
 
   const filteredOrders = useMemo(() => {
     
-    // Vendor Role Filtering Logic
     const currentVendorCode = isVendor ? userProfile?.vendorCode : null;
-    let vendorFilteredOrders = orders;
-    
-    // If user is a vendor, filter to only include their orders and items.
-    if (currentVendorCode) {
-        vendorFilteredOrders = orders.map(order => {
-            const vendorItems = order.items.filter(item => item.vendorName === currentVendorCode);
-            if (vendorItems.length === 0) {
-                return null;
-            }
-            const subTotal = vendorItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
-            const taxAmount = subTotal * taxRatio;
-            const totalAmount = subTotal + taxAmount;
-            return { ...order, items: vendorItems, subTotal, taxAmount, totalAmount };
-        }).filter((order): order is Order => order !== null);
-    }
 
+    let filtered = orders
+      .filter(order => statusFilter === 'all' || order.status === statusFilter)
+      .filter(order => {
+        if (!dateRange?.from) return true; // No date filter applied
 
-    let filtered = vendorFilteredOrders
-    .filter(order => statusFilter === 'all' || order.status === statusFilter)
-    .filter(order => {
-        // Bypass vendor dropdown filter for vendors and super admins (who see all)
-        if (isVendor || isSuperAdmin) return true;
-        if (vendorFilter === 'all') return true;
-        // For non-super-admin, non-vendor roles (like 'admin')
-        return order.items.some(item => {
+        const dateStringToFilter = order.paymentDate || order.timestamp;
+        if (!dateStringToFilter) return false; // Don't include orders without any date if filtering
+
+        try {
+          const orderDateInIST = new Date(new Date(dateStringToFilter).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+          if (isNaN(orderDateInIST.getTime())) return false; // Skip invalid dates
+
+          const fromDate = new Date(dateRange.from);
+          fromDate.setHours(0, 0, 0, 0);
+
+          const toDate = dateRange.to ? new Date(dateRange.to) : new Date(dateRange.from);
+          toDate.setHours(23, 59, 59, 999);
+
+          return orderDateInIST >= fromDate && orderDateInIST <= toDate;
+        } catch {
+          return false;
+        }
+      })
+      .filter(order => 
+          order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (order.customerName && order.customerName.toLowerCase().includes(searchTerm.toLowerCase()))
+      )
+      // Recalculate items and totals based on vendor role or filter
+      .map(order => {
+        let itemsToShow = order.items;
+        
+        // 1. If user is a vendor, show only their items.
+        if (currentVendorCode) {
+          itemsToShow = order.items.filter(item => item.vendorName === currentVendorCode);
+        }
+        // 2. If it's an admin applying a vendor filter from dropdown
+        else if (!isSuperAdmin && vendorFilter !== 'all') {
+          itemsToShow = order.items.filter(item => {
             if (!item.vendorName) return false;
             const displayName = vendorMap.get(item.vendorName) || item.vendorName;
             return displayName === vendorFilter;
-        });
-    })
-    .map(order => {
-        if (isVendor || isSuperAdmin) return order; 
-        if (vendorFilter === 'all') return order;
-        
-        const vendorItems = order.items.filter(item => {
-          if (!item.vendorName) return false;
-          const displayName = vendorMap.get(item.vendorName) || item.vendorName;
-          return displayName === vendorFilter;
-        });
-        
-        if (vendorItems.length === 0) {
-          return null;
+          });
         }
-
-        const subTotal = vendorItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
-        const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
-        const taxAmount = subTotal * taxRatio;
-        const totalAmount = subTotal + taxAmount;
         
-        return { 
-            ...order, 
-            items: vendorItems,
-            subTotal,
-            taxAmount,
-            totalAmount,
-        };
-    })
-    .filter((order): order is Order => order !== null) // Ensure no nulls before next filter
-    .filter(order => order.items.length > 0)
-    .filter(order => {
-      if (!dateRange?.from) return true;
-      
-      const dateStringToFilter = order.paymentDate || order.timestamp;
-      const orderDateInIST = new Date(new Date(dateStringToFilter).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-
-      const fromDate = new Date(dateRange.from);
-      fromDate.setHours(0, 0, 0, 0);
-
-      const toDate = dateRange.to ? new Date(dateRange.to) : new Date(dateRange.from);
-      toDate.setHours(23, 59, 59, 999);
-
-      return orderDateInIST >= fromDate && orderDateInIST <= toDate;
-    })
-    .filter(order => 
-        order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (order.customerName && order.customerName.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+        // If, after filtering, there are no items for this user/filter, discard the order
+        if (itemsToShow.length === 0) return null;
+        
+        // If the items have changed, recalculate totals
+        if (itemsToShow.length !== order.items.length) {
+            const subTotal = itemsToShow.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
+            const taxAmount = subTotal * taxRatio;
+            const totalAmount = subTotal + taxAmount;
+            return { ...order, items: itemsToShow, subTotal, taxAmount, totalAmount };
+        }
+        
+        // Otherwise, return the original order
+        return order;
+      })
+      .filter((order): order is Order => order !== null); // Remove null orders
 
     return getUniqueOrders(filtered);
   }, [orders, statusFilter, vendorFilter, dateRange, searchTerm, vendorMap, userProfile, isVendor, isSuperAdmin]);
@@ -743,5 +732,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
