@@ -51,7 +51,7 @@ const formatAddress = (address: any): string => {
 const mapWCOrderToAppOrder = (wcOrder: any): Order => {
   let primaryVendorName: string | undefined = undefined;
 
-  const items: OrderItem[] = wcOrder.line_items.map((item: any) => {
+  const items: OrderItem[] = (wcOrder.line_items || []).map((item: any) => {
     let itemVendorName: string | undefined = undefined;
     if (item.sku && typeof item.sku === 'string' && item.sku.includes('-')) {
       itemVendorName = item.sku.split('-')[0];
@@ -278,3 +278,5 @@ export const getProducts = async (): Promise<MenuItem[]> => {
     throw new Error('Failed to communicate with WooCommerce API to fetch products.');
   }
 };
+
+    

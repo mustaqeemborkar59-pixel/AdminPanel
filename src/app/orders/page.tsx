@@ -204,6 +204,10 @@ export default function OrdersPage() {
           const displayName = vendorMap.get(item.vendorName) || item.vendorName;
           return displayName === vendorFilter;
         });
+        
+        if (vendorItems.length === 0) {
+          return null;
+        }
 
         const subTotal = vendorItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
         const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
@@ -218,7 +222,8 @@ export default function OrdersPage() {
             totalAmount,
         };
     })
-    .filter(order => order.items.length > 0) 
+    .filter((order): order is Order => order !== null) // Ensure no nulls before next filter
+    .filter(order => order.items.length > 0)
     .filter(order => {
       if (!dateRange?.from) return true;
       
@@ -399,7 +404,7 @@ export default function OrdersPage() {
             tableRows.push(itemData);
         });
 
-        (doc as any).autoTable({
+        doc.autoTable({
             head: [tableColumn],
             body: tableRows,
             startY: yPos + 5, // Start table after BILL TO section
@@ -738,3 +743,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    

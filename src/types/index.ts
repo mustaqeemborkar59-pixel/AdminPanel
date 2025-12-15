@@ -93,6 +93,7 @@ export interface TableReservation {
 // Represents a user profile stored in the database.
 export interface UserProfile {
   uid: string;
+  id: string;
   displayName: string;
   email: string;
   phone?: string;
@@ -118,3 +119,5 @@ declare module 'jspdf' {
     };
   }
 }
+
+    
