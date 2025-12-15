@@ -3,19 +3,34 @@
 
 import { redirect } from 'next/navigation';
 import { getFirestore } from 'firebase-admin/firestore';
-import { initializeApp, getApps, App } from 'firebase-admin/app';
+import { initializeApp, getApps, App, cert } from 'firebase-admin/app';
 import { getAuth as getAdminAuth } from 'firebase-admin/auth';
-import type { UserProfile, CompanyDetails } from '@/types';
+import type { UserProfile, CompanyDetails, Vendor } from '@/types';
 
 // Server-side initialization for Firebase Admin SDK
-function initializeAdminApp() {
+function initializeAdminApp(): App {
   const apps = getApps();
   if (apps.length > 0) {
     return apps[0];
   }
-  // This assumes you have GOOGLE_APPLICATION_CREDENTIALS set in your environment
-  // or are running in a GCP environment where credentials are automatically discovered.
-  return initializeApp();
+
+  // Use service account credentials from environment variables
+  // This is more explicit and reliable than relying on auto-discovery.
+  const serviceAccount = {
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      // The private key must have newline characters escaped to be parsed correctly from .env
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'), 
+  }
+
+  if (!serviceAccount.projectId || !serviceAccount.clientEmail || !serviceAccount.privateKey) {
+      throw new Error("Firebase Admin credentials are not set in the environment variables.");
+  }
+
+  return initializeApp({
+    credential: cert(serviceAccount),
+    databaseURL: `https://${serviceAccount.projectId}.firebaseio.com`
+  });
 }
 
 function getAdminServices(app: App) {
@@ -204,7 +219,7 @@ export async function getCompanyDetailsFromRTDB(): Promise<{ success: boolean; d
 }
 
 // Vendors actions are also using the client RTDB, which is fine for now.
-export async function saveVendorToRTDB(vendorData: Omit<import('@/types').Vendor, 'id'>, vendorId?: string): Promise<{ success: boolean; error?: string }> {
+export async function saveVendorToRTDB(vendorData: Omit<Vendor, 'id'>, vendorId?: string): Promise<{ success: boolean; error?: string }> {
     try {
         const rtdb = await getClientRTDB();
         const { ref, set, push, child } = await import('firebase/database');
@@ -226,7 +241,7 @@ export async function saveVendorToRTDB(vendorData: Omit<import('@/types').Vendor
     }
 }
 
-export async function getVendorsFromRTDB(): Promise<{ success: boolean; data?: import('@/types').Vendor[], error?: string }> {
+export async function getVendorsFromRTDB(): Promise<{ success: boolean; data?: Vendor[], error?: string }> {
     try {
         const rtdb = await getClientRTDB();
         const { ref, get } = await import('firebase/database');
