@@ -404,7 +404,7 @@ export default function OrdersPage() {
             tableRows.push(itemData);
         });
 
-        doc.autoTable({
+        (doc as any).autoTable({
             head: [tableColumn],
             body: tableRows,
             startY: yPos + 5, // Start table after BILL TO section

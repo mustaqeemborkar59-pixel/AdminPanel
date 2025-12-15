@@ -53,6 +53,7 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
 
   const items: OrderItem[] = (wcOrder.line_items || []).map((item: any) => {
     let itemVendorName: string | undefined = undefined;
+    // Ensure SKU is a string and contains a hyphen before splitting
     if (item.sku && typeof item.sku === 'string' && item.sku.includes('-')) {
       itemVendorName = item.sku.split('-')[0];
       if (!primaryVendorName) {

@@ -120,4 +120,10 @@ declare module 'jspdf' {
   }
 }
 
+export interface CompanyDetails {
+  companyName: string;
+  address: string;
+  city: string;
+  email: string;
+}
     
