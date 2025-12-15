@@ -51,11 +51,12 @@ interface UserProfileOnSignup {
 
 export async function createUserProfile(details: UserProfileOnSignup): Promise<{ success: boolean; message?: string }> {
   const adminApp = initializeAdminApp();
-  const { firestore } = getAdminServices(adminApp);
+  const { firestore, auth } = getAdminServices(adminApp);
   try {
     const userRef = firestore.collection('users').doc(details.uid);
     
     const isSuperAdmin = details.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
+    const role = isSuperAdmin ? 'super-admin' : 'user';
     
     const userProfile: UserProfile = {
       uid: details.uid,
@@ -63,10 +64,13 @@ export async function createUserProfile(details: UserProfileOnSignup): Promise<{
       email: details.email || 'No email',
       displayName: details.displayName || 'New User',
       photoURL: details.photoURL || '',
-      role: isSuperAdmin ? 'super-admin' : 'user',
+      role: role,
     };
 
     await userRef.set(userProfile, { merge: true });
+
+    // Also set custom claim for the user role for robust security
+    await auth.setCustomUserClaims(details.uid, { role });
 
     return { success: true };
   } catch (error: any) {

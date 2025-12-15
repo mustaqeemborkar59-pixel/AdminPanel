@@ -64,12 +64,11 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     if (loading) return;
 
     if (user) {
-      const isEnvSuperAdmin = user.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
       const role = userProfile?.role;
       const vendorCode = userProfile?.vendorCode;
       
-      const isPending = !isEnvSuperAdmin && (!role || role === 'user' || (role === 'vendor' && !vendorCode));
-      const isApproved = isEnvSuperAdmin || role === 'admin' || role === 'super-admin' || (role === 'vendor' && !!vendorCode);
+      const isPending = !role || role === 'user' || (role === 'vendor' && !vendorCode);
+      const isApproved = role === 'admin' || role === 'super-admin' || (role === 'vendor' && !!vendorCode);
 
       if (isAuthPage) {
         router.replace('/');
@@ -109,8 +108,8 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     );
   }
   
-  const isEnvSuperAdmin = user?.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
-  if (user && !isEnvSuperAdmin && (!userProfile || (userProfile.role === 'user') || (userProfile.role === 'vendor' && !userProfile.vendorCode))) {
+  const role = userProfile?.role;
+  if (user && (!role || role === 'user' || (role === 'vendor' && !userProfile.vendorCode))) {
        return (
          <div className="flex items-center justify-center min-h-screen bg-background">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />

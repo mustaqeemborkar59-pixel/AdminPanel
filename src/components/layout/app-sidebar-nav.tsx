@@ -62,18 +62,11 @@ export function AppSidebarNav({ user, userProfile, authLoading }: AppSidebarNavP
   const [mounted, setMounted] = React.useState(false);
   
   const userRole = React.useMemo(() => {
-    if (authLoading) {
+    if (authLoading || !userProfile) {
       return null;
     }
-    // Give precedence to the .env super admin email
-    if (user?.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL) {
-        return 'super-admin';
-    }
-    if (!userProfile) {
-        return null;
-    }
     return userProfile.role;
-  }, [user, userProfile, authLoading]);
+  }, [userProfile, authLoading]);
 
 
   React.useEffect(() => {
