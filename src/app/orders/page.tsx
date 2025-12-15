@@ -163,54 +163,43 @@ export default function OrdersPage() {
     let filteredByRoleAndFilter = orders.map(order => {
         let itemsToShow = order.items;
         
-        // If the user is a vendor, filter items to only show theirs.
         if (isVendor && currentVendorCode) {
             itemsToShow = order.items.filter(item => item.vendorName === currentVendorCode);
         } 
-        // If it's an admin/super-admin applying a vendor filter
         else if (!isVendor && vendorFilter !== 'all') {
             const vendorCodeToFilter = allVendors.find(v => v.name === vendorFilter)?.code;
             if (vendorCodeToFilter) {
-                itemsToShow = order.items.filter(item => item.vendorName === vendorCodeToFilter);
+                 // Safely filter items by checking for vendorName existence
+                itemsToShow = order.items.filter(item => item.vendorName && item.vendorName === vendorCodeToFilter);
             }
         }
         
-        // If, after filtering, there are no items for this user/filter, discard the order by returning null.
         if (itemsToShow.length === 0) return null;
         
-        // If the items have changed (meaning we filtered them), recalculate totals for this view.
         if (itemsToShow.length !== order.items.length) {
             const subTotal = itemsToShow.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            // Use the original order's tax ratio to calculate the new tax amount fairly.
             const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
             const taxAmount = subTotal * taxRatio;
             const totalAmount = subTotal + taxAmount;
             return { ...order, items: itemsToShow, subTotal, taxAmount, totalAmount };
         }
         
-        // If no items were filtered, return the original order.
         return order;
-    }).filter((order): order is Order => order !== null); // This removes the null orders.
+    }).filter((order): order is Order => order !== null);
 
-    // Apply other filters (status, date, search) on the already role-filtered data.
     let finalFiltered = filteredByRoleAndFilter
       .filter(order => statusFilter === 'all' || order.status === statusFilter)
       .filter(order => {
-        if (!dateRange?.from) return true; // No date filter applied
-
+        if (!dateRange?.from) return true;
         const dateStringToFilter = order.paymentDate || order.timestamp;
-        if (!dateStringToFilter) return false; // Don't include orders without any date if filtering
-
+        if (!dateStringToFilter) return false;
         try {
           const orderDateInIST = new Date(new Date(dateStringToFilter).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-          if (isNaN(orderDateInIST.getTime())) return false; // Skip invalid dates
-
+          if (isNaN(orderDateInIST.getTime())) return false;
           const fromDate = new Date(dateRange.from);
           fromDate.setHours(0, 0, 0, 0);
-
           const toDate = dateRange.to ? new Date(dateRange.to) : new Date(dateRange.from);
           toDate.setHours(23, 59, 59, 999);
-
           return orderDateInIST >= fromDate && orderDateInIST <= toDate;
         } catch {
           return false;
