@@ -19,8 +19,7 @@ import {
   DropdownMenuPortal
 } from "@/components/ui/dropdown-menu";
 import { getOrdersFromWooCommerce, updateOrderStatusInWooCommerce } from './actions';
-import { getCompanyDetailsFromRTDB } from '@/app/auth/actions';
-import { getVendorsFromRTDB } from '@/app/vendors/actions';
+import { getCompanyDetailsFromRTDB, getVendorsFromRTDB } from '@/app/auth/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Search, ListFilter, Download, FileDown, FileText, FileSpreadsheet, Calendar as CalendarIcon, Building } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -739,5 +738,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    

@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/page-header';
 import type { Vendor } from '@/types';
 import { VendorsTable } from '@/components/vendors/vendors-table';
 import { AddVendorDialog } from '@/components/vendors/add-vendor-dialog';
-import { getVendorsFromRTDB, saveVendorToRTDB, deleteVendorFromRTDB } from './actions';
+import { getVendorsFromRTDB, saveVendorToRTDB, deleteVendorFromRTDB } from '@/app/auth/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -94,3 +94,5 @@ export default function VendorsPage() {
     </div>
   );
 }
+
+    

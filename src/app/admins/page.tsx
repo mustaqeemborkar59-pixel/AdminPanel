@@ -2,8 +2,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
-import { getAllUsers, updateUserRole } from '@/app/auth/actions'; // Using Firestore actions
-import { getVendorsFromRTDB } from '@/app/vendors/actions';
+import { getAllUsers, updateUserRole, getVendorsFromRTDB } from '@/app/auth/actions'; // Using Firestore actions
 import type { UserProfile, Vendor } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ShieldCheck, Store, User, Lock, Crown } from 'lucide-react';
@@ -220,3 +219,5 @@ export default function AdminsPage() {
     </div>
   );
 }
+
+    
