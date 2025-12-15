@@ -3,7 +3,7 @@
 
 import { redirect } from 'next/navigation';
 import { rtdb } from '@/lib/firebase';
-import { ref, set, get } from 'firebase/database';
+import { ref, set, get, update } from 'firebase/database';
 import type { UserProfile } from '@/types';
 
 interface UserProfileData {
@@ -109,5 +109,19 @@ export async function getAllUsersFromRTDB(): Promise<{ success: boolean; data?: 
     } catch (error: any) {
         console.error('Failed to get all users from RTDB:', error);
         return { success: false, message: error.message || 'Failed to fetch user profiles.' };
+    }
+}
+
+export async function updateUserRoleInRTDB(userId: string, role: 'admin' | 'vendor' | 'user'): Promise<{ success: boolean; message?: string }> {
+    if (!rtdb) {
+        return { success: false, message: "Realtime Database is not configured." };
+    }
+    try {
+        const userRef = ref(rtdb, `users/${userId}`);
+        await update(userRef, { role: role });
+        return { success: true };
+    } catch (error: any) {
+        console.error('Failed to update user role in RTDB:', error);
+        return { success: false, message: error.message || 'Failed to update user role.' };
     }
 }

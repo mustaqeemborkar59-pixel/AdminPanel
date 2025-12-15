@@ -98,6 +98,7 @@ export interface UserProfile {
   phone?: string;
   address?: string;
   photoURL?: string;
+  role?: 'admin' | 'vendor' | 'user';
 }
 
 export interface Vendor {
