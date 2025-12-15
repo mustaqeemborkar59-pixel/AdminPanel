@@ -50,6 +50,8 @@ export function LoginForm() {
         setError('This user account has been disabled.');
       } else if (firebaseError.code === 'auth/invalid-email') {
         setError('The email address is not valid.');
+      } else if (firebaseError.code === 'auth/operation-not-allowed') {
+        setError('Email/Password sign-in is not enabled. Please enable it in your Firebase console.');
       }
       else {
         setError('An error occurred during sign in. Please try again later.');

@@ -72,6 +72,8 @@ export function SignupForm() {
         setError('The password is too weak. Please choose a stronger password.');
       } else if (firebaseError.code === 'auth/invalid-email') {
         setError('The email address is not valid.');
+      } else if (firebaseError.code === 'auth/operation-not-allowed') {
+        setError('Email/Password sign-up is not enabled. Please enable it in your Firebase console under Authentication > Sign-in method.');
       }
       else {
         setError('An error occurred during sign up. Please try again later.');
