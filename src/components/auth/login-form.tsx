@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword, browserLocalPersistence, setPersistence, type AuthError } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import { updateUserProfile } from '@/app/auth/actions'; // Using new Firestore a
 
 export function LoginForm() {
   const router = useRouter();
+  const auth = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);

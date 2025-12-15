@@ -1,12 +1,13 @@
 
 'use server';
 
-import { rtdb } from '@/lib/firebase';
+import { initializeFirebase } from '@/firebase';
 import { ref, set, get, push, remove, child } from 'firebase/database';
 import type { Vendor } from '@/types';
 
 // Action to save/update a vendor in Realtime Database
 export async function saveVendorToRTDB(vendorData: Omit<Vendor, 'id'>, vendorId?: string): Promise<{ success: boolean; error?: string }> {
+    const { rtdb } = initializeFirebase();
     if (!rtdb) {
         return { success: false, error: "Realtime Database is not configured." };
     }
@@ -34,6 +35,7 @@ export async function saveVendorToRTDB(vendorData: Omit<Vendor, 'id'>, vendorId?
 
 // Action to get all vendors from Realtime Database
 export async function getVendorsFromRTDB(): Promise<{ success: boolean; data?: Vendor[], error?: string }> {
+    const { rtdb } = initializeFirebase();
     if (!rtdb) {
         return { success: false, error: "Realtime Database is not configured." };
     }
@@ -62,6 +64,7 @@ export async function getVendorsFromRTDB(): Promise<{ success: boolean; data?: V
 
 // Action to delete a vendor from Realtime Database
 export async function deleteVendorFromRTDB(vendorId: string): Promise<{ success: boolean; error?: string }> {
+    const { rtdb } = initializeFirebase();
     if (!rtdb) {
         return { success: false, error: "Realtime Database is not configured." };
     }

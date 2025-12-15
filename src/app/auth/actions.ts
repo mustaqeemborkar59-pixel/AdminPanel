@@ -2,9 +2,12 @@
 "use server";
 
 import { redirect } from 'next/navigation';
-import { db } from '@/lib/firebase'; // Using Firestore 'db' instead of 'rtdb'
+import { initializeFirebase } from '@/firebase';
 import { doc, setDoc, getDoc, updateDoc, collection, getDocs, deleteField } from 'firebase/firestore';
 import type { UserProfile, CompanyDetails } from '@/types';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
+
 
 // Stripped down version for signup, role is handled internally
 interface UserProfileOnSignup {
@@ -18,8 +21,9 @@ interface UserProfileOnSignup {
 // --- Firestore User Profile Actions ---
 
 export async function createUserProfile(details: UserProfileOnSignup): Promise<{ success: boolean; message?: string }> {
+  const { firestore } = initializeFirebase();
   try {
-    const userRef = doc(db, `users/${details.uid}`);
+    const userRef = doc(firestore, `users/${details.uid}`);
     
     // Check if the signing-up user is the super admin based on the .env file
     const isSuperAdmin = details.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
@@ -33,7 +37,16 @@ export async function createUserProfile(details: UserProfileOnSignup): Promise<{
       role: isSuperAdmin ? 'super-admin' : 'user', // Set role based on super admin check
     };
 
-    await setDoc(userRef, userProfile, { merge: true });
+    // Use a non-blocking write and handle permission errors
+    setDoc(userRef, userProfile, { merge: true }).catch(error => {
+        const permissionError = new FirestorePermissionError({
+            path: userRef.path,
+            operation: 'create',
+            requestResourceData: userProfile,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    });
+
     return { success: true };
   } catch (error: any) {
     console.error('Firestore Profile Creation Error on Signup:', error);
@@ -42,8 +55,9 @@ export async function createUserProfile(details: UserProfileOnSignup): Promise<{
 }
 
 export async function getUserProfile(uid: string): Promise<{ success: boolean; data?: UserProfile; message?: string }> {
+    const { firestore } = initializeFirebase();
     try {
-        const userRef = doc(db, `users/${uid}`);
+        const userRef = doc(firestore, `users/${uid}`);
         const docSnap = await getDoc(userRef);
         if (docSnap.exists()) {
             return { success: true, data: docSnap.data() as UserProfile };
@@ -56,8 +70,9 @@ export async function getUserProfile(uid: string): Promise<{ success: boolean; d
 }
 
 export async function updateUserProfile(uid: string, details: { displayName?: string | null, photoURL?: string | null }): Promise<{ success: boolean; message?: string }> {
+  const { firestore } = initializeFirebase();
   try {
-    const userRef = doc(db, `users/${uid}`);
+    const userRef = doc(firestore, `users/${uid}`);
     const docSnap = await getDoc(userRef);
     if(docSnap.exists()) {
       const updates: Partial<UserProfile> = {};
@@ -79,8 +94,9 @@ export async function updateUserProfile(uid: string, details: { displayName?: st
 }
 
 export async function getAllUsers(): Promise<{ success: boolean; data?: UserProfile[]; message?: string }> {
+    const { firestore } = initializeFirebase();
     try {
-        const usersRef = collection(db, 'users');
+        const usersRef = collection(firestore, 'users');
         const querySnapshot = await getDocs(usersRef);
         const usersArray: UserProfile[] = [];
         querySnapshot.forEach((doc) => {
@@ -94,8 +110,9 @@ export async function getAllUsers(): Promise<{ success: boolean; data?: UserProf
 }
 
 export async function updateUserRole(userId: string, role: 'admin' | 'vendor' | 'user' | 'super-admin', vendorCode?: string): Promise<{ success: boolean; message?: string }> {
+    const { firestore } = initializeFirebase();
     try {
-        const userRef = doc(db, `users/${userId}`);
+        const userRef = doc(firestore, `users/${userId}`);
         const updates: Partial<UserProfile> & {[key: string]: any} = { role };
         
         if (role === 'vendor') {
@@ -130,7 +147,7 @@ export async function signOut() {
 export async function saveCompanyDetailsToRTDB(details: CompanyDetails): Promise<{ success: boolean; message?: string }> {
     // This function still uses RTDB as it's not part of the user profile migration.
     // It can be migrated later if needed.
-    const { rtdb } = await import('@/lib/firebase');
+    const { rtdb } = initializeFirebase();
     if (!rtdb) {
         return { success: false, message: "Realtime Database is not configured." };
     }
@@ -147,7 +164,7 @@ export async function saveCompanyDetailsToRTDB(details: CompanyDetails): Promise
 
 export async function getCompanyDetailsFromRTDB(): Promise<{ success: boolean; data?: CompanyDetails; message?: string }> {
     // This function still uses RTDB.
-    const { rtdb } = await import('@/lib/firebase');
+    const { rtdb } = initializeFirebase();
     if (!rtdb) {
         return { success: false, message: "Realtime Database is not configured." };
     }

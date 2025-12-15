@@ -4,6 +4,7 @@ import './globals.css';
 import { AppContentWrapper } from '@/components/layout/app-content-wrapper'; // This is the key
 import { Toaster } from '@/components/ui/toaster'; // Global Toaster
 import { ThemeProvider } from "@/components/theme-provider";
+import { FirebaseClientProvider } from '@/firebase';
 
 
 export const metadata: Metadata = {
@@ -30,9 +31,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AppContentWrapper>
-            {children}
-          </AppContentWrapper>
+          <FirebaseClientProvider>
+            <AppContentWrapper>
+              {children}
+            </AppContentWrapper>
+          </FirebaseClientProvider>
           <Toaster /> {/* Global Toaster */}
         </ThemeProvider>
       </body>

@@ -32,7 +32,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import React from 'react';
 import type { User } from 'firebase/auth'; 
-import { auth } from '@/lib/firebase'; // Import auth for client-side sign out
+import { useAuth } from '@/firebase';
 import { useToast } from '@/hooks/use-toast'; // For potential error messages
 import type { UserProfile } from '@/types';
 import { useAppContext } from './app-content-wrapper';
@@ -56,6 +56,7 @@ interface AppSidebarNavProps {
 export function AppSidebarNav({ user, userProfile, authLoading }: AppSidebarNavProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const auth = useAuth();
   const { toast } = useToast();
   const { open, toggleSidebar, isMobile, state, openMobile, setOpenMobile } = useSidebar();
   const [mounted, setMounted] = React.useState(false);
@@ -238,5 +239,3 @@ export function AppSidebarNav({ user, userProfile, authLoading }: AppSidebarNavP
     </>
   );
 }
-
-    

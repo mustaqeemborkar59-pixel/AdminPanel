@@ -4,12 +4,13 @@
 import { Logo } from '@/components/layout/logo';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { auth } from '@/lib/firebase';
+import { useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { Hourglass } from 'lucide-react';
 
 export default function PendingVerificationPage() {
   const router = useRouter();
+  const auth = useAuth();
 
   const handleLogout = async () => {
     await auth.signOut();
