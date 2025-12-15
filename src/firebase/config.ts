@@ -1,8 +1,12 @@
+// This file is dynamically generated from your .env file
+// to ensure that your Firebase configuration is always in sync.
+
 export const firebaseConfig = {
-  "projectId": "sheetmaster-woo4-3652307-f6517",
-  "appId": "1:1052692277102:web:22cc1f34943c206112037f",
-  "apiKey": "AIzaSyDrl4GEHOUjWt1Hr8L0KTjbIhZxRbu-i6Y",
-  "authDomain": "sheetmaster-woo4-3652307-f6517.firebaseapp.com",
-  "measurementId": "",
-  "messagingSenderId": "1052692277102"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };

@@ -15,12 +15,11 @@ function initializeAdminApp(): App {
     return apps[0];
   }
 
-  // This is the robust way to initialize using a service account from environment variables.
   const serviceAccount = {
       type: "service_account",
       project_id: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
       private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-      private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'), // IMPORTANT: This replacement is crucial for .env files
+      private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
       client_email: process.env.FIREBASE_CLIENT_EMAIL,
       client_id: process.env.FIREBASE_CLIENT_ID,
       auth_uri: "https://accounts.google.com/o/oauth2/auth",
@@ -35,7 +34,7 @@ function initializeAdminApp(): App {
 
   return initializeApp({
     credential: cert(serviceAccount),
-    databaseURL: "https://sheetmaster-woo4-3652307-f6517-default-rtdb.firebaseio.com/"
+    databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL
   });
 }
 
