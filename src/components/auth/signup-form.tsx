@@ -48,6 +48,7 @@ export function SignupForm() {
           email: userCredential.user.email,
           displayName: userCredential.user.email?.split('@')[0], // Default display name
           photoURL: `https://placehold.co/100x100.png?text=${userCredential.user.email?.[0]?.toUpperCase() || 'U'}`, // Default photo
+          role: 'user', // Explicitly set role for the action
         });
 
         if (!profileCreationResult.success) {
@@ -56,6 +57,7 @@ export function SignupForm() {
         }
       }
       // onAuthStateChanged in AppContentWrapper will handle redirect to dashboard
+      // or the pending verification page.
       router.push('/');
     } catch (error: any) {
       setIsLoading(false); // Set loading to false immediately upon catching an error.

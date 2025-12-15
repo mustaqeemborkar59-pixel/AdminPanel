@@ -6,11 +6,13 @@ import { rtdb } from '@/lib/firebase';
 import { ref, set, get, update } from 'firebase/database';
 import type { UserProfile } from '@/types';
 
+// Extended UserProfileData to include role for creation
 interface UserProfileData {
   uid: string;
   email: string | null;
   displayName?: string | null;
   photoURL?: string | null;
+  role?: 'admin' | 'vendor' | 'user';
 }
 
 interface CompanyDetails {
@@ -20,12 +22,21 @@ interface CompanyDetails {
     email: string;
 }
 
-// This server action is a wrapper but the core logic is now removed.
-// It can be kept for future use or removed if no DB interaction on signup is needed.
 export async function createRTDBUserProfileOnSignup(details: UserProfileData): Promise<{ success: boolean; message?: string }> {
+  if (!rtdb) {
+    return { success: false, message: "Realtime Database is not configured." };
+  }
   try {
-    // Database logic removed
-    console.log("User profile creation trigger. No database action taken.");
+    const userRef = ref(rtdb, `users/${details.uid}`);
+    // Explicitly set the role to 'user' for every new signup
+    const userProfile: UserProfile = {
+      uid: details.uid,
+      email: details.email || 'No email',
+      displayName: details.displayName || 'New User',
+      photoURL: details.photoURL || '',
+      role: 'user', // Default role
+    };
+    await set(userRef, userProfile);
     return { success: true };
   } catch (error: any) {
     console.error('Profile Creation Error on Signup:', error);
@@ -33,11 +44,45 @@ export async function createRTDBUserProfileOnSignup(details: UserProfileData): P
   }
 }
 
-// This server action is a wrapper but the core logic is now removed.
+// This action is to fetch a single user's profile, which we'll need for role checking
+export async function getRTDBUserProfile(uid: string): Promise<{ success: boolean; data?: UserProfile; message?: string }> {
+    if (!rtdb) {
+        return { success: false, message: "Realtime Database is not configured." };
+    }
+    try {
+        const userRef = ref(rtdb, `users/${uid}`);
+        const snapshot = await get(userRef);
+        if (snapshot.exists()) {
+            return { success: true, data: snapshot.val() as UserProfile };
+        }
+        return { success: false, message: "User profile not found." };
+    } catch (error: any) {
+        console.error('Failed to get user profile from RTDB:', error);
+        return { success: false, message: error.message || 'Failed to fetch user profile.' };
+    }
+}
+
+
 export async function updateRTDBUserProfileOnLogin(details: UserProfileData): Promise<{ success: boolean; message?: string }> {
+  if (!rtdb) {
+    return { success: false, message: "Realtime Database is not configured." };
+  }
   try {
-    // Database logic removed
-    console.log("User profile update trigger. No database action taken.");
+    // This function can update details like photoURL or displayName on login if they've changed
+    const userRef = ref(rtdb, `users/${details.uid}`);
+    const snapshot = await get(userRef);
+    if(snapshot.exists()) {
+      const updates: Partial<UserProfile> = {};
+      if(details.displayName && details.displayName !== snapshot.val().displayName) {
+        updates.displayName = details.displayName;
+      }
+       if(details.photoURL && details.photoURL !== snapshot.val().photoURL) {
+        updates.photoURL = details.photoURL;
+      }
+      if(Object.keys(updates).length > 0) {
+        await update(userRef, updates);
+      }
+    }
     return { success: true };
   } catch (error: any) {
     console.error('Profile Update Error on Login:', error);
