@@ -1,0 +1,476 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the system, including customers and staff.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The user's full name."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "The user's phone number."
+        },
+        "role": {
+          "type": "string",
+          "description": "The user's role within the system (e.g., admin, staff, customer)."
+        },
+        "addresses": {
+          "type": "array",
+          "description": "An array of addresses associated with the user.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email",
+        "role"
+      ]
+    },
+    "Order": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Order",
+      "type": "object",
+      "description": "Represents a customer order.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the order entity."
+        },
+        "customerId": {
+          "type": "string",
+          "description": "Reference to the Customer who placed the order. (Relationship: Customer 1:N Order)"
+        },
+        "items": {
+          "type": "array",
+          "description": "An array of items included in the order.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the order (e.g., placed, preparing, ready, delivered)."
+        },
+        "orderType": {
+          "type": "string",
+          "description": "The type of order (e.g., dine-in, takeaway, delivery)."
+        },
+        "tableNumber": {
+          "type": "number",
+          "description": "The table number for dine-in orders."
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "The total amount of the order."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The timestamp of when the order was placed.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "customerId",
+        "status",
+        "orderType",
+        "totalAmount",
+        "timestamp"
+      ]
+    },
+    "MenuItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "MenuItem",
+      "type": "object",
+      "description": "Represents an item on the restaurant's menu.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the menu item entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the menu item."
+        },
+        "category": {
+          "type": "string",
+          "description": "The category of the menu item (e.g., Starters, Mains, Drinks)."
+        },
+        "price": {
+          "type": "number",
+          "description": "The price of the menu item."
+        },
+        "imageURL": {
+          "type": "string",
+          "description": "URL of the menu item's image.",
+          "format": "uri"
+        },
+        "availability": {
+          "type": "boolean",
+          "description": "Indicates whether the menu item is currently available."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "category",
+        "price",
+        "availability"
+      ]
+    },
+    "InventoryItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "InventoryItem",
+      "type": "object",
+      "description": "Represents an item in the restaurant's inventory.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the inventory item entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the inventory item."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The current quantity of the inventory item."
+        },
+        "unit": {
+          "type": "string",
+          "description": "The unit of measurement for the inventory item (e.g., kg, liter)."
+        },
+        "alertLevel": {
+          "type": "number",
+          "description": "The stock level at which an alert should be triggered."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "quantity",
+        "unit",
+        "alertLevel"
+      ]
+    },
+    "Bill": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Bill",
+      "type": "object",
+      "description": "Represents a bill generated for an order.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the bill entity."
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Reference to the Order associated with this bill. (Relationship: Order 1:1 Bill)"
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "The total amount of the bill."
+        },
+        "tax": {
+          "type": "number",
+          "description": "The amount of tax included in the bill."
+        },
+        "discount": {
+          "type": "number",
+          "description": "The amount of discount applied to the bill."
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "The method of payment used for the bill (e.g., Cash, Card, UPI, Online)."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The timestamp of when the bill was generated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "orderId",
+        "totalAmount",
+        "paymentMethod",
+        "timestamp"
+      ]
+    },
+    "Reservation": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Reservation",
+      "type": "object",
+      "description": "Represents a table reservation.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the reservation entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the person who made the reservation."
+        },
+        "phone": {
+          "type": "string",
+          "description": "The phone number of the person who made the reservation."
+        },
+        "tableNumber": {
+          "type": "number",
+          "description": "The table number reserved."
+        },
+        "date": {
+          "type": "string",
+          "description": "The date of the reservation.",
+          "format": "date-time"
+        },
+        "time": {
+          "type": "string",
+          "description": "The time of the reservation."
+        },
+        "guests": {
+          "type": "number",
+          "description": "The number of guests for the reservation."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "phone",
+        "tableNumber",
+        "date",
+        "time",
+        "guests"
+      ]
+    },
+    "Staff": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Staff",
+      "type": "object",
+      "description": "Represents a staff member.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the staff entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the staff member."
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the staff member."
+        },
+        "shiftTimes": {
+          "type": "array",
+          "description": "An array of shift times for the staff member.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "clockInHistory": {
+          "type": "array",
+          "description": "An array of clock-in history entries for the staff member.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "role"
+      ]
+    },
+    "Notification": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Notification",
+      "type": "object",
+      "description": "Represents a notification.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the notification entity."
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of notification."
+        },
+        "message": {
+          "type": "string",
+          "description": "The message of the notification."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "The timestamp of when the notification was created.",
+          "format": "date-time"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who this notification is for. (Relationship: User 1:N Notification)"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "message",
+        "createdAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user data. Includes denormalized 'role' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": {
+            "$ref": "#/backend/entities/Order"
+          },
+          "description": "Stores order data. Associated with a user via 'customerId'.",
+          "params": [
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the order."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/menu/{menuItemId}",
+        "definition": {
+          "entityName": "MenuItem",
+          "schema": {
+            "$ref": "#/backend/entities/MenuItem"
+          },
+          "description": "Stores menu item data.",
+          "params": [
+            {
+              "name": "menuItemId",
+              "description": "The unique identifier for the menu item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/inventory/{inventoryItemId}",
+        "definition": {
+          "entityName": "InventoryItem",
+          "schema": {
+            "$ref": "#/backend/entities/InventoryItem"
+          },
+          "description": "Stores inventory item data.",
+          "params": [
+            {
+              "name": "inventoryItemId",
+              "description": "The unique identifier for the inventory item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/bills/{billId}",
+        "definition": {
+          "entityName": "Bill",
+          "schema": {
+            "$ref": "#/backend/entities/Bill"
+          },
+          "description": "Stores bill data. Associated with an order via 'orderId'.",
+          "params": [
+            {
+              "name": "billId",
+              "description": "The unique identifier for the bill."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/reservations/{reservationId}",
+        "definition": {
+          "entityName": "Reservation",
+          "schema": {
+            "$ref": "#/backend/entities/Reservation"
+          },
+          "description": "Stores reservation data.",
+          "params": [
+            {
+              "name": "reservationId",
+              "description": "The unique identifier for the reservation."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/staff/{staffId}",
+        "definition": {
+          "entityName": "Staff",
+          "schema": {
+            "$ref": "#/backend/entities/Staff"
+          },
+          "description": "Stores staff data.",
+          "params": [
+            {
+              "name": "staffId",
+              "description": "The unique identifier for the staff member."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/notifications/{notificationId}",
+        "definition": {
+          "entityName": "Notification",
+          "schema": {
+            "$ref": "#/backend/entities/Notification"
+          },
+          "description": "Stores notification data. Associated with a user via 'userId'.",
+          "params": [
+            {
+              "name": "notificationId",
+              "description": "The unique identifier for the notification."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to support the restaurant management web app, prioritizing authorization independence, clarity, and scalability. User data is stored under `/users/{userId}`, enabling path-based ownership. Orders are stored in `/orders/{orderId}` and linked to users via the `customerId` field. Menu items are stored in `/menu/{menuItemId}`, inventory items in `/inventory/{inventoryItemId}`, bills in `/bills/{billId}`, reservations in `/reservations/{reservationId}`, staff in `/staff/{staffId}`, and notifications in `/notifications/{notificationId}`. Each collection is structured to ensure homogeneous security posture. The structure enables secure `list` operations and prevents rules from being filters by storing data with similar access control requirements in the same collections. Denormalization, specifically of user roles if access to certain collections needed to be role based (admin, staff) into those collections, would further promote Authorization Independence."
+  }
+}
