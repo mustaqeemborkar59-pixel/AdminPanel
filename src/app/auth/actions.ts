@@ -16,7 +16,6 @@ function initializeAdminApp(): App {
   }
 
   // This is the robust way to initialize using a service account from environment variables.
-  // It correctly parses the private key without manual replacement.
   const serviceAccount = {
       type: "service_account",
       project_id: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
@@ -27,7 +26,7 @@ function initializeAdminApp(): App {
       auth_uri: "https://accounts.google.com/o/oauth2/auth",
       token_uri: "https://oauth2.googleapis.com/token",
       auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
-      client_x5_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL
+      client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL
   }
 
   if (!serviceAccount.project_id || !serviceAccount.client_email || !serviceAccount.private_key) {
@@ -269,5 +268,3 @@ export async function deleteVendorFromRTDB(vendorId: string): Promise<{ success:
         return { success: false, error: error.message || 'Failed to delete vendor.' };
     }
 }
-
-    
