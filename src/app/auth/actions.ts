@@ -15,10 +15,14 @@ function initializeAdminApp(): App {
     return apps[0];
   }
 
+  // The serviceAccount object is constructed from environment variables.
+  // The private_key is the most critical part, requiring newline characters to be correctly formatted.
   const serviceAccount = {
       type: "service_account",
       project_id: process.env.FIREBASE_PROJECT_ID,
       private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+      // 🔥 THE FIX: The Private Key string MUST have escaped \n characters
+      //    replaced with actual newline characters (\n) for the cert() function to parse it.
       private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
       client_email: process.env.FIREBASE_CLIENT_EMAIL,
       client_id: process.env.FIREBASE_CLIENT_ID,
@@ -28,10 +32,12 @@ function initializeAdminApp(): App {
       client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL
   }
 
+  // A check to ensure all necessary parts of the service account are present.
   if (!serviceAccount.project_id || !serviceAccount.client_email || !serviceAccount.private_key) {
       throw new Error("Firebase Admin credentials are not set correctly in the environment variables.");
   }
 
+  // Initialize the app with the correctly formatted credentials and the database URL.
   return initializeApp({
     credential: cert(serviceAccount),
     databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL
