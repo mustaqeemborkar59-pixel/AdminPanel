@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { getFirestore } from 'firebase-admin/firestore';
 import { initializeApp, getApps, App, cert } from 'firebase-admin/app';
 import { getAuth as getAdminAuth } from 'firebase-admin/auth';
-import { getDatabase } from 'firebase-admin/database'; // Using Admin SDK for RTDB
+import { getDatabase } from 'firebase-admin/database';
 import type { UserProfile, CompanyDetails, Vendor } from '@/types';
 
 // Server-side initialization for Firebase Admin SDK
