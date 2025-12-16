@@ -2,7 +2,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
-import { getAllUsers, updateUserRole, getVendorsFromRTDB } from '@/app/auth/actions'; // Using Firestore actions
+import { getAllUsers, updateUserRole, getVendorsFromFirestore } from '@/app/auth/actions'; // Using Firestore actions
 import type { UserProfile, Vendor } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ShieldCheck, Store, User, Lock, Crown } from 'lucide-react';
@@ -52,14 +52,14 @@ export default function AdminsPage() {
           });
         }
 
-        const vendorsResult = await getVendorsFromRTDB();
+        const vendorsResult = await getVendorsFromFirestore();
         if (vendorsResult.success && vendorsResult.data) {
           setVendors(vendorsResult.data);
         } else {
            toast({
             variant: "destructive",
             title: "Failed to load vendors",
-            description: vendorsResult.message || "Could not fetch vendors.",
+            description: vendorsResult.error || "Could not fetch vendors.",
           });
         }
 

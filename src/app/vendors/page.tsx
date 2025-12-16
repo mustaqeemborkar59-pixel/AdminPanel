@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/page-header';
 import type { Vendor } from '@/types';
 import { VendorsTable } from '@/components/vendors/vendors-table';
 import { AddVendorDialog } from '@/components/vendors/add-vendor-dialog';
-import { getVendorsFromRTDB, saveVendorToRTDB, deleteVendorFromRTDB } from '@/app/auth/actions';
+import { getVendorsFromFirestore, saveVendorToFirestore, deleteVendorFromFirestore } from '@/app/auth/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -17,7 +17,7 @@ export default function VendorsPage() {
   useEffect(() => {
     const fetchVendors = async () => {
       setIsLoading(true);
-      const result = await getVendorsFromRTDB();
+      const result = await getVendorsFromFirestore();
       if (result.success && result.data) {
         setVendors(result.data);
       } else if (!result.success) {
@@ -33,14 +33,14 @@ export default function VendorsPage() {
   }, [toast]);
 
   const refreshVendors = async () => {
-    const result = await getVendorsFromRTDB();
+    const result = await getVendorsFromFirestore();
     if (result.success && result.data) {
       setVendors(result.data);
     }
   }
 
   const handleAddVendor = async (newVendorData: Omit<Vendor, 'id'>) => {
-    const result = await saveVendorToRTDB(newVendorData);
+    const result = await saveVendorToFirestore(newVendorData);
     if (result.success) {
       toast({ title: "Vendor Added", description: `${newVendorData.name} has been added.` });
       await refreshVendors();
@@ -50,7 +50,10 @@ export default function VendorsPage() {
   };
 
   const handleEditVendor = async (updatedVendor: Vendor) => {
-    const result = await saveVendorToRTDB(updatedVendor, updatedVendor.id);
+    // Firestore's update will work with the full Vendor object, but we pass the ID separately
+    // to the server action to identify the document.
+    const { id, ...vendorData } = updatedVendor;
+    const result = await saveVendorToFirestore(vendorData, id);
      if (result.success) {
       toast({ title: "Vendor Updated", description: `${updatedVendor.name} has been updated.` });
       await refreshVendors();
@@ -60,7 +63,7 @@ export default function VendorsPage() {
   };
 
   const handleDeleteVendor = async (vendorId: string) => {
-    const result = await deleteVendorFromRTDB(vendorId);
+    const result = await deleteVendorFromFirestore(vendorId);
     if (result.success) {
       toast({ title: "Vendor Deleted", description: "The vendor has been removed." });
       await refreshVendors();

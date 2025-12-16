@@ -19,7 +19,7 @@ import {
   DropdownMenuPortal
 } from "@/components/ui/dropdown-menu";
 import { getOrdersFromWooCommerce, updateOrderStatusInWooCommerce } from './actions';
-import { getCompanyDetailsFromRTDB, getVendorsFromRTDB } from '@/app/auth/actions';
+import { getCompanyDetailsFromRTDB, getVendorsFromFirestore } from '@/app/auth/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Search, ListFilter, Download, FileDown, FileText, FileSpreadsheet, Calendar as CalendarIcon, Building } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -90,7 +90,7 @@ export default function OrdersPage() {
     const fetchInitialData = async () => {
       setIsLoading(true);
 
-      const vendorsResult = await getVendorsFromRTDB();
+      const vendorsResult = await getVendorsFromFirestore();
       if(vendorsResult.success && vendorsResult.data) {
         setAllVendors(vendorsResult.data);
         const newVendorMap = new Map(vendorsResult.data.map(v => [v.code, v.name]));
@@ -710,3 +710,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    

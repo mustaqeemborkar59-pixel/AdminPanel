@@ -15,12 +15,10 @@ function initializeAdminApp(): App {
     return apps[0];
   }
 
-  // Use the full service account object directly. This is the most reliable method.
   const serviceAccount = {
     "type": "service_account",
     "project_id": "sheetmaster-woo4-3652307-f6517",
     "private_key_id": "a0db644cb948706d89c40d6f98654459a2681c49",
-    // The private key is now directly in the code, correctly formatted.
     "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDSavxwFm0FlZS1\nX133N6x1bxIGgSKj+xKs9z/CdApPxqR1lxNWxkM/r6za7XOsLADZ40+0p+KVAc6w\nSIAShJyZlxDNyEpFQNK7IUKgcg/hB+DPZrifyHXQ+32f22+v/7+Hy3HAkY9mKI1x\nTg3nZcVgKP9LnogV1EtD2b7rj6f9UbfOzOcpDGUJS4DhUMvoXEmCiczaq84pDjyL\nOJx3aNOfEtlexEISIuCU+FCOIp7s18C1Xcd81KqMh3V2WSaZ3gkcozCR5w95D4Gl\nN02OocXasmJsjEhGstV6bAkcmSLTdGF47OM2lGUcC1u7NMDj/1XYAXk3mVargL6r\njrcy+upJAgMBAAECggEAL86S8DyIJJ6pnNPAG60Qh9XmeIfagPtIcPf0CpAmz51I\nPFdI04xUNyII2ezdPR76Sob00wzZ1BUHCtJOFub+VX8XGEoLZdSmjFGwO5fut6f8\nkeK6y8LV0ddx4WIP7CLlN0sn2yK3O/S2vimHyy06PPDToDCyppMHTrEoSYjoGAuR\na+2AkePutu60iasWXQCkT4kj0PejSAMVmrrqRRwkmqRXfJ9M5XTgrDNEha5o6wgv\nxr3ZoQk6qQp+7OPGSXksk+zdg/P8MbnyYQsVNV5xz7Ls6UziBpUb2o5q5RbzYsmJ\nlZ6grNoIIX8wexCuuL2bUMdLjS5gCcvF/SnS1GOfqQKBgQDzaVM1pC/d4X3Yg51m\nSnZG2l7L6DMmJPQ3snXUSJImyJJ7kjIAmcCJHuVNQkhE2RpdWl+B8AGRDks81P+c\nqJWbM/hMjhvkH7Yv4aQ90kQrnJxPbSxWHWTZxNbyyrC7upXLI2zs/b/6DiRrOXjP\nC9s2bTDjnekYK6IwVu6e1l6pIwKBgQDdTNbnaVgq8/6QHimuuAOgyvDwD+FbGgiF\n96ocQUvmdFlWLu9G2xML5dQBmFg6EuVC6fl8WGgHQ59a7FUeBPXwCf8lDt/VHXs4\nv6nsagSyGoTakSw94yxP9aNMPrBhbZRXsrccbufup9uO6pcEso1XY+SOgj0iiog3\nu1aLckPzowKBgCTxuIJswCMiJXKmT06GQLtyS28ReCny8+o8OOwWc7BVQv5kaxhy\nPanSOaVnSQbCGOFQZSyYm/RDQiIihgVmBQcAdVBRRWRzd7h+u+nyLwybgZIAlPkh\nDvyKhsFlCDwGDtQ9NTwnK2stmFN57p8mQohZPFFf11Am10AVAbSz/rwXAoGANJbM\nAxYfo6Vz+x+P3DtScWWIuCOt9A5NtDhUrn494TgI+tgQeJAbCJrHNNHVNYfD/5DG\nfuwrXH6PYfYDjCy1nSNjBJVyT5y/6Y5yfQH8t65hn+cb0mEn6KCA+99x3tVBiU2p\nAhLA/w/Yty+8T5t2xyuv5sXAbXLqSAQ23tB6oW0CgYAtzTtjUCuy7k2uW/AdwVh4\nEKQHI11frMgCZrNBvKx/YLGkfP0uHhkykvUPY+GaaB1VWbDZjOK2raJ4V8pR9WAC\n3LJF5/tHZXfuq+Rd8w1YezPpEbC+aGUFV4z/W6SIaQLeUlB2HRFzG8h1t6Okn3m8\nsrWMg0vW515DTuUJfEr6AQ==\n-----END PRIVATE KEY-----\n",
     "client_email": "firebase-adminsdk-fbsvc@sheetmaster-woo4-3652307-f6517.iam.gserviceaccount.com",
     "client_id": "109409820100882232028",
@@ -30,7 +28,6 @@ function initializeAdminApp(): App {
     "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40sheetmaster-woo4-3652307-f6517.iam.gserviceaccount.com"
   };
 
-  // Initialize the app with the correctly formatted credentials and the database URL.
   return initializeApp({
     credential: cert(serviceAccount),
     databaseURL: "https://sheetmaster-woo4-3652307-f6517-default-rtdb.firebaseio.com"
@@ -40,7 +37,7 @@ function initializeAdminApp(): App {
 function getAdminServices(app: App) {
   const firestore = getFirestore(app);
   const auth = getAdminAuth(app);
-  const rtdb = getDatabase(app); // Get RTDB instance from Admin SDK
+  const rtdb = getDatabase(app);
   return { firestore, auth, rtdb };
 }
 
@@ -207,62 +204,59 @@ export async function getCompanyDetailsFromRTDB(): Promise<{ success: boolean; d
     }
 }
 
-export async function saveVendorToRTDB(vendorData: Omit<Vendor, 'id'>, vendorId?: string): Promise<{ success: boolean; error?: string }> {
+// --- Firestore Vendor Actions ---
+
+export async function saveVendorToFirestore(vendorData: Omit<Vendor, 'id'>, vendorId?: string): Promise<{ success: boolean; error?: string }> {
     const adminApp = initializeAdminApp();
-    const { rtdb } = getAdminServices(adminApp);
+    const { firestore } = getAdminServices(adminApp);
     try {
-        const vendorsRef = rtdb.ref('vendors');
         let vendorRef;
-
         if (vendorId) {
-            vendorRef = vendorsRef.child(vendorId);
+            vendorRef = firestore.collection('vendors').doc(vendorId);
+            await vendorRef.update(vendorData);
         } else {
-            vendorRef = vendorsRef.push();
+            vendorRef = firestore.collection('vendors').doc();
+            await vendorRef.set({ ...vendorData, id: vendorRef.id });
         }
-        
-        await vendorRef.set(vendorData);
         return { success: true };
-
     } catch (error: any) {
-        console.error('Failed to save vendor to RTDB (Admin):', error);
+        console.error('Failed to save vendor to Firestore (Admin):', error);
         return { success: false, error: error.message || 'Failed to save vendor.' };
     }
 }
 
-export async function getVendorsFromRTDB(): Promise<{ success: boolean; data?: Vendor[], error?: string }> {
+export async function getVendorsFromFirestore(): Promise<{ success: boolean; data?: Vendor[], error?: string }> {
     const adminApp = initializeAdminApp();
-    const { rtdb } = getAdminServices(adminApp);
+    const { firestore } = getAdminServices(adminApp);
     try {
-        const vendorsRef = rtdb.ref('vendors');
-        const snapshot = await vendorsRef.once('value');
+        const vendorsRef = firestore.collection('vendors');
+        const snapshot = await vendorsRef.get();
 
-        if (snapshot.exists()) {
-            const vendorsData = snapshot.val();
-            const vendorsArray = Object.keys(vendorsData).map(id => ({
-                id,
-                ...vendorsData[id]
-            }));
+        if (!snapshot.empty) {
+            const vendorsArray = snapshot.docs.map(doc => doc.data() as Vendor);
             return { success: true, data: vendorsArray };
         }
         
         return { success: true, data: [] };
 
     } catch (error: any) {
-        console.error('Failed to get vendors from RTDB (Admin):', error);
+        console.error('Failed to get vendors from Firestore (Admin):', error);
         return { success: false, error: error.message || 'Failed to fetch vendors.' };
     }
 }
 
-export async function deleteVendorFromRTDB(vendorId: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteVendorFromFirestore(vendorId: string): Promise<{ success: boolean; error?: string }> {
     const adminApp = initializeAdminApp();
-    const { rtdb } = getAdminServices(adminApp);
+    const { firestore } = getAdminServices(adminApp);
     try {
-        const vendorRef = rtdb.ref(`vendors/${vendorId}`);
-        await vendorRef.remove();
+        const vendorRef = firestore.collection('vendors').doc(vendorId);
+        await vendorRef.delete();
         return { success: true };
 
     } catch (error: any) {
-        console.error('Failed to delete vendor from RTDB (Admin):', error);
+        console.error('Failed to delete vendor from Firestore (Admin):', error);
         return { success: false, error: error.message || 'Failed to delete vendor.' };
     }
 }
+
+    

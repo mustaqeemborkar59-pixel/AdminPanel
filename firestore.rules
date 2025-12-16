@@ -81,8 +81,14 @@ service cloud.firestore {
      */
     function isStaffOrAdmin() {
       let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
-      return isSignedIn() && (userDoc.data.role == 'staff' || userDoc.data.role == 'admin');
+      return isSignedIn() && (userDoc.data.role == 'staff' || userDoc.data.role == 'admin' || userDoc.data.role == 'super-admin');
     }
+    
+    function isSuperAdmin() {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return isSignedIn() && userDoc.data.role == 'super-admin';
+    }
+
 
     // ----------------------------------------------------------------------
     // Collection Rules
@@ -97,11 +103,11 @@ service cloud.firestore {
      * @principle Restricts access to a user's own data tree and allows self-creation of a profile.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
+      allow get: if isOwner(userId) || isSuperAdmin(); // Super admin can get any user profile
+      allow list: if isSuperAdmin(); // Only super admin can list users
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      allow update: if isOwner(userId) || isSuperAdmin(); // Owner or super admin can update
+      allow delete: if isOwner(userId) || isSuperAdmin(); // Owner or super admin can delete
     }
 
     /**
@@ -130,9 +136,9 @@ service cloud.firestore {
     match /menu/{menuItemId} {
       allow get: if true;
       allow list: if true;
-      allow create: if isAdmin();
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
+      allow create: if isStaffOrAdmin();
+      allow update: if isStaffOrAdmin();
+      allow delete: if isStaffOrAdmin();
     }
 
     /**
@@ -193,9 +199,9 @@ service cloud.firestore {
     match /staff/{staffId} {
       allow get: if isStaffOrAdmin();
       allow list: if isStaffOrAdmin();
-      allow create: if isAdmin();
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
+      allow create: if isStaffOrAdmin();
+      allow update: if isStaffOrAdmin();
+      allow delete: if isStaffOrAdmin();
     }
 
     /**
@@ -209,9 +215,25 @@ service cloud.firestore {
     match /notifications/{notificationId} {
       allow get: if resource.data.userId == request.auth.uid;
       allow list: if false;
-      allow create: if isAdmin();
+      allow create: if isStaffOrAdmin();
       allow update: if resource.data.userId == request.auth.uid;
       allow delete: if resource.data.userId == request.auth.uid;
     }
+    
+    /**
+     * @description Manages product vendors. Readable by authenticated users for dropdowns,
+     *              but writable only by admins and super-admins.
+     * @path /vendors/{vendorId}
+     * @principle Secures vendor management to administrative roles.
+     */
+    match /vendors/{vendorId} {
+        allow get: if isSignedIn();
+        allow list: if isSignedIn();
+        allow create: if isStaffOrAdmin();
+        allow update: if isStaffOrAdmin();
+        allow delete: if isStaffOrAdmin();
+    }
   }
 }
+
+    

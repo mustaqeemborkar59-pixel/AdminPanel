@@ -338,6 +338,31 @@
         "message",
         "createdAt"
       ]
+    },
+    "Vendor": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Vendor",
+      "type": "object",
+      "description": "Represents a product vendor.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the vendor entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the vendor."
+        },
+        "code": {
+          "type": "string",
+          "description": "A unique code for the vendor."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "code"
+      ]
     }
   },
   "auth": {
@@ -475,8 +500,26 @@
             }
           ]
         }
+      },
+       {
+        "path": "/vendors/{vendorId}",
+        "definition": {
+          "entityName": "Vendor",
+          "schema": {
+            "$ref": "#/backend/entities/Vendor"
+          },
+          "description": "Stores vendor data.",
+          "params": [
+            {
+              "name": "vendorId",
+              "description": "The unique identifier for the vendor."
+            }
+          ]
+        }
       }
     ],
-    "reasoning": "The Firestore structure is designed to support the restaurant management web app, prioritizing authorization independence, clarity, and scalability. User data is stored under `/users/{userId}`, enabling path-based ownership. Orders are stored in `/orders/{orderId}` and linked to users via the `customerId` field. Menu items are stored in `/menu/{menuItemId}`, inventory items in `/inventory/{inventoryItemId}`, bills in `/bills/{billId}`, reservations in `/reservations/{reservationId}`, staff in `/staff/{staffId}`, and notifications in `/notifications/{notificationId}`. Each collection is structured to ensure homogeneous security posture. The structure enables secure `list` operations and prevents rules from being filters by storing data with similar access control requirements in the same collections. Denormalization, specifically of user roles if access to certain collections needed to be role based (admin, staff) into those collections, would further promote Authorization Independence."
+    "reasoning": "The Firestore structure is designed to support the restaurant management web app, prioritizing authorization independence, clarity, and scalability. User data is stored under `/users/{userId}`, enabling path-based ownership. Orders are stored in `/orders/{orderId}` and linked to users via the `customerId` field. Menu items are stored in `/menu/{menuItemId}`, inventory items in `/inventory/{inventoryItemId}`, bills in `/bills/{billId}`, reservations in `/reservations/{reservationId}`, staff in `/staff/{staffId}`, notifications in `/notifications/{notificationId}`, and vendors in `/vendors/{vendorId}`. Each collection is structured to ensure homogeneous security posture. The structure enables secure `list` operations and prevents rules from being filters by storing data with similar access control requirements in the same collections. Denormalization, specifically of user roles if access to certain collections needed to be role based (admin, staff) into those collections, would further promote Authorization Independence."
   }
 }
+
+    
