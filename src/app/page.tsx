@@ -7,9 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { DollarSign, Users, ShoppingBag, Activity, UsersRound, Package, ChevronDown, Loader2, Calendar as CalendarIcon, CheckCircle, Clock, PackageSearch, Truck, XCircle, Archive, Loader } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label, LabelList } from 'recharts';
-import type { Order, StaffMember, OrderStatus, OrderType, MenuItem } from '@/types';
+import type { Order, StaffMember, OrderStatus, OrderType, MenuItem, Vendor } from '@/types';
 import { cn } from '@/lib/utils';
 import { getOrdersFromWooCommerce } from '@/app/orders/actions';
+import { getVendorsFromFirestore } from '@/app/auth/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -50,6 +51,7 @@ function DashboardContent() {
   const { toast } = useToast();
   const { user, userProfile } = useAppContext(); // Get user and profile
   const [orders, setOrders] = useState<Order[]>([]);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [totalSales, setTotalSales] = useState(0);
@@ -67,24 +69,46 @@ function DashboardContent() {
 
   const isSuperAdmin = user?.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
   const isVendor = !isSuperAdmin && userProfile?.role === 'vendor';
-  const vendorName = isVendor ? userProfile?.vendorCode : 'Shop';
+  
+  const vendorDisplayName = useMemo(() => {
+    if (!isVendor || !userProfile?.vendorCode) return 'Shop';
+    const vendorDetails = vendors.find(v => v.code === userProfile.vendorCode);
+    return vendorDetails?.name || userProfile.vendorCode; // Fallback to code if name not found
+  }, [isVendor, userProfile, vendors]);
+
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchDashboardData = async () => {
       setIsLoading(true);
-      const result = await getOrdersFromWooCommerce();
-      if (result.success && result.data) {
-        setOrders(result.data);
+
+      const [ordersResult, vendorsResult] = await Promise.all([
+        getOrdersFromWooCommerce(),
+        getVendorsFromFirestore()
+      ]);
+
+      if (ordersResult.success && ordersResult.data) {
+        setOrders(ordersResult.data);
       } else {
         toast({
           variant: "destructive",
           title: "Failed to load dashboard data",
-          description: result.error || "Could not fetch order data from WooCommerce.",
+          description: ordersResult.error || "Could not fetch order data from WooCommerce.",
         });
       }
+
+      if (vendorsResult.success && vendorsResult.data) {
+        setVendors(vendorsResult.data);
+      } else {
+         toast({
+          variant: "destructive",
+          title: "Failed to load vendor data",
+          description: vendorsResult.error || "Could not fetch vendors.",
+        });
+      }
+
       setIsLoading(false);
     };
-    fetchOrders();
+    fetchDashboardData();
   }, [toast]);
   
   const vendorFilteredOrders = useMemo(() => {
@@ -216,7 +240,7 @@ function DashboardContent() {
 
   return (
     <div className="flex flex-col h-full">
-      <PageHeader title={isVendor ? `${vendorName} Dashboard` : "Shop Dashboard"} description="Comprehensive overview of your online store's operations and performance." />
+      <PageHeader title={isVendor ? `${vendorDisplayName} Dashboard` : "Shop Dashboard"} description="Comprehensive overview of your online store's operations and performance." />
       <div className="flex-1 p-4 md:p-6 space-y-6 overflow-auto">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatsCard title="Total Sale" value={`₹${totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={gradientStyles[0]} />
