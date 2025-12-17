@@ -669,6 +669,7 @@ export default function OrdersPage() {
                   isSelected={selectedOrderIds.has(order.id)}
                   onToggleSelect={toggleSelectOrder}
                   formatDate={formatDateInIST}
+                  userRole={userRole}
                 />
               ))}
             </Accordion>
@@ -710,5 +711,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    

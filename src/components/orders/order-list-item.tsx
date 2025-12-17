@@ -1,7 +1,7 @@
 
 "use client";
 import React, { useState } from 'react';
-import { type Order, type OrderStatus, type UpdateOrderAddressPayload } from '@/types';
+import { type Order, type OrderStatus, type UpdateOrderAddressPayload, UserProfile } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -35,6 +35,7 @@ interface OrderListItemProps {
   isSelected: boolean;
   onToggleSelect: (orderId: string) => void;
   formatDate: (date: string | Date) => string;
+  userRole: UserProfile['role'] | undefined;
 }
 
 const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; label: string }> = {
@@ -49,7 +50,7 @@ const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; 
 };
 
 
-export function OrderListItem({ order, onUpdateStatus, value, isSelected, onToggleSelect, formatDate }: OrderListItemProps) {
+export function OrderListItem({ order, onUpdateStatus, value, isSelected, onToggleSelect, formatDate, userRole }: OrderListItemProps) {
   const { toast } = useToast();
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   
@@ -73,6 +74,7 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
     setBillingAddress(prev => ({ ...prev, [name]: value }));
   };
 
+  const isVendor = userRole === 'vendor';
   const currentStatusInfo = statusInfo[order.status] || statusInfo.pending;
   const StatusIcon = currentStatusInfo.icon;
   const displayAddress = (order.shippingAddress && order.shippingAddress.trim() !== ',') ? order.shippingAddress : order.billingAddress;
@@ -162,11 +164,16 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
 
                     <div className="flex-1">
                         <p className="text-xs text-muted-foreground font-body mb-1">Status</p>
-                         <Select value={order.status} onValueChange={(value) => onUpdateStatus(order.id, value as OrderStatus)}>
+                         <Select 
+                            value={order.status} 
+                            onValueChange={(value) => onUpdateStatus(order.id, value as OrderStatus)}
+                            disabled={isVendor}
+                         >
                             <SelectTrigger className={cn(
                                 "w-full sm:w-[140px] font-body text-xs h-9 capitalize text-white font-semibold",
                                 currentStatusInfo.color,
-                                'border-transparent' // Make border transparent
+                                'border-transparent',
+                                isVendor && 'cursor-not-allowed opacity-70'
                             )}>
                                 <div className="flex items-center gap-1.5">
                                     <StatusIcon className="h-3 w-3" />
