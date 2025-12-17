@@ -5,9 +5,12 @@ export function Logo() {
   return (
     <Link
       href="/"
-      className="flex items-center text-xl font-semibold font-headline text-primary hover:text-primary/90 transition-colors"
+      className="flex items-center text-xl font-semibold font-headline hover:text-primary/90 transition-colors"
     >
-      <span className="font-bold text-foreground whitespace-nowrap">Yasir Sofware Solutions</span>
+      <span className="whitespace-nowrap">
+        <span className="text-foreground">Yasir Sofware </span>
+        <span className="text-primary">Solutions</span>
+      </span>
     </Link>
   );
 }
