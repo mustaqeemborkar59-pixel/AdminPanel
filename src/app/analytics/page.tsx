@@ -50,43 +50,49 @@ export default function AnalyticsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUsersAndPresence = async () => {
+    let isMounted = true;
+    const fetchUsersAndListen = async () => {
+      if (!isMounted) return;
       setIsLoading(true);
-      
-      // 1. Fetch all user profiles from Firestore
+
       const usersResult = await getAllUsers();
       if (!usersResult.success || !usersResult.data) {
         console.error("Failed to fetch users");
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
         return;
       }
       const initialUsers: EnrichedUser[] = usersResult.data;
 
-      // 2. Set up a listener for the entire /status node in RTDB
       if (rtdb) {
         const statusRef = ref(rtdb, 'status');
-        onValue(statusRef, (snapshot) => {
+        const unsubscribe = onValue(statusRef, (snapshot) => {
+          if (!isMounted) return;
           const presenceData = snapshot.val() as Record<string, UserPresence> | null;
           
-          // 3. Enrich user profiles with presence data
           const enrichedUsers = initialUsers.map(user => {
             const userPresence = presenceData ? presenceData[user.uid] : undefined;
             return { ...user, presence: userPresence };
           });
           
           setUsers(enrichedUsers);
+          setIsLoading(false); // Set loading to false inside the listener
         });
+
+        // Cleanup listener on component unmount
+        return () => {
+            unsubscribe();
+        }
+      } else {
+         if (isMounted) setIsLoading(false); // Stop loading if RTDB is not available
       }
-
-      setIsLoading(false);
     };
-
-    if (rtdb) {
-      fetchUsersAndPresence();
+    
+    fetchUsersAndListen();
+    
+    return () => {
+        isMounted = false;
     }
     
-    // The `onValue` listener will keep the data updated.
-    // The listener is automatically removed by Firebase when the component unmounts.
   }, [rtdb]);
 
   const getStatusBadge = (user: EnrichedUser) => {
