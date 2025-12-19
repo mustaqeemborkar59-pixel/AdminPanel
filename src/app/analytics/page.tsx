@@ -50,50 +50,64 @@ export default function AnalyticsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Only proceed if the rtdb instance is available.
+    if (!rtdb) {
+      // If RTDB is not ready, we are not loading data yet.
+      // But if it stays unavailable, we should stop the loader eventually.
+      // For now, we wait. A timeout could be added here for robustness.
+      return;
+    }
+
     let isMounted = true;
+    let initialUsers: EnrichedUser[] = [];
+    
     const fetchUsersAndListen = async () => {
       if (!isMounted) return;
       setIsLoading(true);
 
+      // 1. Fetch static user profiles from Firestore
       const usersResult = await getAllUsers();
       if (!usersResult.success || !usersResult.data) {
         console.error("Failed to fetch users");
         if (isMounted) setIsLoading(false);
         return;
       }
-      const initialUsers: EnrichedUser[] = usersResult.data;
+      initialUsers = usersResult.data;
 
-      if (rtdb) {
-        const statusRef = ref(rtdb, 'status');
-        const unsubscribe = onValue(statusRef, (snapshot) => {
-          if (!isMounted) return;
-          const presenceData = snapshot.val() as Record<string, UserPresence> | null;
-          
-          const enrichedUsers = initialUsers.map(user => {
-            const userPresence = presenceData ? presenceData[user.uid] : undefined;
-            return { ...user, presence: userPresence };
-          });
-          
-          setUsers(enrichedUsers);
-          setIsLoading(false); // Set loading to false inside the listener
+      // 2. Set up a real-time listener for presence data from RTDB
+      const statusRef = ref(rtdb, 'status');
+      const unsubscribe = onValue(statusRef, (snapshot) => {
+        if (!isMounted) return;
+        const presenceData = snapshot.val() as Record<string, UserPresence> | null;
+        
+        // 3. Enrich Firestore user data with RTDB presence data
+        const enrichedUsers = initialUsers.map(user => {
+          const userPresence = presenceData ? presenceData[user.uid] : undefined;
+          return { ...user, presence: userPresence };
         });
+        
+        setUsers(enrichedUsers);
+        setIsLoading(false); // IMPORTANT: Stop loading only after the first data snapshot is processed.
+      }, (error) => {
+        // Handle potential errors from the listener itself
+        console.error("Error listening to presence data:", error);
+        if (isMounted) setIsLoading(false);
+      });
 
-        // Cleanup listener on component unmount
-        return () => {
-            unsubscribe();
-        }
-      } else {
-         if (isMounted) setIsLoading(false); // Stop loading if RTDB is not available
-      }
+      // Cleanup listener on component unmount
+      return () => {
+        unsubscribe();
+      };
     };
     
-    fetchUsersAndListen();
+    const cleanupPromise = fetchUsersAndListen();
     
     return () => {
         isMounted = false;
-    }
+        cleanupPromise.then(cleanup => cleanup && cleanup());
+    };
     
-  }, [rtdb]);
+  }, [rtdb]); // Rerun the effect if the rtdb instance changes.
 
   const getStatusBadge = (user: EnrichedUser) => {
     if (user.presence?.state === 'online') {
