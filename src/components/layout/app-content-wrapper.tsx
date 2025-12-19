@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, type ReactNode, createContext, useContext } from 'react';
@@ -72,7 +73,7 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
 
         // Add this device to my connections list
         // this is a reference to the specific connection
-        const con = set(userStatusRef, {
+        set(userStatusRef, {
             state: 'online',
             last_seen: serverTimestamp(),
         });

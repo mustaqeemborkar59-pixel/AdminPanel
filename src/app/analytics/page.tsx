@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -80,8 +81,10 @@ export default function AnalyticsPage() {
       setIsLoading(false);
     };
 
-    fetchUsersAndPresence();
-
+    if (rtdb) {
+      fetchUsersAndPresence();
+    }
+    
     // The `onValue` listener will keep the data updated.
     // The listener is automatically removed by Firebase when the component unmounts.
   }, [rtdb]);
@@ -114,7 +117,7 @@ export default function AnalyticsPage() {
             return (b.presence?.last_seen || 0) - (a.presence?.last_seen || 0);
         }
         // If both online, sort by name
-        return a.displayName.localeCompare(b.displayName);
+        return (a.displayName || '').localeCompare(b.displayName || '');
      });
   }, [users]);
 
