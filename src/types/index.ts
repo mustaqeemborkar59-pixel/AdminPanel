@@ -72,6 +72,8 @@ export interface StaffMember {
   role: string;
   shift?: string; // e.g., "9 AM - 5 PM"
   status?: 'on-duty' | 'off-duty' | 'on-leave';
+  lastSeen?: string; // e.g., "Online" or "2 hours ago"
+  timeSpent?: string; // e.g., "8h 15m"
 }
 
 export interface DailySpecialSuggestion {
@@ -101,6 +103,8 @@ export interface UserProfile {
   photoURL?: string;
   role: 'admin' | 'vendor' | 'user' | 'super-admin'; // Role is now mandatory
   vendorCode?: string | null; // Associated vendor code
+  lastSeen?: string;
+  timeSpent?: number; // Total time in seconds
 }
 
 export interface Vendor {

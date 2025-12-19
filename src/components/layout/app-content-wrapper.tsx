@@ -1,10 +1,9 @@
-
 "use client";
 
 import React, { useState, useEffect, type ReactNode, createContext, useContext } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { type User } from 'firebase/auth';
-import { useUser } from '@/firebase';
+import { useUser, useFirebase } from '@/firebase';
 import { getUserProfile, updateUserRole, createUserProfile } from '@/app/auth/actions';
 import type { UserProfile } from '@/types';
 import { Loader2 } from 'lucide-react';
@@ -12,6 +11,8 @@ import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar'
 import { AppSidebarNav } from '@/components/layout/app-sidebar-nav';
 import { Header } from '@/components/layout/header';
 import { useToast } from '@/hooks/use-toast';
+import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp, goOffline, goOnline, increment } from "firebase/database";
+
 
 interface AppContextType {
   user: User | null;
@@ -37,6 +38,7 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   const router = useRouter();
   const { toast } = useToast();
   const { user, isUserLoading: authLoading, userError } = useUser();
+  const { rtdb } = useFirebase();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
@@ -44,6 +46,68 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   const isPendingPage = pathname === '/pending-verification';
   
   const loading = authLoading || profileLoading;
+
+  // Effect for managing user presence in Realtime Database
+  useEffect(() => {
+    if (!user || !rtdb) {
+      return;
+    }
+    
+    const uid = user.uid;
+    const db = rtdb;
+    const userStatusRef = ref(db, `/status/${uid}`);
+    const timeSpentRef = ref(db, `/status/${uid}/time_spent`);
+
+    // We'll create a reference to the special '.info/connected' path in 
+    // Realtime Database that tells us if we're connected.
+    const connectedRef = ref(db, '.info/connected');
+
+    let sessionStartTime: number | null = null;
+
+    const unsubscribe = onValue(connectedRef, (snap) => {
+      if (snap.val() === true) {
+        // We're connected.
+        // Set a start time for the session
+        sessionStartTime = Date.now();
+
+        // Add this device to my connections list
+        // this is a reference to the specific connection
+        const con = set(userStatusRef, {
+            state: 'online',
+            last_seen: serverTimestamp(),
+        });
+
+        // When I disconnect, remove this device
+        onDisconnect(userStatusRef).set({
+            state: 'offline',
+            last_seen: serverTimestamp(),
+            // Increment time_spent on disconnect
+            time_spent: increment(Math.floor((Date.now() - (sessionStartTime || Date.now())) / 1000))
+        });
+      }
+    });
+
+    // Set up an interval to update time spent every minute
+    const intervalId = setInterval(() => {
+        if(sessionStartTime){
+            const secondsSpent = Math.floor((Date.now() - sessionStartTime) / 1000);
+            set(timeSpentRef, increment(secondsSpent));
+            // Reset start time after updating
+            sessionStartTime = Date.now();
+        }
+    }, 60000); // 60 seconds
+
+    return () => {
+      // Clean up on component unmount or user change
+      clearInterval(intervalId);
+      if (sessionStartTime) { // If there's an active session, update one last time
+         const secondsSpent = Math.floor((Date.now() - sessionStartTime) / 1000);
+         set(timeSpentRef, increment(secondsSpent));
+      }
+      goOffline(db); // Disconnect from RTDB
+      unsubscribe();
+    };
+  }, [user, rtdb]);
 
   useEffect(() => {
     const syncUserProfile = async (currentUser: User) => {

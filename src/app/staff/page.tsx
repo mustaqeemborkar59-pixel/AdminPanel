@@ -1,72 +1,52 @@
-
 "use client";
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
-import { Button } from '@/components/ui/button';
-import { UserPlus, CalendarDays } from 'lucide-react';
-import { type StaffMember } from '@/types';
-import { StaffScheduleTable } from '@/components/staff/staff-schedule-table';
-import { AddStaffMemberDialog } from '@/components/staff/add-staff-member-dialog';
-
-const initialStaff: StaffMember[] = [
-  { id: 'STAFF001', name: 'John Doe', role: 'Chef', shift: '9 AM - 5 PM', status: 'on-duty' },
-  { id: 'STAFF002', name: 'Jane Smith', role: 'Waiter', shift: '12 PM - 8 PM', status: 'on-duty' },
-  { id: 'STAFF003', name: 'Mike Brown', role: 'Delivery Driver', shift: '10 AM - 6 PM', status: 'off-duty' },
-  { id: 'STAFF004', name: 'Emily White', role: 'Manager', shift: '8 AM - 4 PM', status: 'on-leave' },
-];
+import { UserPlus, Loader2 } from 'lucide-react';
+import type { UserProfile } from '@/types';
+import { StaffTable } from '@/components/staff/staff-table';
+import { getAllUsers } from '@/app/auth/actions';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function StaffPage() {
-  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
-  const [isMounted, setIsMounted] = useState(false);
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    setIsMounted(true);
-    setStaffMembers(initialStaff);
-  }, []);
+    const fetchUsers = async () => {
+      setIsLoading(true);
+      const result = await getAllUsers();
+      if (result.success && result.data) {
+        setUsers(result.data);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Failed to load users",
+          description: result.message || "Could not fetch user data.",
+        });
+      }
+      setIsLoading(false);
+    };
 
-  const handleAddStaff = (newStaff: Omit<StaffMember, 'id'>) => {
-    setStaffMembers(prev => [...prev, { ...newStaff, id: `STAFF${String(Date.now()).slice(-4)}` }]);
-  };
-
-  const handleEditStaff = (updatedStaff: StaffMember) => {
-     setStaffMembers(prev => prev.map(s => s.id === updatedStaff.id ? updatedStaff : s));
-  };
-
-  const handleDeleteStaff = (staffId: string) => {
-    setStaffMembers(prev => prev.filter(s => s.id !== staffId));
-  };
-
-  if (!isMounted) {
-    return null; // Or a loading spinner
-  }
+    fetchUsers();
+  }, [toast]);
 
 
   return (
     <div className="flex flex-col h-full">
       <PageHeader
         title="Staff Management"
-        description="Manage staff schedules, roles, and attendance."
-        actions={
-            <AddStaffMemberDialog onAddStaff={handleAddStaff} />
-        }
+        description="View all users in the system. Manage roles in the Admins section."
       />
       <div className="flex-1 p-4 md:p-6 space-y-6 overflow-auto">
-        {/* Placeholder for more advanced scheduling UI */}
-        {/* <Card>
-          <CardHeader>
-            <CardTitle className="font-headline flex items-center"><CalendarDays className="mr-2 h-5 w-5 text-primary"/> Weekly Schedule</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="font-body text-muted-foreground">Full scheduling calendar and shift management interface will be here.</p>
-          </CardContent>
-        </Card> */}
-        
-        <StaffScheduleTable 
-            staffMembers={staffMembers} 
-            onEditStaff={handleEditStaff} 
-            onDeleteStaff={handleDeleteStaff}
-        />
+        {isLoading ? (
+            <div className="flex justify-center items-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        ) : (
+            <StaffTable users={users} />
+        )}
       </div>
     </div>
   );
