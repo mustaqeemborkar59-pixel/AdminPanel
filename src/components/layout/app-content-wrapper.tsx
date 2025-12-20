@@ -61,8 +61,7 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     const connectedRef = ref(db, '.info/connected');
 
     let sessionStartTime: number | null = null;
-    let timeUpdateInterval: NodeJS.Timeout;
-
+    
     const unsubscribe = onValue(connectedRef, (snap) => {
       if (snap.val() === true) {
         sessionStartTime = Date.now();
@@ -71,36 +70,20 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
         update(userStatusRef, {
             state: 'online',
             last_seen: serverTimestamp(),
-        });
+        }).catch(err => console.error("Failed to set user online:", err));
 
+        // When the client disconnects, update their status and time_spent
         onDisconnect(userStatusRef).update({
             state: 'offline',
             last_seen: serverTimestamp(),
-            // Use increment to add the session duration to the existing time_spent
+            // CRITICAL FIX: Calculate duration and pass it to increment
             time_spent: increment(Math.floor((Date.now() - (sessionStartTime || Date.now())) / 1000))
-        });
+        }).catch(err => console.error("Failed to set onDisconnect handler:", err));
         
-        // Periodically update time_spent while online
-        timeUpdateInterval = setInterval(() => {
-           if(sessionStartTime) {
-             const currentSessionDuration = Math.floor((Date.now() - sessionStartTime) / 1000);
-             update(userStatusRef, {
-                time_spent: increment(currentSessionDuration)
-             });
-             sessionStartTime = Date.now(); // Reset start time for the next interval
-           }
-        }, 60000); // every 60 seconds
-
       }
     });
 
     return () => {
-      clearInterval(timeUpdateInterval);
-      if (sessionStartTime) { // Update one last time on cleanup
-         const finalSessionDuration = Math.floor((Date.now() - sessionStartTime) / 1000);
-         update(userStatusRef, { time_spent: increment(finalSessionDuration) });
-      }
-      goOffline(db);
       unsubscribe();
     };
   }, [user, rtdb]);
