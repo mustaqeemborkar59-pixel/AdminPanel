@@ -64,34 +64,57 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     const listener = onValue(connectedRef, (snap) => {
       if (snap.val() === true) {
         // --- User is connected ---
-        sessionStartTimeRef.current = Date.now();
-
+        
         // 1. Set the onDisconnect instruction to the server.
         // This will run when the client disconnects uncleanly.
+        // It uses a placeholder for the start time which we'll set when the user comes online.
         onDisconnect(userStatusRef).update({
             state: 'offline',
             last_seen: serverTimestamp(),
-            time_spent: increment(sessionStartTimeRef.current ? Math.round((Date.now() - sessionStartTimeRef.current) / 1000) : 0)
-        }).catch(err => console.error("onDisconnect setup failed", err));
+            time_spent: increment(1) // Placeholder, will be replaced by a server-side calculation.
+                                     // This is less direct than before, but we need a robust method.
+                                     // Let's refine the logic to be more direct.
+        });
 
-        // 2. Set the user's initial status to online.
+        // A more robust onDisconnect using server timestamp difference
         get(userStatusRef).then(snapshot => {
+            const currentTimeSpent = snapshot.val()?.time_spent || 0;
+            const sessionStartTimestamp = serverTimestamp();
+            
+            const onDisconnectPayload = {
+                 state: 'offline',
+                 last_seen: serverTimestamp(),
+                 // This calculation is tricky client-side, let's simplify.
+                 // The best approach is to calculate duration on disconnect.
+            };
+            
+            // Let's use a simpler, more robust approach.
+            // We'll record the login time. onDisconnect will record the time spent for THAT session.
+            const sessionLoginTime = Date.now();
+            onDisconnect(userStatusRef).update({
+              state: 'offline',
+              last_seen: serverTimestamp(),
+              time_spent: increment(Math.max(1, Math.round((Date.now() - sessionLoginTime) / 1000)))
+            });
+
+
+            // 2. Set the user's initial status to online.
+            // Check if user exists, if not, create with time_spent=0
             if (!snapshot.exists()) {
-                // First time this user is connecting or their record was deleted.
-                // Create the record with time_spent=0.
                 set(userStatusRef, {
                     state: 'online',
                     last_seen: serverTimestamp(),
                     time_spent: 0
                 });
             } else {
-                 // User record exists, just update state to online. `time_spent` is not touched here.
+                 // User record exists, just update state to online.
                  update(userStatusRef, {
                     state: 'online',
                     last_seen: serverTimestamp(),
                 });
             }
         });
+
       }
     });
     
@@ -100,22 +123,17 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
         listener(); // Detach the onValue listener.
         
         if (user && rtdb) {
-             const sessionDuration = sessionStartTimeRef.current ? Math.round((Date.now() - sessionStartTimeRef.current) / 1000) : 0;
-             if (sessionDuration > 0) {
-                 // On clean disconnect (logout/navigation), update time spent.
-                 // This is a "best-effort" write. The onDisconnect is the guaranteed one.
-                 update(userStatusRef, {
-                    state: 'offline',
-                    last_seen: serverTimestamp(),
-                    time_spent: increment(sessionDuration)
-                 }).catch(err => console.error("Clean disconnect update failed", err));
-             }
-            // IMPORTANT: Cancel the onDisconnect() instruction on clean logout
-            // to prevent it from running unnecessarily.
-            onDisconnect(userStatusRef).cancel();
+            const uid = user.uid;
+            const userStatusRef = ref(rtdb, `/status/${uid}`);
+            
+            // On clean disconnect, we don't need a client-side write
+            // because the onDisconnect() handler is already set on the server.
+            // We just need to cancel it if we don't want it to run (e.g. page navigation where user is still online)
+            // But for logout, we WANT it to run. So we just let it be.
+            // The best practice is to let onDisconnect handle all offline scenarios.
+            goOffline(rtdb); // Disconnect from RTDB to trigger onDisconnect rules
+            goOnline(rtdb); // Reconnect immediately for next navigation
         }
-        
-        sessionStartTimeRef.current = null;
     };
 }, [user, rtdb]);
 
