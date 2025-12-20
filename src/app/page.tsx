@@ -249,17 +249,27 @@ function DashboardContent() {
     );
   }
 
+  const allStatsCards = [
+    <StatsCard key="sales" title="Total Sale" value={`₹${totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[0], "flex-grow basis-full md:basis-1/2 lg:basis-1/4")} />,
+    <StatsCard key="orders" title="Total Orders" value={totalOrders.toString()} icon={<ShoppingBag className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[1], "flex-grow basis-full md:basis-1/2 lg:basis-1/4")} />,
+    <StatsCard key="customers" title="New Customers" value={newCustomers.toLocaleString()} icon={<Users className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[3], "flex-grow basis-full md:basis-1/2 lg:basis-1/4")} />,
+  ];
+
+  if (isSuperAdmin) {
+    allStatsCards.push(
+      <StatsCard key="admins" title="Admins" value={adminCount.toString()} icon={<ShieldCheck className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[2], "flex-grow basis-full md:basis-1/2 lg:basis-1/4")} />,
+      <StatsCard key="vendors" title="Vendors" value={vendorCount.toString()} icon={<Store className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[1], "flex-grow basis-full md:basis-1/2 lg:basis-1/4")} />,
+      <StatsCard key="super-admins" title="Super Admins" value={superAdminCount.toString()} icon={<Crown className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[0], "flex-grow basis-full md:basis-1/2 lg:basis-1/4")} />
+    );
+  }
+
+
   return (
     <div className="flex flex-col h-full">
       <PageHeader title={isVendor ? `${vendorDisplayName} Dashboard` : "Shop Dashboard"} description="Comprehensive overview of your online store's operations and performance." />
       <div className="flex-1 p-4 md:p-6 space-y-6 overflow-auto">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatsCard title="Total Sale" value={`₹${totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={gradientStyles[0]} />
-          <StatsCard title="Total Orders" value={totalOrders.toString()} icon={<ShoppingBag className="h-5 w-5 text-white/70" />} className={gradientStyles[1]} />
-          <StatsCard title="New Customers" value={newCustomers.toLocaleString()} icon={<Users className="h-5 w-5 text-white/70" />} className={gradientStyles[3]} />
-          {isSuperAdmin && <StatsCard title="Admins" value={adminCount.toString()} icon={<ShieldCheck className="h-5 w-5 text-white/70" />} className={gradientStyles[2]} />}
-          {isSuperAdmin && <StatsCard title="Vendors" value={vendorCount.toString()} icon={<Store className="h-5 w-5 text-white/70" />} className={gradientStyles[1]} />}
-          {isSuperAdmin && <StatsCard title="Super Admins" value={superAdminCount.toString()} icon={<Crown className="h-5 w-5 text-white/70" />} className={gradientStyles[0]} />}
+        <div className="flex flex-wrap gap-4">
+          {allStatsCards}
         </div>
 
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-5">
@@ -395,3 +405,6 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
+
+
+    
