@@ -1,36 +1,75 @@
+
 "use client";
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
-import { UserPlus, Loader2 } from 'lucide-react';
+import { Loader2, Lock } from 'lucide-react';
 import type { UserProfile } from '@/types';
 import { StaffTable } from '@/components/staff/staff-table';
 import { getAllUsers } from '@/app/auth/actions';
 import { useToast } from '@/hooks/use-toast';
+import { useAppContext } from '@/components/layout/app-content-wrapper';
 
 
 export default function StaffPage() {
+  const { userProfile, authLoading } = useAppContext();
   const [users, setUsers] = useState<UserProfile[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      setIsLoading(true);
-      const result = await getAllUsers();
-      if (result.success && result.data) {
-        setUsers(result.data);
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Failed to load users",
-          description: result.message || "Could not fetch user data.",
-        });
-      }
-      setIsLoading(false);
-    };
+  const isSuperAdmin = userProfile?.role === 'super-admin';
 
-    fetchUsers();
-  }, [toast]);
+  useEffect(() => {
+    if (!authLoading && isSuperAdmin) {
+      const fetchUsers = async () => {
+        setDataLoading(true);
+        const result = await getAllUsers();
+        if (result.success && result.data) {
+          setUsers(result.data);
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Failed to load users",
+            description: result.message || "Could not fetch user data.",
+          });
+        }
+        setDataLoading(false);
+      };
+
+      fetchUsers();
+    } else if (!authLoading && !isSuperAdmin) {
+      setDataLoading(false);
+    }
+  }, [authLoading, isSuperAdmin, toast]);
+  
+  if (authLoading) {
+    return (
+      <div className="flex flex-col h-full">
+        <PageHeader
+          title="Staff Management"
+          description="View all users in the system. Manage roles in the Admins section."
+        />
+        <div className="flex-1 flex justify-center items-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!isSuperAdmin) {
+    return (
+      <div className="flex flex-col h-full">
+        <PageHeader
+          title="Staff Management"
+          description="View all users in the system. Manage roles in the Admins section."
+        />
+        <div className="flex-1 flex flex-col justify-center items-center text-center p-4">
+            <Lock className="h-16 w-16 text-destructive mb-4" />
+            <h2 className="text-2xl font-bold text-destructive">Access Denied</h2>
+            <p className="text-muted-foreground mt-2">Only Super Admins can access this page.</p>
+        </div>
+      </div>
+    );
+  }
 
 
   return (
@@ -40,7 +79,7 @@ export default function StaffPage() {
         description="View all users in the system. Manage roles in the Admins section."
       />
       <div className="flex-1 p-4 md:p-6 space-y-6 overflow-auto">
-        {isLoading ? (
+        {dataLoading ? (
             <div className="flex justify-center items-center h-full">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>

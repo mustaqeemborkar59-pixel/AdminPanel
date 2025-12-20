@@ -7,7 +7,7 @@ import { getAllUsers } from '@/app/auth/actions';
 import { getDatabase, ref, onValue } from 'firebase/database';
 import type { UserProfile } from '@/types';
 import { useFirebase } from '@/firebase';
-import { Loader2, User, UserCheck, UserX } from 'lucide-react';
+import { Loader2, User, UserCheck, UserX, Lock } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -20,6 +20,7 @@ import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow, fromUnixTime } from 'date-fns';
+import { useAppContext } from '@/components/layout/app-content-wrapper';
 
 interface UserPresence {
   state: 'online' | 'offline';
@@ -46,62 +47,58 @@ const formatTimeSpent = (seconds: number): string => {
 
 export default function AnalyticsPage() {
   const { rtdb } = useFirebase(); // Use hook to get RTDB instance
+  const { userProfile, authLoading } = useAppContext();
   const [users, setUsers] = useState<EnrichedUser[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
+
+  const isSuperAdmin = userProfile?.role === 'super-admin';
+  const isLoading = dataLoading || authLoading;
 
   useEffect(() => {
-    if (!rtdb) {
-      // Don't start loading if rtdb is not available yet.
-      // The effect will re-run when it becomes available.
-      return;
+    if (!rtdb || !isSuperAdmin || authLoading) {
+        if (!authLoading) setDataLoading(false);
+        return;
     }
 
     let isMounted = true;
     
     const fetchAndListen = async () => {
-      // 1. Set loading state to true right before we start fetching.
       if (isMounted) {
-        setIsLoading(true);
+        setDataLoading(true);
       }
 
-      // 2. Fetch the static list of users from Firestore.
       const usersResult = await getAllUsers();
       if (!isMounted) return;
 
       if (!usersResult.success || !usersResult.data) {
         console.error("Failed to fetch users from Firestore.");
-        setIsLoading(false);
+        setDataLoading(false);
         return;
       }
       
       const initialUsers = usersResult.data;
 
-      // 3. Set up the real-time listener for presence data from RTDB.
       const statusRef = ref(rtdb, 'status');
       const unsubscribe = onValue(statusRef, (snapshot) => {
         if (!isMounted) return;
         
         const presenceData = snapshot.val() as Record<string, UserPresence> | null;
         
-        // 4. Combine the static user list with the live presence data.
         const enrichedUsers = initialUsers.map(user => {
           const userPresence = presenceData ? presenceData[user.uid] : undefined;
           return { ...user, presence: userPresence };
         });
         
         setUsers(enrichedUsers);
-        
-        // 5. IMPORTANT: Set loading to false *after* the first batch of data is processed.
-        setIsLoading(false);
+        setDataLoading(false);
 
       }, (error) => {
         console.error("Error listening to presence data:", error);
         if (isMounted) {
-          setIsLoading(false);
+          setDataLoading(false);
         }
       });
 
-      // Return a cleanup function for the listener.
       return () => {
         unsubscribe();
       };
@@ -109,10 +106,8 @@ export default function AnalyticsPage() {
 
     const cleanupPromise = fetchAndListen();
 
-    // The main cleanup function for the useEffect hook.
     return () => {
       isMounted = false;
-      // When the component unmounts, we ensure the listener is detached.
       cleanupPromise.then(cleanup => {
         if (cleanup) {
           cleanup();
@@ -120,7 +115,7 @@ export default function AnalyticsPage() {
       });
     };
     
-  }, [rtdb]); // This effect depends only on the rtdb instance.
+  }, [rtdb, isSuperAdmin, authLoading]);
 
   const getStatusBadge = (user: EnrichedUser) => {
     if (user.presence?.state === 'online') {
@@ -153,6 +148,36 @@ export default function AnalyticsPage() {
         return (a.displayName || '').localeCompare(b.displayName || '');
      });
   }, [users]);
+  
+  if (isLoading && !isSuperAdmin) {
+    return (
+         <div className="flex flex-col h-full">
+            <PageHeader
+                title="User Analytics"
+                description="Track user presence, last seen status, and time spent in the application."
+            />
+            <div className="flex-1 flex justify-center items-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        </div>
+    );
+  }
+
+  if (!isSuperAdmin) {
+    return (
+      <div className="flex flex-col h-full">
+        <PageHeader
+          title="User Analytics"
+          description="Track user presence, last seen status, and time spent in the application."
+        />
+        <div className="flex-1 flex flex-col justify-center items-center text-center p-4">
+            <Lock className="h-16 w-16 text-destructive mb-4" />
+            <h2 className="text-2xl font-bold text-destructive">Access Denied</h2>
+            <p className="text-muted-foreground mt-2">Only Super Admins can access this page.</p>
+        </div>
+      </div>
+    );
+  }
 
 
   return (
