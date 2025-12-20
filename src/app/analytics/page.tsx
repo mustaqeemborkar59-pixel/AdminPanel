@@ -14,6 +14,8 @@ import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow, fromUnixTime } from 'date-fns';
 import { useAppContext } from '@/components/layout/app-content-wrapper';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
+
 
 interface UserPresence {
   state: 'online' | 'offline';
@@ -86,6 +88,9 @@ export default function AnalyticsPage() {
         }
       
         const initialUsers = usersResult.data;
+        // Initially set users without presence data
+        setUsers(initialUsers);
+
         const statusRef = ref(rtdb, 'status');
 
         const unsubscribe = onValue(statusRef, (snapshot) => {
@@ -93,12 +98,11 @@ export default function AnalyticsPage() {
             
             const presenceData = snapshot.val() as Record<string, UserPresence> | null;
             
-            const enrichedUsers = initialUsers.map(user => {
-                const userPresence = presenceData ? presenceData[user.uid] : undefined;
-                return { ...user, presence: userPresence };
-            });
+            setUsers(currentUsers => currentUsers.map(user => {
+                 const userPresence = presenceData ? presenceData[user.uid] : undefined;
+                 return { ...user, presence: userPresence };
+            }));
             
-            setUsers(enrichedUsers);
             setDataLoading(false);
 
         }, (error) => {
@@ -175,8 +179,29 @@ export default function AnalyticsPage() {
       />
       <div className="flex-1 p-4 md:p-6 overflow-auto">
         {isLoading ? (
-          <div className="flex justify-center items-center h-full">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {Array.from({ length: 8 }).map((_, index) => (
+                <Card key={index} className="flex flex-col shadow-lg">
+                  <CardHeader className="flex flex-col items-center text-center p-4">
+                      <Skeleton className="h-20 w-20 rounded-full" />
+                      <Skeleton className="h-6 w-32 mt-3" />
+                      <Skeleton className="h-4 w-40 mt-1" />
+                      <Skeleton className="h-5 w-20 mt-2" />
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0 flex-grow flex flex-col justify-end">
+                      <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-4 w-12" />
+                          </div>
+                           <div className="flex items-center justify-between">
+                               <Skeleton className="h-4 w-20" />
+                               <Skeleton className="h-4 w-16" />
+                          </div>
+                      </div>
+                  </CardContent>
+                </Card>
+            ))}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -217,7 +242,7 @@ export default function AnalyticsPage() {
                             </span>
                             <span className="font-semibold text-foreground">
                                 {user.presence?.state === 'online'
-                                ? 'Now'
+                                ? <span className="text-green-500">Online</span>
                                 : user.presence?.last_seen
                                 ? `${formatDistanceToNow(fromUnixTime(user.presence.last_seen / 1000), { addSuffix: true })}`
                                 : 'Never'}
