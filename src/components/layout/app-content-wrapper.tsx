@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, type ReactNode, createContext, useContext } from 'react';
+import React, { useState, useEffect, type ReactNode, createContext, useContext, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { type User } from 'firebase/auth';
 import { useUser, useFirebase } from '@/firebase';
@@ -12,7 +12,7 @@ import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar'
 import { AppSidebarNav } from '@/components/layout/app-sidebar-nav';
 import { Header } from '@/components/layout/header';
 import { useToast } from '@/hooks/use-toast';
-import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp, goOffline, goOnline, increment, update, get } from "firebase/database";
+import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp, goOffline, goOnline, increment, update, get, setWithPriority, type DatabaseReference } from "firebase/database";
 
 
 interface AppContextType {
@@ -47,6 +47,9 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   const isPendingPage = pathname === '/pending-verification';
   
   const loading = authLoading || profileLoading;
+  
+  const sessionStartTimeRef = useRef<number | null>(null);
+
 
   // Effect for managing user presence in Realtime Database
   useEffect(() => {
@@ -57,61 +60,49 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     const uid = user.uid;
     const userStatusRef = ref(rtdb, `/status/${uid}`);
     const connectedRef = ref(rtdb, '.info/connected');
-    
-    let sessionStartTime: number | null = null;
-    
-    const unsubscribe = onValue(connectedRef, (snap) => {
-      if (snap.val() === false) {
-        if (sessionStartTime) {
-          const sessionDuration = Math.round((Date.now() - sessionStartTime) / 1000);
-          update(userStatusRef, {
-            time_spent: increment(sessionDuration)
-          });
-          sessionStartTime = null;
-        }
-        return;
-      }
 
-      sessionStartTime = Date.now();
-
-      const onDisconnectRef = onDisconnect(userStatusRef);
-      const sessionDurationOnDisconnect = sessionStartTime ? Math.round((Date.now() - sessionStartTime) / 1000) : 0;
-      
-      onDisconnectRef.update({
-        state: 'offline',
-        last_seen: serverTimestamp(),
-        time_spent: increment(sessionDurationOnDisconnect),
-      }).then(() => {
-        // Use get() to check for existence before setting
-        get(userStatusRef).then((snapshot) => {
-           if (!snapshot.exists()) {
-             // If node doesn't exist, create it with initial values
-             set(userStatusRef, {
-               state: 'online',
-               last_seen: serverTimestamp(),
-               time_spent: 0
-             });
-           } else {
-             // If it exists, just update the state
-             update(userStatusRef, {
-               state: 'online',
-               last_seen: serverTimestamp(),
-             });
-           }
+    const onConnect = (snap: any) => {
+      if (snap.val() === true) {
+        sessionStartTimeRef.current = Date.now();
+        
+        const onDisconnectRef = onDisconnect(userStatusRef);
+        onDisconnectRef.update({
+            state: 'offline',
+            last_seen: serverTimestamp(),
+            time_spent: increment(sessionStartTimeRef.current ? Math.round((Date.now() - sessionStartTimeRef.current) / 1000) : 0)
         });
-      });
-    });
 
+        get(userStatusRef).then(snapshot => {
+            if (!snapshot.exists()) {
+                set(userStatusRef, {
+                    state: 'online',
+                    last_seen: serverTimestamp(),
+                    time_spent: 0
+                });
+            } else {
+                 update(userStatusRef, {
+                    state: 'online',
+                    last_seen: serverTimestamp(),
+                });
+            }
+        });
+      }
+    };
+    
+    const listener = onValue(connectedRef, onConnect);
+    
     return () => {
-      unsubscribe();
-      if (sessionStartTime) {
-        const sessionDuration = Math.round((Date.now() - sessionStartTime) / 1000);
-        update(userStatusRef, {
-          state: 'offline',
-          last_seen: serverTimestamp(),
-          time_spent: increment(sessionDuration)
-        });
-      }
+        listener(); // Detach the listener
+        if (sessionStartTimeRef.current) {
+            const sessionDuration = Math.round((Date.now() - sessionStartTimeRef.current) / 1000);
+            update(userStatusRef, {
+                state: 'offline',
+                last_seen: serverTimestamp(),
+                time_spent: increment(sessionDuration)
+            });
+             onDisconnect(userStatusRef).cancel();
+        }
+        sessionStartTimeRef.current = null;
     };
 }, [user, rtdb]);
 
