@@ -51,7 +51,7 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   const sessionStartTimeRef = useRef<number | null>(null);
 
 
-  // Effect for managing user presence in Realtime Database - REWRITTEN FOR RELIABILITY
+  // --- Reliable WhatsApp-like Presence System ---
   useEffect(() => {
     if (!user || !rtdb) {
       return;
@@ -61,24 +61,23 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     const userStatusRef = ref(rtdb, `/status/${uid}`);
     const connectedRef = ref(rtdb, '.info/connected');
 
-    let unsubscribe: () => void;
-
     const listener = onValue(connectedRef, (snap) => {
       if (snap.val() === true) {
-        // We're connected.
+        // --- User is connected ---
         sessionStartTimeRef.current = Date.now();
 
-        // When I disconnect, update my status and last_seen time, and increment my total time spent.
+        // 1. Set the onDisconnect instruction to the server.
+        // This will run when the client disconnects uncleanly.
         onDisconnect(userStatusRef).update({
             state: 'offline',
             last_seen: serverTimestamp(),
             time_spent: increment(sessionStartTimeRef.current ? Math.round((Date.now() - sessionStartTimeRef.current) / 1000) : 0)
-        }).catch(err => console.error("onDisconnect update failed", err));
+        }).catch(err => console.error("onDisconnect setup failed", err));
 
-        // Get current data to decide whether to initialize or update
+        // 2. Set the user's initial status to online.
         get(userStatusRef).then(snapshot => {
             if (!snapshot.exists()) {
-                // This is the first time this user is connecting or their record was deleted.
+                // First time this user is connecting or their record was deleted.
                 // Create the record with time_spent=0.
                 set(userStatusRef, {
                     state: 'online',
@@ -96,30 +95,23 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
       }
     });
     
-    unsubscribe = () => {
-        listener(); // Detach the onValue listener for connection state.
-    };
-    
+    // --- Cleanup function ---
     return () => {
-        if(unsubscribe) {
-            unsubscribe();
-        }
+        listener(); // Detach the onValue listener.
         
         if (user && rtdb) {
              const sessionDuration = sessionStartTimeRef.current ? Math.round((Date.now() - sessionStartTimeRef.current) / 1000) : 0;
              if (sessionDuration > 0) {
-                 // Update time spent when navigating away or logging out cleanly
+                 // On clean disconnect (logout/navigation), update time spent.
+                 // This is a "best-effort" write. The onDisconnect is the guaranteed one.
                  update(userStatusRef, {
                     state: 'offline',
                     last_seen: serverTimestamp(),
                     time_spent: increment(sessionDuration)
                  }).catch(err => console.error("Clean disconnect update failed", err));
-             } else {
-                  update(userStatusRef, {
-                    state: 'offline',
-                    last_seen: serverTimestamp()
-                 }).catch(err => console.error("Clean disconnect update failed", err));
              }
+            // IMPORTANT: Cancel the onDisconnect() instruction on clean logout
+            // to prevent it from running unnecessarily.
             onDisconnect(userStatusRef).cancel();
         }
         
