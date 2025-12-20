@@ -5,26 +5,18 @@ import { useState, useEffect, ReactNode, Suspense, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { DollarSign, Users, ShoppingBag, Activity, UsersRound, Package, ChevronDown, Loader2, Calendar as CalendarIcon, CheckCircle, Clock, PackageSearch, Truck, XCircle, Archive, Loader } from 'lucide-react';
+import { DollarSign, Users, ShoppingBag, Activity, UsersRound, Package, ChevronDown, Loader2, Calendar as CalendarIcon, CheckCircle, Clock, PackageSearch, Truck, XCircle, Archive, Loader, ShieldCheck, Store, Crown } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label, LabelList } from 'recharts';
-import type { Order, StaffMember, OrderStatus, OrderType, MenuItem, Vendor } from '@/types';
+import type { Order, StaffMember, OrderStatus, OrderType, MenuItem, Vendor, UserProfile } from '@/types';
 import { cn } from '@/lib/utils';
 import { getOrdersFromWooCommerce } from '@/app/orders/actions';
-import { getVendorsFromFirestore } from '@/app/auth/actions';
+import { getVendorsFromFirestore, getAllUsers } from '@/app/auth/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format, eachDayOfInterval, startOfTomorrow } from 'date-fns';
 import type { DateRange } from "react-day-picker";
 import { useAppContext } from '@/components/layout/app-content-wrapper';
-
-// --- Initial Data (adapted for e-commerce) ---
-const initialStaffData: StaffMember[] = [
-    { id: 'STAFF001', name: 'John Doe', role: 'Fulfillment', shift: '9 AM - 5 PM', status: 'on-duty' },
-    { id: 'STAFF002', name: 'Jane Smith', role: 'Support', shift: '12 PM - 8 PM', status: 'on-duty' },
-    { id: 'STAFF003', name: 'Mike Brown', role: 'Marketing', shift: '10 AM - 6 PM', status: 'off-duty' },
-];
-// --- End Initial Data ---
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
@@ -52,11 +44,11 @@ function DashboardContent() {
   const { user, userProfile } = useAppContext(); // Get user and profile
   const [orders, setOrders] = useState<Order[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [totalSales, setTotalSales] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
-  const [activeStaffCount, setActiveStaffCount] = useState(0);
   const [newCustomers, setNewCustomers] = useState(0);
   const [weeklyOrderData, setWeeklyOrderData] = useState<{name: string, orders: number}[]>([]);
   const [salesDetailsData, setSalesDetailsData] = useState<{name: string, value: number, label: string, icon: React.ElementType, color: string}[]>([]);
@@ -67,9 +59,19 @@ function DashboardContent() {
     return { from: sixDaysAgo, to: today };
   });
 
-  const isSuperAdmin = user?.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
-  const isVendor = !isSuperAdmin && userProfile?.role === 'vendor';
+  const isSuperAdmin = userProfile?.role === 'super-admin';
+  const isVendor = userProfile?.role === 'vendor';
   
+  const { adminCount, vendorCount, superAdminCount } = useMemo(() => {
+    if (!isSuperAdmin) return { adminCount: 0, vendorCount: 0, superAdminCount: 0 };
+    return {
+      adminCount: allUsers.filter(u => u.role === 'admin').length,
+      vendorCount: allUsers.filter(u => u.role === 'vendor').length,
+      superAdminCount: allUsers.filter(u => u.role === 'super-admin').length,
+    };
+  }, [allUsers, isSuperAdmin]);
+
+
   const vendorDisplayName = useMemo(() => {
     if (!isVendor || !userProfile?.vendorCode) return 'Shop';
     const vendorDetails = vendors.find(v => v.code === userProfile.vendorCode);
@@ -81,10 +83,16 @@ function DashboardContent() {
     const fetchDashboardData = async () => {
       setIsLoading(true);
 
-      const [ordersResult, vendorsResult] = await Promise.all([
+      const promises = [
         getOrdersFromWooCommerce(),
         getVendorsFromFirestore()
-      ]);
+      ];
+
+      if (isSuperAdmin) {
+        promises.push(getAllUsers());
+      }
+      
+      const [ordersResult, vendorsResult, usersResult] = await Promise.all(promises);
 
       if (ordersResult.success && ordersResult.data) {
         setOrders(ordersResult.data);
@@ -106,10 +114,20 @@ function DashboardContent() {
         });
       }
 
+      if (usersResult && usersResult.success && usersResult.data) {
+        setAllUsers(usersResult.data);
+      } else if (usersResult && !usersResult.success) {
+        toast({
+          variant: "destructive",
+          title: "Failed to load user data",
+          description: usersResult.message || "Could not fetch users.",
+        });
+      }
+
       setIsLoading(false);
     };
     fetchDashboardData();
-  }, [toast]);
+  }, [toast, isSuperAdmin]);
   
   const vendorFilteredOrders = useMemo(() => {
     // If the user is super admin, always return all orders.
@@ -217,13 +235,6 @@ function DashboardContent() {
        setWeeklyOrderData(Array(7).fill(0).map((_, i) => ({ name: daysOfWeek[i], orders: 0 })));
        setSalesDetailsData([]);
     }
-
-    // Static data remains for now unless we implement vendor-specific staff
-    if (!isVendor) {
-      setActiveStaffCount(initialStaffData.filter(staff => staff.status === 'on-duty').length);
-    } else {
-       setActiveStaffCount(0); // Or fetch vendor-specific staff
-    }
   }, [vendorFilteredOrders, dateRange, isVendor]);
 
 
@@ -245,8 +256,10 @@ function DashboardContent() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatsCard title="Total Sale" value={`₹${totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={gradientStyles[0]} />
           <StatsCard title="Total Orders" value={totalOrders.toString()} icon={<ShoppingBag className="h-5 w-5 text-white/70" />} className={gradientStyles[1]} />
-          {!isVendor && <StatsCard title="Active Staff" value={activeStaffCount.toString()} icon={<UsersRound className="h-5 w-5 text-white/70" />} className={gradientStyles[1]} />}
           <StatsCard title="New Customers" value={newCustomers.toLocaleString()} icon={<Users className="h-5 w-5 text-white/70" />} className={gradientStyles[3]} />
+          {isSuperAdmin && <StatsCard title="Admins" value={adminCount.toString()} icon={<ShieldCheck className="h-5 w-5 text-white/70" />} className={gradientStyles[2]} />}
+          {isSuperAdmin && <StatsCard title="Vendors" value={vendorCount.toString()} icon={<Store className="h-5 w-5 text-white/70" />} className={gradientStyles[1]} />}
+          {isSuperAdmin && <StatsCard title="Super Admins" value={superAdminCount.toString()} icon={<Crown className="h-5 w-5 text-white/70" />} className={gradientStyles[0]} />}
         </div>
 
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-5">
@@ -382,5 +395,3 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
-
-    
