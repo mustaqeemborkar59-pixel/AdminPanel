@@ -102,7 +102,8 @@ export default function AnalyticsPage() {
     let isMounted = true;
     
     const fetchAndListen = async () => {
-        if (isMounted) setDataLoading(true);
+        if (!isMounted) return;
+        setDataLoading(true);
 
         const usersResult = await getAllUsers();
         if (!isMounted) return;
@@ -113,21 +114,26 @@ export default function AnalyticsPage() {
             return;
         }
       
-        const initialUsers = usersResult.data;
-        setUsers(initialUsers);
+        // Set the base user profiles first
+        setUsers(usersResult.data);
 
         const statusRef = ref(rtdb, 'status');
 
+        // Set up the real-time listener
         const unsubscribe = onValue(statusRef, (snapshot) => {
             if (!isMounted) return;
             
             const presenceData = snapshot.val() as Record<string, UserPresence> | null;
             
-            setUsers(currentUsers => currentUsers.map(user => {
-                 const userPresence = presenceData ? presenceData[user.uid] : undefined;
-                 return { ...user, presence: userPresence };
-            }));
+            // Use the functional form of setUsers to ensure we have the latest state
+            setUsers(currentUsers => 
+                currentUsers.map(user => {
+                    const userPresence = presenceData ? presenceData[user.uid] : undefined;
+                    return { ...user, presence: userPresence };
+                })
+            );
             
+            // Set loading to false after the first data fetch and listener setup
             setDataLoading(false);
 
         }, (error) => {
@@ -317,3 +323,5 @@ export default function AnalyticsPage() {
     </div>
   );
 }
+
+    
