@@ -105,7 +105,6 @@ export default function AnalyticsPage() {
         if (!isMounted) return;
         setDataLoading(true);
 
-        // 1. Fetch initial user profiles from Firestore
         const usersResult = await getAllUsers();
         if (!isMounted) return;
 
@@ -115,12 +114,10 @@ export default function AnalyticsPage() {
             return;
         }
       
-        // 2. Set the base user profiles state
         const initialUsers = usersResult.data;
         setUsers(initialUsers);
-        setDataLoading(false); // Initial load complete
+        setDataLoading(false);
 
-        // 3. Set up the real-time listener for presence
         const statusRef = ref(rtdb, 'status');
         unsubscribe = onValue(statusRef, (snapshot) => {
             if (!isMounted) return;
@@ -128,9 +125,6 @@ export default function AnalyticsPage() {
             const presenceData = snapshot.val() as Record<string, UserPresence> | null;
             if (!presenceData) return;
             
-            // **THE CRITICAL FIX**: Use functional state update
-            // This ensures we always have the latest 'users' state from React
-            // and correctly merge the new presence data onto it.
             setUsers(currentUsers => 
                 currentUsers.map(user => {
                     const userPresence = presenceData[user.uid];
@@ -145,7 +139,6 @@ export default function AnalyticsPage() {
 
     fetchAndListen();
 
-    // 4. Cleanup function
     return () => {
         isMounted = false;
         if (unsubscribe) {
@@ -167,7 +160,6 @@ export default function AnalyticsPage() {
       return acc;
     }, { 'super-admin': [], admin: [], vendor: [], user: [] });
 
-    // Sort users within each group: online first, then by last seen
     Object.keys(groups).forEach(role => {
         const key = role as keyof GroupedUsers;
         groups[key].sort((a, b) => {
@@ -227,9 +219,9 @@ export default function AnalyticsPage() {
                 <Skeleton className="h-28" />
             </div>
             <Skeleton className="h-6 w-48" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="space-y-4">
                 {Array.from({ length: 4 }).map((_, index) => (
-                    <Skeleton key={index} className="h-56" />
+                    <Skeleton key={index} className="h-20 w-full" />
                 ))}
             </div>
           </div>
@@ -248,56 +240,47 @@ export default function AnalyticsPage() {
                 return (
                     <div key={role}>
                         <h2 className="text-xl font-semibold tracking-tight mb-4">{ROLE_DISPLAY_NAMES[role]} ({roleUsers.length})</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        <div className="space-y-4">
                            {roleUsers.map((user) => (
                               <Card 
                                 key={user.uid} 
-                                className="flex flex-col shadow-lg hover:shadow-xl hover:border-primary/50 transition-all duration-300 cursor-pointer"
+                                className="shadow-lg hover:shadow-xl hover:border-primary/50 transition-all duration-300 cursor-pointer"
                                 onClick={() => setSelectedUser(user)}
                               >
-                                <CardHeader className="flex flex-col items-center text-center p-4">
-                                  <div className="relative">
-                                     <Avatar className="h-20 w-20 border-2 border-primary/50">
+                                <div className="flex items-center gap-4 p-4">
+                                  <div className="relative shrink-0">
+                                     <Avatar className="h-12 w-12 border-2 border-primary/50">
                                         <AvatarImage src={user.photoURL} alt={user.displayName} data-ai-hint="user avatar" />
-                                        <AvatarFallback className="text-2xl">{user.displayName?.[0] || 'U'}</AvatarFallback>
+                                        <AvatarFallback className="text-lg">{user.displayName?.[0] || 'U'}</AvatarFallback>
                                     </Avatar>
                                      <span className={cn(
-                                        "absolute bottom-0 right-0 block h-5 w-5 rounded-full border-2 border-background",
+                                        "absolute bottom-0 right-0 block h-3.5 w-3.5 rounded-full border-2 border-background",
                                         user.presence?.state === 'online' ? 'bg-green-500' : 'bg-gray-400'
                                      )}/>
                                   </div>
-                                  <CardTitle className="mt-3 text-lg font-semibold">{user.displayName}</CardTitle>
-                                  <p className="text-xs text-muted-foreground truncate w-full">{user.email}</p>
-                                   <div className="mt-2">
-                                    {getRoleBadge(user)}
+                                  
+                                  <div className="flex-grow">
+                                     <p className="font-semibold text-base">{user.displayName}</p>
+                                     <p className="text-xs text-muted-foreground">{user.email}</p>
+                                      <div className="mt-1">
+                                        {getRoleBadge(user)}
+                                      </div>
                                   </div>
-                                </CardHeader>
-                                <CardContent className="p-4 pt-0 flex-grow flex flex-col justify-end">
-                                    <div className="space-y-3 text-sm text-foreground/80">
-                                        <div className="flex items-center justify-between">
-                                            <span className="flex items-center text-muted-foreground">
-                                                <Clock className="h-4 w-4 mr-2" />
-                                                Time Spent
-                                            </span>
-                                            <span className="font-semibold text-foreground">
-                                                {user.presence?.time_spent ? formatTimeSpent(user.presence.time_spent) : 'N/A'}
-                                            </span>
-                                        </div>
-                                         <div className="flex items-center justify-between">
-                                            <span className="flex items-center text-muted-foreground">
-                                                <CalendarDays className="h-4 w-4 mr-2" />
-                                                Last Seen
-                                            </span>
-                                            <span className="font-semibold text-foreground truncate text-right">
-                                                {user.presence?.state === 'online'
-                                                ? <span className="text-green-500 font-bold">Online</span>
-                                                : user.presence?.last_seen
-                                                ? `${formatDistanceToNow(fromUnixTime(user.presence.last_seen / 1000), { addSuffix: true })}`
-                                                : 'Never'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </CardContent>
+
+                                  <div className="text-right shrink-0 space-y-1">
+                                    <p className="text-xs text-muted-foreground">
+                                        {user.presence?.state === 'online'
+                                        ? <span className="text-green-500 font-bold flex items-center gap-1.5"><Wifi className="h-3.5 w-3.5" />Online</span>
+                                        : user.presence?.last_seen
+                                        ? `${formatDistanceToNow(fromUnixTime(user.presence.last_seen / 1000), { addSuffix: true })}`
+                                        : 'Never'}
+                                    </p>
+                                     <p className="text-xs font-semibold text-foreground flex items-center justify-end gap-1.5">
+                                        <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                                        {user.presence?.time_spent ? formatTimeSpent(user.presence.time_spent) : 'N/A'}
+                                    </p>
+                                  </div>
+                                </div>
                               </Card>
                             ))}
                         </div>
