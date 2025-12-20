@@ -103,8 +103,6 @@ export interface UserProfile {
   photoURL?: string;
   role: 'admin' | 'vendor' | 'user' | 'super-admin'; // Role is now mandatory
   vendorCode?: string | null; // Associated vendor code
-  lastSeen?: string;
-  timeSpent?: number; // Total time in seconds
 }
 
 export interface Vendor {

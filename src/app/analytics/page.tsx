@@ -4,10 +4,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { getAllUsers } from '@/app/auth/actions';
-import { getDatabase, ref, onValue } from 'firebase/database';
+import { getDatabase, ref, onValue, get } from 'firebase/database';
 import type { UserProfile } from '@/types';
 import { useFirebase } from '@/firebase';
-import { Loader2, User, UserCheck, UserX, Lock, Clock, Crown, ShieldCheck, Store, CalendarDays } from 'lucide-react';
+import { Loader2, User, UserCheck, UserX, Lock, Clock, Crown, ShieldCheck, Store, CalendarDays, BarChart, Users as UsersIcon, Wifi, WifiOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -15,19 +15,33 @@ import { formatDistanceToNow, fromUnixTime } from 'date-fns';
 import { useAppContext } from '@/components/layout/app-content-wrapper';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-
+import { UserAnalyticsDetail } from '@/components/analytics/user-analytics-detail';
 
 interface UserPresence {
   state: 'online' | 'offline';
-  last_seen: number; // Firebase Server Timestamp
-  time_spent: number; // in seconds
+  last_seen: number; 
+  time_spent: number; 
 }
 
-interface EnrichedUser extends UserProfile {
+export interface EnrichedUser extends UserProfile {
   presence?: UserPresence;
 }
 
-// Function to format seconds into a readable string
+type GroupedUsers = {
+  'super-admin': EnrichedUser[];
+  admin: EnrichedUser[];
+  vendor: EnrichedUser[];
+  user: EnrichedUser[];
+};
+
+const ROLE_ORDER: (keyof GroupedUsers)[] = ['super-admin', 'admin', 'vendor', 'user'];
+const ROLE_DISPLAY_NAMES: Record<keyof GroupedUsers, string> = {
+    'super-admin': 'Super Admins',
+    'admin': 'Administrators',
+    'vendor': 'Vendors',
+    'user': 'Users'
+};
+
 const formatTimeSpent = (seconds: number): string => {
   if (seconds < 60) return `${Math.floor(seconds)}s`;
   const minutes = Math.floor(seconds / 60);
@@ -51,12 +65,25 @@ const getRoleBadge = (user: EnrichedUser) => {
     }
 };
 
+const StatsCard = ({ title, value, icon, className }: { title: string; value: string; icon: React.ReactNode; className?: string }) => (
+    <Card className={cn("shadow-md", className)}>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+            {icon}
+        </CardHeader>
+        <CardContent>
+            <div className="text-2xl font-bold">{value}</div>
+        </CardContent>
+    </Card>
+);
+
 
 export default function AnalyticsPage() {
   const { rtdb } = useFirebase();
   const { userProfile, authLoading } = useAppContext();
   const [users, setUsers] = useState<EnrichedUser[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const [selectedUser, setSelectedUser] = useState<EnrichedUser | null>(null);
 
   const isSuperAdmin = userProfile?.role === 'super-admin';
   const isLoading = dataLoading || authLoading;
@@ -67,9 +94,8 @@ export default function AnalyticsPage() {
         return;
     }
     
-    // Only proceed if rtdb is available
     if (!rtdb) {
-        if(!isLoading) setDataLoading(true); // Ensure loading is true if rtdb is not ready
+        if(!isLoading) setDataLoading(true);
         return;
     }
 
@@ -88,7 +114,6 @@ export default function AnalyticsPage() {
         }
       
         const initialUsers = usersResult.data;
-        // Initially set users without presence data
         setUsers(initialUsers);
 
         const statusRef = ref(rtdb, 'status');
@@ -126,19 +151,31 @@ export default function AnalyticsPage() {
     
   }, [rtdb, isSuperAdmin, authLoading]);
   
-  const sortedUsers = useMemo(() => {
-     return [...users].sort((a, b) => {
-        const aOnline = a.presence?.state === 'online';
-        const bOnline = b.presence?.state === 'online';
-        if (aOnline && !bOnline) return -1;
-        if (!aOnline && bOnline) return 1;
-        // If both are offline, sort by most recently seen
-        if(!aOnline && !bOnline) {
+  const { onlineCount, groupedUsers } = useMemo(() => {
+    const online = users.filter(u => u.presence?.state === 'online').length;
+    
+    const groups = users.reduce<GroupedUsers>((acc, user) => {
+      const role = user.role || 'user';
+      if (!acc[role]) {
+        acc[role] = [];
+      }
+      acc[role].push(user);
+      return acc;
+    }, { 'super-admin': [], admin: [], vendor: [], user: [] });
+
+    // Sort users within each group: online first, then by last seen
+    Object.keys(groups).forEach(role => {
+        const key = role as keyof GroupedUsers;
+        groups[key].sort((a, b) => {
+            const aOnline = a.presence?.state === 'online';
+            const bOnline = b.presence?.state === 'online';
+            if (aOnline && !bOnline) return -1;
+            if (!aOnline && bOnline) return 1;
             return (b.presence?.last_seen || 0) - (a.presence?.last_seen || 0);
-        }
-        // If both online, sort by name
-        return (a.displayName || '').localeCompare(b.displayName || '');
-     });
+        });
+    });
+
+    return { onlineCount: online, groupedUsers: groups };
   }, [users]);
   
   if (authLoading) {
@@ -174,85 +211,96 @@ export default function AnalyticsPage() {
   return (
     <div className="flex flex-col h-full">
       <PageHeader
-        title="User Analytics"
-        description="Track user presence, last seen status, and time spent in the application."
+        title="User Analytics Dashboard"
+        description="Live overview of user activity and engagement across the platform."
       />
       <div className="flex-1 p-4 md:p-6 overflow-auto">
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, index) => (
-                <Card key={index} className="flex flex-col shadow-lg">
-                  <CardHeader className="flex flex-col items-center text-center p-4">
-                      <Skeleton className="h-20 w-20 rounded-full" />
-                      <Skeleton className="h-6 w-32 mt-3" />
-                      <Skeleton className="h-4 w-40 mt-1" />
-                      <Skeleton className="h-5 w-20 mt-2" />
-                  </CardHeader>
-                  <CardContent className="p-4 pt-0 flex-grow flex flex-col justify-end">
-                      <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                                <Skeleton className="h-4 w-24" />
-                                <Skeleton className="h-4 w-12" />
-                          </div>
-                           <div className="flex items-center justify-between">
-                               <Skeleton className="h-4 w-20" />
-                               <Skeleton className="h-4 w-16" />
-                          </div>
-                      </div>
-                  </CardContent>
-                </Card>
-            ))}
+          <div className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <Skeleton className="h-28" />
+                <Skeleton className="h-28" />
+                <Skeleton className="h-28" />
+            </div>
+            <Skeleton className="h-6 w-48" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {Array.from({ length: 4 }).map((_, index) => (
+                    <Skeleton key={index} className="h-56" />
+                ))}
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {sortedUsers.map((user) => (
-              <Card key={user.uid} className="flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <CardHeader className="flex flex-col items-center text-center p-4">
-                  <div className="relative">
-                     <Avatar className="h-20 w-20 border-2 border-primary/50">
-                        <AvatarImage src={user.photoURL} alt={user.displayName} data-ai-hint="user avatar" />
-                        <AvatarFallback className="text-2xl">{user.displayName?.[0] || 'U'}</AvatarFallback>
-                    </Avatar>
-                     <span className={cn(
-                        "absolute bottom-0 right-0 block h-5 w-5 rounded-full border-2 border-background",
-                        user.presence?.state === 'online' ? 'bg-green-500' : 'bg-gray-400'
-                     )}/>
-                  </div>
-                  <CardTitle className="mt-3 text-lg font-semibold">{user.displayName}</CardTitle>
-                  <p className="text-xs text-muted-foreground">{user.email}</p>
-                   <div className="mt-2">
-                    {getRoleBadge(user)}
-                  </div>
-                </CardHeader>
-                <CardContent className="p-4 pt-0 flex-grow flex flex-col justify-end">
-                    <div className="space-y-3 text-sm text-foreground/80">
-                        <div className="flex items-center justify-between">
-                            <span className="flex items-center text-muted-foreground">
-                                <Clock className="h-4 w-4 mr-2" />
-                                Time Spent
-                            </span>
-                            <span className="font-semibold text-foreground">
-                                {user.presence?.time_spent ? formatTimeSpent(user.presence.time_spent) : 'N/A'}
-                            </span>
-                        </div>
-                         <div className="flex items-center justify-between">
-                            <span className="flex items-center text-muted-foreground">
-                                <CalendarDays className="h-4 w-4 mr-2" />
-                                Last Seen
-                            </span>
-                            <span className="font-semibold text-foreground">
-                                {user.presence?.state === 'online'
-                                ? <span className="text-green-500">Online</span>
-                                : user.presence?.last_seen
-                                ? `${formatDistanceToNow(fromUnixTime(user.presence.last_seen / 1000), { addSuffix: true })}`
-                                : 'Never'}
-                            </span>
+          <div className="space-y-8">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <StatsCard title="Total Users" value={users.length.toString()} icon={<UsersIcon className="text-primary h-5 w-5" />} />
+                <StatsCard title="Currently Online" value={onlineCount.toString()} icon={<Wifi className="text-green-500 h-5 w-5" />} />
+                <StatsCard title="Offline" value={(users.length - onlineCount).toString()} icon={<WifiOff className="text-red-500 h-5 w-5" />} />
+            </div>
+
+            {ROLE_ORDER.map(role => {
+                const roleUsers = groupedUsers[role];
+                if (roleUsers.length === 0) return null;
+
+                return (
+                    <div key={role}>
+                        <h2 className="text-xl font-semibold tracking-tight mb-4">{ROLE_DISPLAY_NAMES[role]} ({roleUsers.length})</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                           {roleUsers.map((user) => (
+                              <Card 
+                                key={user.uid} 
+                                className="flex flex-col shadow-lg hover:shadow-xl hover:border-primary/50 transition-all duration-300 cursor-pointer"
+                                onClick={() => setSelectedUser(user)}
+                              >
+                                <CardHeader className="flex flex-col items-center text-center p-4">
+                                  <div className="relative">
+                                     <Avatar className="h-20 w-20 border-2 border-primary/50">
+                                        <AvatarImage src={user.photoURL} alt={user.displayName} data-ai-hint="user avatar" />
+                                        <AvatarFallback className="text-2xl">{user.displayName?.[0] || 'U'}</AvatarFallback>
+                                    </Avatar>
+                                     <span className={cn(
+                                        "absolute bottom-0 right-0 block h-5 w-5 rounded-full border-2 border-background",
+                                        user.presence?.state === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                                     )}/>
+                                  </div>
+                                  <CardTitle className="mt-3 text-lg font-semibold">{user.displayName}</CardTitle>
+                                  <p className="text-xs text-muted-foreground truncate w-full">{user.email}</p>
+                                   <div className="mt-2">
+                                    {getRoleBadge(user)}
+                                  </div>
+                                </CardHeader>
+                                <CardContent className="p-4 pt-0 flex-grow flex flex-col justify-end">
+                                    <div className="space-y-3 text-sm text-foreground/80">
+                                        <div className="flex items-center justify-between">
+                                            <span className="flex items-center text-muted-foreground">
+                                                <Clock className="h-4 w-4 mr-2" />
+                                                Time Spent
+                                            </span>
+                                            <span className="font-semibold text-foreground">
+                                                {user.presence?.time_spent ? formatTimeSpent(user.presence.time_spent) : 'N/A'}
+                                            </span>
+                                        </div>
+                                         <div className="flex items-center justify-between">
+                                            <span className="flex items-center text-muted-foreground">
+                                                <CalendarDays className="h-4 w-4 mr-2" />
+                                                Last Seen
+                                            </span>
+                                            <span className="font-semibold text-foreground truncate text-right">
+                                                {user.presence?.state === 'online'
+                                                ? <span className="text-green-500 font-bold">Online</span>
+                                                : user.presence?.last_seen
+                                                ? `${formatDistanceToNow(fromUnixTime(user.presence.last_seen / 1000), { addSuffix: true })}`
+                                                : 'Never'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                              </Card>
+                            ))}
                         </div>
                     </div>
-                </CardContent>
-              </Card>
-            ))}
-             {sortedUsers.length === 0 && (
+                );
+            })}
+             {users.length === 0 && (
                 <div className="col-span-full text-center py-12">
                     <p className="font-body text-muted-foreground">No user activity data to display yet.</p>
                 </div>
@@ -260,6 +308,12 @@ export default function AnalyticsPage() {
           </div>
         )}
       </div>
+      <UserAnalyticsDetail 
+        user={selectedUser} 
+        isOpen={!!selectedUser} 
+        onOpenChange={(open) => { if(!open) setSelectedUser(null); }}
+        formatTimeSpent={formatTimeSpent}
+      />
     </div>
   );
 }

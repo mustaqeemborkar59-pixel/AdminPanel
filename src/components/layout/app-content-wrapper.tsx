@@ -12,7 +12,7 @@ import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar'
 import { AppSidebarNav } from '@/components/layout/app-sidebar-nav';
 import { Header } from '@/components/layout/header';
 import { useToast } from '@/hooks/use-toast';
-import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp, goOffline, goOnline, increment, update } from "firebase/database";
+import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp, goOffline, goOnline, increment, update, get } from "firebase/database";
 
 
 interface AppContextType {
@@ -61,41 +61,57 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     let sessionStartTime: number | null = null;
     
     const unsubscribe = onValue(connectedRef, (snap) => {
-        if (snap.val() === false) {
-             if(sessionStartTime) {
-                const sessionDuration = Math.round((Date.now() - sessionStartTime) / 1000);
-                update(userStatusRef, {
-                    time_spent: increment(sessionDuration)
-                });
-             }
-            return;
+      if (snap.val() === false) {
+        if (sessionStartTime) {
+          const sessionDuration = Math.round((Date.now() - sessionStartTime) / 1000);
+          update(userStatusRef, {
+            time_spent: increment(sessionDuration)
+          });
+          sessionStartTime = null;
         }
+        return;
+      }
 
-        sessionStartTime = Date.now();
+      sessionStartTime = Date.now();
 
-        onDisconnect(userStatusRef).update({
-          state: 'offline',
-          last_seen: serverTimestamp(),
-          time_spent: increment(Math.round((Date.now() - (sessionStartTime ?? Date.now())) / 1000))
-        }).then(() => {
-            update(userStatusRef, {
-              state: 'online',
-              last_seen: serverTimestamp(),
-            });
-        }).catch(err => console.error("onDisconnect or update setup failed:", err));
+      const onDisconnectRef = onDisconnect(userStatusRef);
+      const sessionDurationOnDisconnect = sessionStartTime ? Math.round((Date.now() - sessionStartTime) / 1000) : 0;
+      
+      onDisconnectRef.update({
+        state: 'offline',
+        last_seen: serverTimestamp(),
+        time_spent: increment(sessionDurationOnDisconnect),
+      }).then(() => {
+        // Use get() to check for existence before setting
+        get(userStatusRef).then((snapshot) => {
+           if (!snapshot.exists()) {
+             // If node doesn't exist, create it with initial values
+             set(userStatusRef, {
+               state: 'online',
+               last_seen: serverTimestamp(),
+               time_spent: 0
+             });
+           } else {
+             // If it exists, just update the state
+             update(userStatusRef, {
+               state: 'online',
+               last_seen: serverTimestamp(),
+             });
+           }
+        });
+      });
     });
 
     return () => {
       unsubscribe();
-      if(sessionStartTime) {
+      if (sessionStartTime) {
         const sessionDuration = Math.round((Date.now() - sessionStartTime) / 1000);
         update(userStatusRef, {
-            state: 'offline',
-            last_seen: serverTimestamp(),
-            time_spent: increment(sessionDuration)
+          state: 'offline',
+          last_seen: serverTimestamp(),
+          time_spent: increment(sessionDuration)
         });
       }
-      goOffline(rtdb);
     };
 }, [user, rtdb]);
 
@@ -106,8 +122,6 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
       
       let profileResult = await getUserProfile(currentUser.uid);
 
-      // ** Core Logic: Ensure Firestore Profile Exists **
-      // If profile doesn't exist, create it. This is the self-healing mechanism.
       if (!profileResult.success || !profileResult.data) {
         console.log("Profile not found for user, creating one...");
         const creationResult = await createUserProfile({
@@ -118,7 +132,6 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
         });
 
         if (creationResult.success) {
-            // Re-fetch the profile after creating it to ensure we have the correct data
             profileResult = await getUserProfile(currentUser.uid);
         } else {
             toast({
@@ -128,13 +141,12 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
             });
             setUserProfile(null);
             setProfileLoading(false);
-            return; // Stop execution if profile can't be created
+            return; 
         }
       }
 
       let finalProfile = profileResult.success ? profileResult.data : null;
 
-      // ** Self-Correction Logic for Super Admin **
       const isSuperAdminByEmail = currentUser.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
       if (isSuperAdminByEmail && finalProfile && finalProfile.role !== 'super-admin') {
           console.log("Correcting user role to super-admin for:", currentUser.email);
@@ -222,8 +234,6 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   const role = userProfile?.role;
   const isApproved = role === 'admin' || role === 'super-admin' || (role === 'vendor' && !!userProfile.vendorCode);
 
-  // This check is important. If, after all checks, the user is still not approved (e.g., profile creation failed),
-  // keep them on a loading/pending screen instead of showing the full layout.
   if (user && !isApproved) {
        return (
          <div className="flex items-center justify-center min-h-screen bg-background">
