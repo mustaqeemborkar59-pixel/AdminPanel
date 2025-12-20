@@ -7,7 +7,7 @@ import { getAllUsers } from '@/app/auth/actions';
 import { onValue, ref } from 'firebase/database';
 import type { UserProfile } from '@/types';
 import { useFirebase } from '@/firebase';
-import { Loader2, Lock, Clock, Crown, ShieldCheck, Store, User as UserIcon, CalendarDays, BarChart, Users as UsersIcon, Wifi, WifiOff } from 'lucide-react';
+import { Loader2, Lock, Clock, Crown, ShieldCheck, Store, User as UserIcon, Wifi, WifiOff, Users as UsersIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -114,8 +114,7 @@ export default function AnalyticsPage() {
             return;
         }
       
-        const initialUsers = usersResult.data;
-        setUsers(initialUsers);
+        setUsers(usersResult.data);
         setDataLoading(false);
 
         const statusRef = ref(rtdb, 'status');
@@ -304,5 +303,3 @@ export default function AnalyticsPage() {
     </div>
   );
 }
-
-    

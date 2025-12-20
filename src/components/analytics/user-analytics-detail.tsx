@@ -117,4 +117,3 @@ export function UserAnalyticsDetail({ user, isOpen, onOpenChange, formatTimeSpen
     </Dialog>
   );
 }
-
