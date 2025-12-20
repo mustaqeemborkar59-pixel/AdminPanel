@@ -59,43 +59,46 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     const connectedRef = ref(rtdb, '.info/connected');
     
     let sessionStartTime: number | null = null;
-    let presenceListener: (() => void) | null = null;
+    
+    const unsubscribe = onValue(connectedRef, (snap) => {
+        if (snap.val() === false) {
+             if(sessionStartTime) {
+                const sessionDuration = Math.round((Date.now() - sessionStartTime) / 1000);
+                update(userStatusRef, {
+                    time_spent: increment(sessionDuration)
+                });
+             }
+            return;
+        }
 
-    const connectedCallback = (snap: any) => {
-      if (snap.val() === true) {
-        // We're connected (or reconnected).
-        goOnline(rtdb);
         sessionStartTime = Date.now();
 
-        // When the client's connection is lost, update their status.
         onDisconnect(userStatusRef).update({
           state: 'offline',
           last_seen: serverTimestamp(),
-          // Increment time_spent by the duration of this session.
           time_spent: increment(Math.round((Date.now() - (sessionStartTime ?? Date.now())) / 1000))
-        }).catch(err => console.error("onDisconnect setup failed:", err));
-
-        // Set the user's status to online.
-        update(userStatusRef, {
-          state: 'online',
-          last_seen: serverTimestamp(),
-        }).catch(err => console.error("Failed to set user online:", err));
-      }
-    };
-    
-    presenceListener = onValue(connectedRef, connectedCallback);
+        }).then(() => {
+            update(userStatusRef, {
+              state: 'online',
+              last_seen: serverTimestamp(),
+            });
+        }).catch(err => console.error("onDisconnect or update setup failed:", err));
+    });
 
     return () => {
-      if(presenceListener) {
-          // Detach the listener
-          // Note: off() without arguments removes all listeners at the location.
-          // It's safer to pass the function reference if you have multiple listeners.
-          onValue(connectedRef, connectedCallback, { onlyOnce: true });
+      unsubscribe();
+      if(sessionStartTime) {
+        const sessionDuration = Math.round((Date.now() - sessionStartTime) / 1000);
+        update(userStatusRef, {
+            state: 'offline',
+            last_seen: serverTimestamp(),
+            time_spent: increment(sessionDuration)
+        });
       }
-      // When the component unmounts, go offline.
       goOffline(rtdb);
     };
-  }, [user, rtdb]);
+}, [user, rtdb]);
+
 
   useEffect(() => {
     const syncUserProfile = async (currentUser: User) => {
@@ -245,5 +248,3 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     </AppContext.Provider>
   );
 }
-
-    

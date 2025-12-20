@@ -7,20 +7,13 @@ import { getAllUsers } from '@/app/auth/actions';
 import { getDatabase, ref, onValue } from 'firebase/database';
 import type { UserProfile } from '@/types';
 import { useFirebase } from '@/firebase';
-import { Loader2, User, UserCheck, UserX, Lock } from 'lucide-react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Card } from '@/components/ui/card';
+import { Loader2, User, UserCheck, UserX, Lock, Clock, Crown, ShieldCheck, Store, CalendarDays } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow, fromUnixTime } from 'date-fns';
 import { useAppContext } from '@/components/layout/app-content-wrapper';
+import { cn } from '@/lib/utils';
 
 interface UserPresence {
   state: 'online' | 'offline';
@@ -36,17 +29,29 @@ interface EnrichedUser extends UserProfile {
 const formatTimeSpent = (seconds: number): string => {
   if (seconds < 60) return `${Math.floor(seconds)}s`;
   const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m`;
   const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ${minutes % 60}m`;
   const days = Math.floor(hours / 24);
+  return `${days}d ${hours % 24}h`;
+};
 
-  if (days > 0) return `${days}d ${hours % 24}h`;
-  if (hours > 0) return `${hours}h ${minutes % 60}m`;
-  return `${minutes}m`;
+const getRoleBadge = (user: EnrichedUser) => {
+    switch (user.role) {
+      case 'super-admin':
+        return <Badge variant="default" className="bg-amber-500 hover:bg-amber-500 text-xs"><Crown className="h-3 w-3 mr-1" />Super Admin</Badge>;
+      case 'admin':
+        return <Badge variant="default" className="bg-primary hover:bg-primary text-xs"><ShieldCheck className="h-3 w-3 mr-1" />Admin</Badge>;
+      case 'vendor':
+        return <Badge variant="secondary" className="text-xs"><Store className="h-3 w-3 mr-1" />Vendor</Badge>;
+      default:
+        return <Badge variant="outline" className="text-xs"><User className="h-3 w-3 mr-1" />User</Badge>;
+    }
 };
 
 
 export default function AnalyticsPage() {
-  const { rtdb } = useFirebase(); // Use hook to get RTDB instance
+  const { rtdb } = useFirebase();
   const { userProfile, authLoading } = useAppContext();
   const [users, setUsers] = useState<EnrichedUser[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
@@ -55,84 +60,67 @@ export default function AnalyticsPage() {
   const isLoading = dataLoading || authLoading;
 
   useEffect(() => {
-    if (!rtdb || !isSuperAdmin || authLoading) {
+    if (authLoading || !isSuperAdmin) {
         if (!authLoading) setDataLoading(false);
+        return;
+    }
+    
+    // Only proceed if rtdb is available
+    if (!rtdb) {
+        if(!isLoading) setDataLoading(true); // Ensure loading is true if rtdb is not ready
         return;
     }
 
     let isMounted = true;
     
     const fetchAndListen = async () => {
-      if (isMounted) {
-        setDataLoading(true);
-      }
+        if (isMounted) setDataLoading(true);
 
-      const usersResult = await getAllUsers();
-      if (!isMounted) return;
-
-      if (!usersResult.success || !usersResult.data) {
-        console.error("Failed to fetch users from Firestore.");
-        setDataLoading(false);
-        return;
-      }
-      
-      const initialUsers = usersResult.data;
-
-      const statusRef = ref(rtdb, 'status');
-      const unsubscribe = onValue(statusRef, (snapshot) => {
+        const usersResult = await getAllUsers();
         if (!isMounted) return;
-        
-        const presenceData = snapshot.val() as Record<string, UserPresence> | null;
-        
-        const enrichedUsers = initialUsers.map(user => {
-          const userPresence = presenceData ? presenceData[user.uid] : undefined;
-          return { ...user, presence: userPresence };
-        });
-        
-        setUsers(enrichedUsers);
-        setDataLoading(false);
 
-      }, (error) => {
-        console.error("Error listening to presence data:", error);
-        if (isMounted) {
-          setDataLoading(false);
+        if (!usersResult.success || !usersResult.data) {
+            console.error("Failed to fetch users from Firestore.");
+            setDataLoading(false);
+            return;
         }
-      });
+      
+        const initialUsers = usersResult.data;
+        const statusRef = ref(rtdb, 'status');
 
-      return () => {
-        unsubscribe();
-      };
+        const unsubscribe = onValue(statusRef, (snapshot) => {
+            if (!isMounted) return;
+            
+            const presenceData = snapshot.val() as Record<string, UserPresence> | null;
+            
+            const enrichedUsers = initialUsers.map(user => {
+                const userPresence = presenceData ? presenceData[user.uid] : undefined;
+                return { ...user, presence: userPresence };
+            });
+            
+            setUsers(enrichedUsers);
+            setDataLoading(false);
+
+        }, (error) => {
+            console.error("Error listening to presence data:", error);
+            if (isMounted) setDataLoading(false);
+        });
+
+        return () => {
+            unsubscribe();
+        };
     };
 
     const cleanupPromise = fetchAndListen();
 
     return () => {
-      isMounted = false;
-      cleanupPromise.then(cleanup => {
-        if (cleanup) {
-          cleanup();
-        }
-      });
+        isMounted = false;
+        cleanupPromise.then(cleanup => {
+            if (cleanup) cleanup();
+        });
     };
     
   }, [rtdb, isSuperAdmin, authLoading]);
-
-  const getStatusBadge = (user: EnrichedUser) => {
-    if (user.presence?.state === 'online') {
-      return (
-        <Badge variant="default" className="bg-green-500 hover:bg-green-500/90">
-          <UserCheck className="h-3 w-3 mr-1" />
-          Online
-        </Badge>
-      );
-    }
-    return (
-      <Badge variant="outline">
-        <UserX className="h-3 w-3 mr-1" />
-        Offline
-      </Badge>
-    );
-  };
   
   const sortedUsers = useMemo(() => {
      return [...users].sort((a, b) => {
@@ -149,7 +137,7 @@ export default function AnalyticsPage() {
      });
   }, [users]);
   
-  if (isLoading && !isSuperAdmin) {
+  if (authLoading) {
     return (
          <div className="flex flex-col h-full">
             <PageHeader
@@ -179,7 +167,6 @@ export default function AnalyticsPage() {
     );
   }
 
-
   return (
     <div className="flex flex-col h-full">
       <PageHeader
@@ -192,47 +179,60 @@ export default function AnalyticsPage() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
-          <Card className="shadow-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="font-headline">User</TableHead>
-                  <TableHead className="font-headline text-center">Status</TableHead>
-                  <TableHead className="font-headline text-center">Time Spent</TableHead>
-                  <TableHead className="text-right font-headline">Last Seen</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedUsers.map((user) => (
-                  <TableRow key={user.uid} className="font-body hover:bg-muted/50">
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9">
-                          <AvatarImage src={user.photoURL} alt={user.displayName} data-ai-hint="user avatar"/>
-                          <AvatarFallback>{user.displayName?.[0] || 'U'}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <span>{user.displayName}</span>
-                          <p className="text-xs text-muted-foreground">{user.email}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {sortedUsers.map((user) => (
+              <Card key={user.uid} className="flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <CardHeader className="flex flex-col items-center text-center p-4">
+                  <div className="relative">
+                     <Avatar className="h-20 w-20 border-2 border-primary/50">
+                        <AvatarImage src={user.photoURL} alt={user.displayName} data-ai-hint="user avatar" />
+                        <AvatarFallback className="text-2xl">{user.displayName?.[0] || 'U'}</AvatarFallback>
+                    </Avatar>
+                     <span className={cn(
+                        "absolute bottom-0 right-0 block h-5 w-5 rounded-full border-2 border-background",
+                        user.presence?.state === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                     )}/>
+                  </div>
+                  <CardTitle className="mt-3 text-lg font-semibold">{user.displayName}</CardTitle>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
+                   <div className="mt-2">
+                    {getRoleBadge(user)}
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 pt-0 flex-grow flex flex-col justify-end">
+                    <div className="space-y-3 text-sm text-foreground/80">
+                        <div className="flex items-center justify-between">
+                            <span className="flex items-center text-muted-foreground">
+                                <Clock className="h-4 w-4 mr-2" />
+                                Time Spent
+                            </span>
+                            <span className="font-semibold text-foreground">
+                                {user.presence?.time_spent ? formatTimeSpent(user.presence.time_spent) : 'N/A'}
+                            </span>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center">{getStatusBadge(user)}</TableCell>
-                    <TableCell className="text-center">
-                        {user.presence?.time_spent ? formatTimeSpent(user.presence.time_spent) : 'N/A'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {user.presence?.state === 'online'
-                        ? 'Now'
-                        : user.presence?.last_seen
-                        ? `${formatDistanceToNow(fromUnixTime(user.presence.last_seen / 1000), { addSuffix: true })}`
-                        : 'Never'}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Card>
+                         <div className="flex items-center justify-between">
+                            <span className="flex items-center text-muted-foreground">
+                                <CalendarDays className="h-4 w-4 mr-2" />
+                                Last Seen
+                            </span>
+                            <span className="font-semibold text-foreground">
+                                {user.presence?.state === 'online'
+                                ? 'Now'
+                                : user.presence?.last_seen
+                                ? `${formatDistanceToNow(fromUnixTime(user.presence.last_seen / 1000), { addSuffix: true })}`
+                                : 'Never'}
+                            </span>
+                        </div>
+                    </div>
+                </CardContent>
+              </Card>
+            ))}
+             {sortedUsers.length === 0 && (
+                <div className="col-span-full text-center py-12">
+                    <p className="font-body text-muted-foreground">No user activity data to display yet.</p>
+                </div>
+             )}
+          </div>
         )}
       </div>
     </div>
