@@ -12,7 +12,7 @@ import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar'
 import { AppSidebarNav } from '@/components/layout/app-sidebar-nav';
 import { Header } from '@/components/layout/header';
 import { useToast } from '@/hooks/use-toast';
-import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp, goOffline, goOnline, increment, update, get, setWithPriority, type DatabaseReference } from "firebase/database";
+import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp, goOffline, goOnline, increment, update, get, type DatabaseReference } from "firebase/database";
 
 
 interface AppContextType {
@@ -61,25 +61,30 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     const userStatusRef = ref(rtdb, `/status/${uid}`);
     const connectedRef = ref(rtdb, '.info/connected');
 
-    const onConnect = (snap: any) => {
+    const listener = onValue(connectedRef, (snap) => {
       if (snap.val() === true) {
         sessionStartTimeRef.current = Date.now();
         
+        // Setup reliable onDisconnect handler. This executes on the server when the client disconnects.
         const onDisconnectRef = onDisconnect(userStatusRef);
         onDisconnectRef.update({
             state: 'offline',
             last_seen: serverTimestamp(),
+            // Securely increment time_spent on the server
             time_spent: increment(sessionStartTimeRef.current ? Math.round((Date.now() - sessionStartTimeRef.current) / 1000) : 0)
         });
 
+        // When connected, check if the user has an entry, if not, create one. Otherwise, update to online.
         get(userStatusRef).then(snapshot => {
             if (!snapshot.exists()) {
+                // First time connection for this session, create the record.
                 set(userStatusRef, {
                     state: 'online',
                     last_seen: serverTimestamp(),
                     time_spent: 0
                 });
             } else {
+                 // User exists, just update their state to online. `time_spent` is not touched.
                  update(userStatusRef, {
                     state: 'online',
                     last_seen: serverTimestamp(),
@@ -87,12 +92,13 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
             }
         });
       }
-    };
+    });
     
-    const listener = onValue(connectedRef, onConnect);
-    
+    // Cleanup function when the component unmounts or dependencies change (e.g., user logs out)
     return () => {
-        listener(); // Detach the listener
+        listener(); // Detach the onValue listener.
+        
+        // When user logs out cleanly, we can try to update their status immediately.
         if (sessionStartTimeRef.current) {
             const sessionDuration = Math.round((Date.now() - sessionStartTimeRef.current) / 1000);
             update(userStatusRef, {
@@ -100,8 +106,9 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
                 last_seen: serverTimestamp(),
                 time_spent: increment(sessionDuration)
             });
-             onDisconnect(userStatusRef).cancel();
         }
+        
+        onDisconnect(userStatusRef).cancel(); // IMPORTANT: Cancel the onDisconnect handler to prevent it from firing on a clean logout.
         sessionStartTimeRef.current = null;
     };
 }, [user, rtdb]);
