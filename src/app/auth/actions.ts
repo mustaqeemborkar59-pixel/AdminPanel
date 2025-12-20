@@ -259,4 +259,5 @@ export async function deleteVendorFromFirestore(vendorId: string): Promise<{ suc
     }
 }
 
+
     

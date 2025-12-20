@@ -53,38 +53,47 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     if (!user || !rtdb) {
       return;
     }
-    
+
     const uid = user.uid;
-    const db = rtdb;
-    const userStatusRef = ref(db, `/status/${uid}`);
-
-    const connectedRef = ref(db, '.info/connected');
-
-    let sessionStartTime: number | null = null;
+    const userStatusRef = ref(rtdb, `/status/${uid}`);
+    const connectedRef = ref(rtdb, '.info/connected');
     
-    const unsubscribe = onValue(connectedRef, (snap) => {
-      if (snap.val() === true) {
-        sessionStartTime = Date.now();
-        
-        // Use update instead of set to avoid overwriting time_spent
-        update(userStatusRef, {
-            state: 'online',
-            last_seen: serverTimestamp(),
-        }).catch(err => console.error("Failed to set user online:", err));
+    let sessionStartTime: number | null = null;
+    let presenceListener: (() => void) | null = null;
 
-        // When the client disconnects, update their status and time_spent
+    const connectedCallback = (snap: any) => {
+      if (snap.val() === true) {
+        // We're connected (or reconnected).
+        goOnline(rtdb);
+        sessionStartTime = Date.now();
+
+        // When the client's connection is lost, update their status.
         onDisconnect(userStatusRef).update({
-            state: 'offline',
-            last_seen: serverTimestamp(),
-            // CRITICAL FIX: Calculate duration and pass it to increment
-            time_spent: increment(Math.floor((Date.now() - (sessionStartTime || Date.now())) / 1000))
-        }).catch(err => console.error("Failed to set onDisconnect handler:", err));
-        
+          state: 'offline',
+          last_seen: serverTimestamp(),
+          // Increment time_spent by the duration of this session.
+          time_spent: increment(Math.round((Date.now() - (sessionStartTime ?? Date.now())) / 1000))
+        }).catch(err => console.error("onDisconnect setup failed:", err));
+
+        // Set the user's status to online.
+        update(userStatusRef, {
+          state: 'online',
+          last_seen: serverTimestamp(),
+        }).catch(err => console.error("Failed to set user online:", err));
       }
-    });
+    };
+    
+    presenceListener = onValue(connectedRef, connectedCallback);
 
     return () => {
-      unsubscribe();
+      if(presenceListener) {
+          // Detach the listener
+          // Note: off() without arguments removes all listeners at the location.
+          // It's safer to pass the function reference if you have multiple listeners.
+          onValue(connectedRef, connectedCallback, { onlyOnce: true });
+      }
+      // When the component unmounts, go offline.
+      goOffline(rtdb);
     };
   }, [user, rtdb]);
 
@@ -236,3 +245,5 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     </AppContext.Provider>
   );
 }
+
+    
