@@ -250,16 +250,16 @@ function DashboardContent() {
   }
 
   const allStatsCards = [
-    <StatsCard key="sales" title="Total Sale" value={`₹${totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[0], "flex-grow basis-full md:basis-1/2 lg:basis-1/4")} />,
-    <StatsCard key="orders" title="Total Orders" value={totalOrders.toString()} icon={<ShoppingBag className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[1], "flex-grow basis-full md:basis-1/2 lg:basis-1/4")} />,
-    <StatsCard key="customers" title="New Customers" value={newCustomers.toLocaleString()} icon={<Users className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[3], "flex-grow basis-full md:basis-1/2 lg:basis-1/4")} />,
+    <StatsCard key="sales" title="Total Sale" value={`₹${totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[0])} />,
+    <StatsCard key="orders" title="Total Orders" value={totalOrders.toString()} icon={<ShoppingBag className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[1])} />,
+    <StatsCard key="customers" title="New Customers" value={newCustomers.toLocaleString()} icon={<Users className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[3])} />,
   ];
 
   if (isSuperAdmin) {
     allStatsCards.push(
-      <StatsCard key="admins" title="Admins" value={adminCount.toString()} icon={<ShieldCheck className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[2], "flex-grow basis-full md:basis-1/2 lg:basis-1/4")} />,
-      <StatsCard key="vendors" title="Vendors" value={vendorCount.toString()} icon={<Store className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[1], "flex-grow basis-full md:basis-1/2 lg:basis-1/4")} />,
-      <StatsCard key="super-admins" title="Super Admins" value={superAdminCount.toString()} icon={<Crown className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[0], "flex-grow basis-full md:basis-1/2 lg:basis-1/4")} />
+      <StatsCard key="admins" title="Admins" value={adminCount.toString()} icon={<ShieldCheck className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[2])} />,
+      <StatsCard key="vendors" title="Vendors" value={vendorCount.toString()} icon={<Store className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[1])} />,
+      <StatsCard key="super-admins" title="Super Admins" value={superAdminCount.toString()} icon={<Crown className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[0])} />
     );
   }
 
@@ -268,7 +268,7 @@ function DashboardContent() {
     <div className="flex flex-col h-full">
       <PageHeader title={isVendor ? `${vendorDisplayName} Dashboard` : "Shop Dashboard"} description="Comprehensive overview of your online store's operations and performance." />
       <div className="flex-1 p-4 md:p-6 space-y-6 overflow-auto">
-        <div className="flex flex-wrap gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {allStatsCards}
         </div>
 
@@ -405,6 +405,5 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
-
 
     
