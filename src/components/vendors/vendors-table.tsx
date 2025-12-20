@@ -43,6 +43,7 @@ export function VendorsTable({ vendors, onEditVendor, onDeleteVendor }: VendorsT
           <TableRow>
             <TableHead className="font-headline">Vendor Name</TableHead>
             <TableHead className="font-headline">Vendor Code</TableHead>
+            <TableHead className="font-headline">Profit Margin (%)</TableHead>
             <TableHead className="text-right font-headline">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -51,6 +52,7 @@ export function VendorsTable({ vendors, onEditVendor, onDeleteVendor }: VendorsT
             <TableRow key={vendor.id} className="font-body hover:bg-muted/50">
               <TableCell className="font-medium">{vendor.name}</TableCell>
               <TableCell className="font-mono text-sm">{vendor.code}</TableCell>
+              <TableCell className="font-medium text-center">{vendor.profitMargin}%</TableCell>
               <TableCell className="text-right">
                 <AddVendorDialog 
                   existingVendor={vendor} 
@@ -93,3 +95,5 @@ export function VendorsTable({ vendors, onEditVendor, onDeleteVendor }: VendorsT
     </Card>
   );
 }
+
+    

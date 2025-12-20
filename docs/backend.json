@@ -356,12 +356,17 @@
         "code": {
           "type": "string",
           "description": "A unique code for the vendor."
+        },
+        "profitMargin": {
+            "type": "number",
+            "description": "The profit margin percentage for products from this vendor."
         }
       },
       "required": [
         "id",
         "name",
-        "code"
+        "code",
+        "profitMargin"
       ]
     }
   },

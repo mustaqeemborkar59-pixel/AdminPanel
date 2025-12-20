@@ -109,6 +109,7 @@ export interface Vendor {
     id: string;
     code: string;
     name: string;
+    profitMargin: number;
 }
 
 // This interface is used by the jspdf-autotable library.
@@ -128,3 +129,5 @@ export interface CompanyDetails {
   city: string;
   email: string;
 }
+
+    

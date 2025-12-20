@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Store, Loader2 } from "lucide-react";
+import { Store, Loader2, Percent } from "lucide-react";
 import type { Vendor } from '@/types';
 
 interface AddVendorDialogProps {
@@ -26,6 +26,7 @@ interface AddVendorDialogProps {
 const defaultState: Omit<Vendor, 'id'> = {
   name: '',
   code: '',
+  profitMargin: 0,
 };
 
 export function AddVendorDialog({ onAddVendor, existingVendor, triggerButton }: AddVendorDialogProps) {
@@ -38,6 +39,7 @@ export function AddVendorDialog({ onAddVendor, existingVendor, triggerButton }: 
       setFormData({
         name: existingVendor.name,
         code: existingVendor.code,
+        profitMargin: existingVendor.profitMargin || 0,
       });
     } else if (!existingVendor && isOpen) {
       setFormData(defaultState);
@@ -45,7 +47,11 @@ export function AddVendorDialog({ onAddVendor, existingVendor, triggerButton }: 
   }, [existingVendor, isOpen]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, type } = e.target;
+     setFormData({ 
+        ...formData, 
+        [name]: type === 'number' ? parseFloat(value) || 0 : value 
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -88,6 +94,13 @@ export function AddVendorDialog({ onAddVendor, existingVendor, triggerButton }: 
             <Label htmlFor="code" className="text-right font-body">Code</Label>
             <Input id="code" name="code" value={formData.code} onChange={handleChange} className="col-span-3 font-body" required placeholder="e.g., ST_GI" disabled={isSaving}/>
           </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="profitMargin" className="text-right font-body">Profit %</Label>
+            <div className="col-span-3 relative">
+                <Input id="profitMargin" name="profitMargin" type="number" value={formData.profitMargin} onChange={handleChange} className="font-body pl-2 pr-8" required placeholder="e.g., 15" disabled={isSaving}/>
+                <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            </div>
+          </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="font-body" disabled={isSaving}>Cancel</Button>
             <Button type="submit" className="font-body" disabled={isSaving}>
@@ -100,3 +113,5 @@ export function AddVendorDialog({ onAddVendor, existingVendor, triggerButton }: 
     </Dialog>
   );
 }
+
+    
