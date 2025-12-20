@@ -65,16 +65,17 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
       if (snap.val() === true) {
         // --- User is connected ---
         sessionStartTime.current = Date.now();
-
-        // 1. Set the onDisconnect instruction to the server.
+        
+        const onDisconnectRef = onDisconnect(userStatusRef);
         // This will run when the client disconnects uncleanly.
-        onDisconnect(userStatusRef).update({
+        onDisconnectRef.update({
             state: 'offline',
             last_seen: serverTimestamp(),
             time_spent: increment(Math.max(1, Math.round((Date.now() - (sessionStartTime.current || Date.now())) / 1000)))
         });
 
-        // 2. Set the user's initial status to online.
+
+        // Set the user's initial status to online.
         get(userStatusRef).then(snapshot => {
             if (!snapshot.exists()) {
                 // If user has no presence data, create it with time_spent=0
@@ -99,15 +100,16 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
         listener(); // Detach the onValue listener.
         
         // When component unmounts (e.g., logout), we need to update the time spent
-        // for the current session cleanly, without relying on onDisconnect.
+        // for the current session cleanly.
         if (sessionStartTime.current) {
-            const sessionDuration = Math.round((Date.now() - sessionStartTime.current) / 1000);
+            const sessionDuration = Math.max(1, Math.round((Date.now() - sessionStartTime.current) / 1000));
             update(userStatusRef, {
                 state: 'offline',
                 last_seen: serverTimestamp(),
                 time_spent: increment(sessionDuration)
             });
         }
+        onDisconnect(userStatusRef).cancel(); // Important: cancel the onDisconnect plan
         sessionStartTime.current = null;
     };
 }, [user, rtdb]);

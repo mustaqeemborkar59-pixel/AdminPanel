@@ -114,9 +114,11 @@ export default function AnalyticsPage() {
             return;
         }
       
+        // Set initial users from Firestore
         setUsers(usersResult.data);
         setDataLoading(false);
 
+        // Then, listen for real-time presence updates
         const statusRef = ref(rtdb, 'status');
         unsubscribe = onValue(statusRef, (snapshot) => {
             if (!isMounted) return;
@@ -124,6 +126,7 @@ export default function AnalyticsPage() {
             const presenceData = snapshot.val() as Record<string, UserPresence> | null;
             if (!presenceData) return;
             
+            // Use functional update to ensure we always have the latest users state
             setUsers(currentUsers => 
                 currentUsers.map(user => {
                     const userPresence = presenceData[user.uid];
