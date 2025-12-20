@@ -51,7 +51,7 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   const sessionStartTimeRef = useRef<number | null>(null);
 
 
-  // Effect for managing user presence in Realtime Database
+  // Effect for managing user presence in Realtime Database - REWRITTEN FOR RELIABILITY
   useEffect(() => {
     if (!user || !rtdb) {
       return;
@@ -63,28 +63,29 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
 
     const listener = onValue(connectedRef, (snap) => {
       if (snap.val() === true) {
+        // We're connected.
         sessionStartTimeRef.current = Date.now();
-        
-        // Setup reliable onDisconnect handler. This executes on the server when the client disconnects.
+
+        // When I disconnect, update my status and last_seen time, and increment my total time spent.
         const onDisconnectRef = onDisconnect(userStatusRef);
         onDisconnectRef.update({
             state: 'offline',
             last_seen: serverTimestamp(),
-            // Securely increment time_spent on the server
             time_spent: increment(sessionStartTimeRef.current ? Math.round((Date.now() - sessionStartTimeRef.current) / 1000) : 0)
         });
 
-        // When connected, check if the user has an entry, if not, create one. Otherwise, update to online.
+        // Add this device to my connections list.
+        // If I'm the first device, set my status to 'online'.
         get(userStatusRef).then(snapshot => {
             if (!snapshot.exists()) {
-                // First time connection for this session, create the record.
+                // This is the first time this user is connecting in this session. Create the record.
                 set(userStatusRef, {
                     state: 'online',
                     last_seen: serverTimestamp(),
                     time_spent: 0
                 });
             } else {
-                 // User exists, just update their state to online. `time_spent` is not touched.
+                 // User record exists, just update state to online. `time_spent` is not touched here.
                  update(userStatusRef, {
                     state: 'online',
                     last_seen: serverTimestamp(),
@@ -94,21 +95,32 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
       }
     });
     
-    // Cleanup function when the component unmounts or dependencies change (e.g., user logs out)
+    // The cleanup function is critical for handling logouts and component unmounts.
     return () => {
-        listener(); // Detach the onValue listener.
+        listener(); // Detach the onValue listener for connection state.
         
-        // When user logs out cleanly, we can try to update their status immediately.
-        if (sessionStartTimeRef.current) {
-            const sessionDuration = Math.round((Date.now() - sessionStartTimeRef.current) / 1000);
-            update(userStatusRef, {
-                state: 'offline',
-                last_seen: serverTimestamp(),
-                time_spent: increment(sessionDuration)
-            });
+        // If the user is logging out cleanly, we want to update their status immediately
+        // and cancel the pending onDisconnect operations to avoid a race condition.
+        if (user && rtdb) {
+             const sessionDuration = sessionStartTimeRef.current ? Math.round((Date.now() - sessionStartTimeRef.current) / 1000) : 0;
+             if (sessionDuration > 0) {
+                 // Only update if there's a valid session duration to increment.
+                 update(userStatusRef, {
+                    state: 'offline',
+                    last_seen: serverTimestamp(),
+                    time_spent: increment(sessionDuration)
+                 });
+             } else {
+                 // If no duration, just set to offline.
+                 update(userStatusRef, {
+                    state: 'offline',
+                    last_seen: serverTimestamp(),
+                 });
+             }
+            // IMPORTANT: Cancel all onDisconnect operations for this reference.
+            onDisconnect(userStatusRef).cancel();
         }
         
-        onDisconnect(userStatusRef).cancel(); // IMPORTANT: Cancel the onDisconnect handler to prevent it from firing on a clean logout.
         sessionStartTimeRef.current = null;
     };
 }, [user, rtdb]);
