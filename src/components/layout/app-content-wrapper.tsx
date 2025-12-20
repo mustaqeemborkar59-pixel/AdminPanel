@@ -12,7 +12,7 @@ import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar'
 import { AppSidebarNav } from '@/components/layout/app-sidebar-nav';
 import { Header } from '@/components/layout/header';
 import { useToast } from '@/hooks/use-toast';
-import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp, goOffline, goOnline, increment } from "firebase/database";
+import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp, goOffline, goOnline, increment, update } from "firebase/database";
 
 
 interface AppContextType {
@@ -57,55 +57,50 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     const uid = user.uid;
     const db = rtdb;
     const userStatusRef = ref(db, `/status/${uid}`);
-    const timeSpentRef = ref(db, `/status/${uid}/time_spent`);
 
-    // We'll create a reference to the special '.info/connected' path in 
-    // Realtime Database that tells us if we're connected.
     const connectedRef = ref(db, '.info/connected');
 
     let sessionStartTime: number | null = null;
+    let timeUpdateInterval: NodeJS.Timeout;
 
     const unsubscribe = onValue(connectedRef, (snap) => {
       if (snap.val() === true) {
-        // We're connected.
-        // Set a start time for the session
         sessionStartTime = Date.now();
-
-        // Add this device to my connections list
-        // this is a reference to the specific connection
-        set(userStatusRef, {
+        
+        // Use update instead of set to avoid overwriting time_spent
+        update(userStatusRef, {
             state: 'online',
             last_seen: serverTimestamp(),
         });
 
-        // When I disconnect, remove this device
-        onDisconnect(userStatusRef).set({
+        onDisconnect(userStatusRef).update({
             state: 'offline',
             last_seen: serverTimestamp(),
-            // Increment time_spent on disconnect
+            // Use increment to add the session duration to the existing time_spent
             time_spent: increment(Math.floor((Date.now() - (sessionStartTime || Date.now())) / 1000))
         });
+        
+        // Periodically update time_spent while online
+        timeUpdateInterval = setInterval(() => {
+           if(sessionStartTime) {
+             const currentSessionDuration = Math.floor((Date.now() - sessionStartTime) / 1000);
+             update(userStatusRef, {
+                time_spent: increment(currentSessionDuration)
+             });
+             sessionStartTime = Date.now(); // Reset start time for the next interval
+           }
+        }, 60000); // every 60 seconds
+
       }
     });
 
-    // Set up an interval to update time spent every minute
-    const intervalId = setInterval(() => {
-        if(sessionStartTime){
-            const secondsSpent = Math.floor((Date.now() - sessionStartTime) / 1000);
-            set(timeSpentRef, increment(secondsSpent));
-            // Reset start time after updating
-            sessionStartTime = Date.now();
-        }
-    }, 60000); // 60 seconds
-
     return () => {
-      // Clean up on component unmount or user change
-      clearInterval(intervalId);
-      if (sessionStartTime) { // If there's an active session, update one last time
-         const secondsSpent = Math.floor((Date.now() - sessionStartTime) / 1000);
-         set(timeSpentRef, increment(secondsSpent));
+      clearInterval(timeUpdateInterval);
+      if (sessionStartTime) { // Update one last time on cleanup
+         const finalSessionDuration = Math.floor((Date.now() - sessionStartTime) / 1000);
+         update(userStatusRef, { time_spent: increment(finalSessionDuration) });
       }
-      goOffline(db); // Disconnect from RTDB
+      goOffline(db);
       unsubscribe();
     };
   }, [user, rtdb]);
