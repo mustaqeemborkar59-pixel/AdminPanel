@@ -61,24 +61,25 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     const userStatusRef = ref(rtdb, `/status/${uid}`);
     const connectedRef = ref(rtdb, '.info/connected');
 
+    let unsubscribe: () => void;
+
     const listener = onValue(connectedRef, (snap) => {
       if (snap.val() === true) {
         // We're connected.
         sessionStartTimeRef.current = Date.now();
 
         // When I disconnect, update my status and last_seen time, and increment my total time spent.
-        const onDisconnectRef = onDisconnect(userStatusRef);
-        onDisconnectRef.update({
+        onDisconnect(userStatusRef).update({
             state: 'offline',
             last_seen: serverTimestamp(),
             time_spent: increment(sessionStartTimeRef.current ? Math.round((Date.now() - sessionStartTimeRef.current) / 1000) : 0)
-        });
+        }).catch(err => console.error("onDisconnect update failed", err));
 
-        // Add this device to my connections list.
-        // If I'm the first device, set my status to 'online'.
+        // Get current data to decide whether to initialize or update
         get(userStatusRef).then(snapshot => {
             if (!snapshot.exists()) {
-                // This is the first time this user is connecting in this session. Create the record.
+                // This is the first time this user is connecting or their record was deleted.
+                // Create the record with time_spent=0.
                 set(userStatusRef, {
                     state: 'online',
                     last_seen: serverTimestamp(),
@@ -95,29 +96,30 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
       }
     });
     
-    // The cleanup function is critical for handling logouts and component unmounts.
-    return () => {
+    unsubscribe = () => {
         listener(); // Detach the onValue listener for connection state.
+    };
+    
+    return () => {
+        if(unsubscribe) {
+            unsubscribe();
+        }
         
-        // If the user is logging out cleanly, we want to update their status immediately
-        // and cancel the pending onDisconnect operations to avoid a race condition.
         if (user && rtdb) {
              const sessionDuration = sessionStartTimeRef.current ? Math.round((Date.now() - sessionStartTimeRef.current) / 1000) : 0;
              if (sessionDuration > 0) {
-                 // Only update if there's a valid session duration to increment.
+                 // Update time spent when navigating away or logging out cleanly
                  update(userStatusRef, {
                     state: 'offline',
                     last_seen: serverTimestamp(),
                     time_spent: increment(sessionDuration)
-                 });
+                 }).catch(err => console.error("Clean disconnect update failed", err));
              } else {
-                 // If no duration, just set to offline.
-                 update(userStatusRef, {
+                  update(userStatusRef, {
                     state: 'offline',
-                    last_seen: serverTimestamp(),
-                 });
+                    last_seen: serverTimestamp()
+                 }).catch(err => console.error("Clean disconnect update failed", err));
              }
-            // IMPORTANT: Cancel all onDisconnect operations for this reference.
             onDisconnect(userStatusRef).cancel();
         }
         
