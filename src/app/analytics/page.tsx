@@ -4,10 +4,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { getAllUsers } from '@/app/auth/actions';
-import { getDatabase, ref, onValue, get } from 'firebase/database';
+import { onValue, ref } from 'firebase/database';
 import type { UserProfile } from '@/types';
 import { useFirebase } from '@/firebase';
-import { Loader2, User, UserCheck, UserX, Lock, Clock, Crown, ShieldCheck, Store, CalendarDays, BarChart, Users as UsersIcon, Wifi, WifiOff } from 'lucide-react';
+import { Loader2, Lock, Clock, Crown, ShieldCheck, Store, User as UserIcon, CalendarDays, BarChart, Users as UsersIcon, Wifi, WifiOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -61,7 +61,7 @@ const getRoleBadge = (user: EnrichedUser) => {
       case 'vendor':
         return <Badge variant="secondary" className="text-xs"><Store className="h-3 w-3 mr-1" />Vendor</Badge>;
       default:
-        return <Badge variant="outline" className="text-xs"><User className="h-3 w-3 mr-1" />User</Badge>;
+        return <Badge variant="outline" className="text-xs"><UserIcon className="h-3 w-3 mr-1" />User</Badge>;
     }
 };
 
@@ -95,16 +95,17 @@ export default function AnalyticsPage() {
     }
     
     if (!rtdb) {
-        if(!isLoading) setDataLoading(true);
         return;
     }
 
     let isMounted = true;
-    
+    let unsubscribe: () => void;
+
     const fetchAndListen = async () => {
         if (!isMounted) return;
         setDataLoading(true);
 
+        // 1. Fetch initial user profiles from Firestore
         const usersResult = await getAllUsers();
         if (!isMounted) return;
 
@@ -114,45 +115,42 @@ export default function AnalyticsPage() {
             return;
         }
       
-        // Set the base user profiles first
-        setUsers(usersResult.data);
+        // 2. Set the base user profiles state
+        const initialUsers = usersResult.data;
+        setUsers(initialUsers);
+        setDataLoading(false); // Initial load complete
 
+        // 3. Set up the real-time listener for presence
         const statusRef = ref(rtdb, 'status');
-
-        // Set up the real-time listener
-        const unsubscribe = onValue(statusRef, (snapshot) => {
+        unsubscribe = onValue(statusRef, (snapshot) => {
             if (!isMounted) return;
             
             const presenceData = snapshot.val() as Record<string, UserPresence> | null;
+            if (!presenceData) return;
             
-            // Use the functional form of setUsers to ensure we have the latest state
+            // **THE CRITICAL FIX**: Use functional state update
+            // This ensures we always have the latest 'users' state from React
+            // and correctly merge the new presence data onto it.
             setUsers(currentUsers => 
                 currentUsers.map(user => {
-                    const userPresence = presenceData ? presenceData[user.uid] : undefined;
-                    return { ...user, presence: userPresence };
+                    const userPresence = presenceData[user.uid];
+                    return userPresence ? { ...user, presence: userPresence } : user;
                 })
             );
-            
-            // Set loading to false after the first data fetch and listener setup
-            setDataLoading(false);
 
         }, (error) => {
             console.error("Error listening to presence data:", error);
-            if (isMounted) setDataLoading(false);
         });
-
-        return () => {
-            unsubscribe();
-        };
     };
 
-    const cleanupPromise = fetchAndListen();
+    fetchAndListen();
 
+    // 4. Cleanup function
     return () => {
         isMounted = false;
-        cleanupPromise.then(cleanup => {
-            if (cleanup) cleanup();
-        });
+        if (unsubscribe) {
+            unsubscribe();
+        }
     };
     
   }, [rtdb, isSuperAdmin, authLoading]);
@@ -306,7 +304,7 @@ export default function AnalyticsPage() {
                     </div>
                 );
             })}
-             {users.length === 0 && (
+             {users.length === 0 && !dataLoading && (
                 <div className="col-span-full text-center py-12">
                     <p className="font-body text-muted-foreground">No user activity data to display yet.</p>
                 </div>
