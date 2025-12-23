@@ -9,7 +9,7 @@ export function Logo() {
     >
       <span className="whitespace-nowrap flex items-baseline gap-x-1">
         <span className="text-foreground">Yasir Sofware</span>
-        <span className="text-primary text-lg">Solutions</span>
+        <span className="text-primary text-base">Solutions</span>
       </span>
     </Link>
   );
