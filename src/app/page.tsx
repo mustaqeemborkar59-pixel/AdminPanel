@@ -288,23 +288,12 @@ function DashboardContent() {
                               cx="50%"
                               cy="50%"
                               labelLine={false}
-                              innerRadius={60}
-                              outerRadius={80}
-                              paddingAngle={5}
+                              innerRadius={50}
+                              outerRadius={90}
+                              paddingAngle={2}
                               fill="#8884d8"
                               dataKey="value"
                               nameKey="label"
-                              label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
-                                const RADIAN = Math.PI / 180;
-                                const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-                                const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                                const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                                return (
-                                  <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-xs font-bold">
-                                    {`${(percent * 100).toFixed(0)}%`}
-                                  </text>
-                                );
-                              }}
                           >
                               {salesDetailsData.map((entry, index) => (
                                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -320,7 +309,7 @@ function DashboardContent() {
                               position="center"
                               fill="hsl(var(--foreground))"
                               className="text-3xl font-bold"
-                              dy={-10}
+                              dy={-5}
                               />
                               <Label
                               value="Total Orders"
@@ -331,7 +320,7 @@ function DashboardContent() {
                               />
                       </PieChart>
                   </ResponsiveContainer>
-                  <div className="mt-4 space-y-2">
+                  <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2">
                     {salesDetailsData.map((entry, index) => (
                       <div key={entry.name} className="flex items-center text-sm">
                         <span className="h-2.5 w-2.5 rounded-full mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
@@ -450,5 +439,3 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
-
-    
