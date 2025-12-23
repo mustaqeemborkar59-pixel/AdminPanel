@@ -458,7 +458,14 @@ export default function OrdersPage() {
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
-    XLSX.writeFile(workbook, `orders-${new Date().toISOString().split('T')[0]}.xlsx`);
+    
+    const dateStr = new Date().toISOString().split('T')[0];
+    let fileName = `orders-${dateStr}.xlsx`;
+    if (vendorFilter !== 'all') {
+        const safeVendorName = vendorFilter.replace(/[^a-zA-Z0-9]/g, '_');
+        fileName = `${safeVendorName}_orders-${dateStr}.xlsx`;
+    }
+    XLSX.writeFile(workbook, fileName);
   };
   
   const handleExport = (format: 'pdf' | 'excel', scope: 'selected' | 'all') => {
