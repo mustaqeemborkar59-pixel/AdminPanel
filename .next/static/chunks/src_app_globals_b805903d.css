@@ -630,10 +630,6 @@ input, button, textarea, select {
   margin-right: .5rem;
 }
 
-.mr-3 {
-  margin-right: .75rem;
-}
-
 .mt-1 {
   margin-top: .25rem;
 }
@@ -1657,10 +1653,6 @@ input, button, textarea, select {
 
 .fill-current {
   fill: currentColor;
-}
-
-.fill-foreground {
-  fill: hsl(var(--foreground));
 }
 
 .object-cover {

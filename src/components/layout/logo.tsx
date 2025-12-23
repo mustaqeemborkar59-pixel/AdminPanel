@@ -1,4 +1,3 @@
-
 import Link from 'next/link';
 
 export function Logo() {
@@ -9,7 +8,7 @@ export function Logo() {
     >
       <span className="whitespace-nowrap flex items-baseline gap-x-1">
         <span className="text-foreground">Yasir Sofware</span>
-        <span className="text-primary text-base">Solutions</span>
+        <span className="text-primary text-sm">Solutions</span>
       </span>
     </Link>
   );
