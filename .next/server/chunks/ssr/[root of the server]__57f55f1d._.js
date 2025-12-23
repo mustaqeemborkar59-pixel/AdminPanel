@@ -1,0 +1,1065 @@
+module.exports = {
+
+"[externals]/util [external] (util, cjs)": (function(__turbopack_context__) {
+
+var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("util", () => require("util"));
+
+module.exports = mod;
+}}),
+"[externals]/crypto [external] (crypto, cjs)": (function(__turbopack_context__) {
+
+var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("crypto", () => require("crypto"));
+
+module.exports = mod;
+}}),
+"[externals]/process [external] (process, cjs)": (function(__turbopack_context__) {
+
+var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("process", () => require("process"));
+
+module.exports = mod;
+}}),
+"[externals]/tls [external] (tls, cjs)": (function(__turbopack_context__) {
+
+var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("tls", () => require("tls"));
+
+module.exports = mod;
+}}),
+"[externals]/fs [external] (fs, cjs)": (function(__turbopack_context__) {
+
+var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("fs", () => require("fs"));
+
+module.exports = mod;
+}}),
+"[externals]/os [external] (os, cjs)": (function(__turbopack_context__) {
+
+var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("os", () => require("os"));
+
+module.exports = mod;
+}}),
+"[externals]/net [external] (net, cjs)": (function(__turbopack_context__) {
+
+var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("net", () => require("net"));
+
+module.exports = mod;
+}}),
+"[externals]/events [external] (events, cjs)": (function(__turbopack_context__) {
+
+var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("events", () => require("events"));
+
+module.exports = mod;
+}}),
+"[externals]/stream [external] (stream, cjs)": (function(__turbopack_context__) {
+
+var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("stream", () => require("stream"));
+
+module.exports = mod;
+}}),
+"[externals]/http2 [external] (http2, cjs)": (function(__turbopack_context__) {
+
+var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("http2", () => require("http2"));
+
+module.exports = mod;
+}}),
+"[externals]/http [external] (http, cjs)": (function(__turbopack_context__) {
+
+var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("http", () => require("http"));
+
+module.exports = mod;
+}}),
+"[externals]/dns [external] (dns, cjs)": (function(__turbopack_context__) {
+
+var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("dns", () => require("dns"));
+
+module.exports = mod;
+}}),
+"[externals]/zlib [external] (zlib, cjs)": (function(__turbopack_context__) {
+
+var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("zlib", () => require("zlib"));
+
+module.exports = mod;
+}}),
+"[externals]/buffer [external] (buffer, cjs)": (function(__turbopack_context__) {
+
+var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("buffer", () => require("buffer"));
+
+module.exports = mod;
+}}),
+"[project]/src/lib/firebase.ts [app-rsc] (ecmascript)": ((__turbopack_context__) => {
+"use strict";
+
+var { g: global, __dirname } = __turbopack_context__;
+{
+// src/lib/firebase.ts
+__turbopack_context__.s({
+    "app": (()=>app),
+    "auth": (()=>auth),
+    "db": (()=>db),
+    "rtdb": (()=>rtdb)
+});
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$app$2f$dist$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/app/dist/index.mjs [app-rsc] (ecmascript) <module evaluation>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$app$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/node_modules/@firebase/app/dist/esm/index.esm2017.js [app-rsc] (ecmascript) <locals>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$auth$2f$dist$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/auth/dist/index.mjs [app-rsc] (ecmascript) <module evaluation>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$node$2d$esm$2f$totp$2d$9f6d0d7e$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$export__p__as__getAuth$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/node_modules/@firebase/auth/dist/node-esm/totp-9f6d0d7e.js [app-rsc] (ecmascript) <export p as getAuth>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$firestore$2f$dist$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/firestore/dist/index.mjs [app-rsc] (ecmascript) <module evaluation>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@firebase/firestore/dist/index.node.mjs [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$database$2f$dist$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/database/dist/index.mjs [app-rsc] (ecmascript) <module evaluation>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@firebase/database/dist/node-esm/index.node.esm.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+const firebaseConfig = {
+    apiKey: ("TURBOPACK compile-time value", "AIzaSyAugeIbPx3bJ8OExWK5b6iBifYc0ohlQMI"),
+    authDomain: ("TURBOPACK compile-time value", "sakibtruth-adminpanel-f1c52.firebaseapp.com"),
+    projectId: ("TURBOPACK compile-time value", "sakibtruth-adminpanel-f1c52"),
+    storageBucket: ("TURBOPACK compile-time value", "sakibtruth-adminpanel-f1c52.firebasestorage.app"),
+    messagingSenderId: ("TURBOPACK compile-time value", "858577967570"),
+    appId: ("TURBOPACK compile-time value", "1:858577967570:web:fc159080f0337d894a100b"),
+    measurementId: ("TURBOPACK compile-time value", "G-0510YZH0BV"),
+    databaseURL: ("TURBOPACK compile-time value", "https://sakibtruth-adminpanel-f1c52-default-rtdb.firebaseio.com/")
+};
+let app;
+let auth;
+let db;
+let rtdb; // Can be undefined
+// Initialize Firebase App
+if (!(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$app$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$locals$3e$__["getApps"])().length) {
+    app = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$app$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$locals$3e$__["initializeApp"])(firebaseConfig);
+} else {
+    app = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$app$2f$dist$2f$esm$2f$index$2e$esm2017$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$locals$3e$__["getApps"])()[0];
+}
+// Initialize services
+auth = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$node_modules$2f40$firebase$2f$auth$2f$dist$2f$node$2d$esm$2f$totp$2d$9f6d0d7e$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$export__p__as__getAuth$3e$__["getAuth"])(app);
+db = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getFirestore"])(app);
+// Conditionally initialize RTDB only if the databaseURL is provided and valid
+try {
+    if (firebaseConfig.databaseURL && new URL(firebaseConfig.databaseURL)) {
+        rtdb = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getDatabase"])(app);
+    }
+} catch (e) {
+    console.warn("Firebase Realtime Database URL is invalid, skipping initialization.");
+    rtdb = undefined;
+}
+;
+}}),
+"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)": ((__turbopack_context__) => {
+"use strict";
+
+var { g: global, __dirname } = __turbopack_context__;
+{
+/* __next_internal_action_entry_do_not_use__ {"001cc3512ac50ac640f8e12154dafa253185c9b403":"getAllUsersFromRTDB","0086d1454012dae48d87f8b73ffe6497b833c94961":"signOut","00cf5330395e82bf8255922e76b18a7d7fd7cd3e01":"getCompanyDetailsFromRTDB","40044dd996ad1064b3f3a24c91499cd29194bb172f":"getRTDBUserProfile","401f6e3642acf65262fa6d6423f207ff565e3c09fa":"saveCompanyDetailsToRTDB","40c48e813c46b3a647fdaba272c551bcf1164be5ed":"createRTDBUserProfileOnSignup","601bd125fce01d8a580d96c85d8b9793241722e9b9":"updateRTDBUserProfileOnLogin","70d7fb37e7ffec4105f273821f23897081314b0bd1":"updateUserRoleInRTDB"} */ __turbopack_context__.s({
+    "createRTDBUserProfileOnSignup": (()=>createRTDBUserProfileOnSignup),
+    "getAllUsersFromRTDB": (()=>getAllUsersFromRTDB),
+    "getCompanyDetailsFromRTDB": (()=>getCompanyDetailsFromRTDB),
+    "getRTDBUserProfile": (()=>getRTDBUserProfile),
+    "saveCompanyDetailsToRTDB": (()=>saveCompanyDetailsToRTDB),
+    "signOut": (()=>signOut),
+    "updateRTDBUserProfileOnLogin": (()=>updateRTDBUserProfileOnLogin),
+    "updateUserRoleInRTDB": (()=>updateUserRoleInRTDB)
+});
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/build/webpack/loaders/next-flight-loader/server-reference.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$app$2d$render$2f$encryption$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/app-render/encryption.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$api$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i("[project]/node_modules/next/dist/api/navigation.react-server.js [app-rsc] (ecmascript) <module evaluation>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$components$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/client/components/navigation.react-server.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/firebase.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$database$2f$dist$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/database/dist/index.mjs [app-rsc] (ecmascript) <module evaluation>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@firebase/database/dist/node-esm/index.node.esm.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/build/webpack/loaders/next-flight-loader/action-validate.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+;
+async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ createRTDBUserProfileOnSignup(details) {
+    if (!__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["rtdb"]) {
+        return {
+            success: false,
+            message: "Realtime Database is not configured."
+        };
+    }
+    try {
+        const userRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ref"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["rtdb"], `users/${details.uid}`);
+        // Explicitly set the role to 'user' for every new signup
+        const userProfile = {
+            uid: details.uid,
+            email: details.email || 'No email',
+            displayName: details.displayName || 'New User',
+            photoURL: details.photoURL || '',
+            role: 'user'
+        };
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["set"])(userRef, userProfile);
+        return {
+            success: true
+        };
+    } catch (error) {
+        console.error('Profile Creation Error on Signup:', error);
+        return {
+            success: false,
+            message: error.message || 'Failed to create user profile in database.'
+        };
+    }
+}
+async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ getRTDBUserProfile(uid) {
+    if (!__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["rtdb"]) {
+        return {
+            success: false,
+            message: "Realtime Database is not configured."
+        };
+    }
+    try {
+        const userRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ref"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["rtdb"], `users/${uid}`);
+        const snapshot = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["get"])(userRef);
+        if (snapshot.exists()) {
+            return {
+                success: true,
+                data: snapshot.val()
+            };
+        }
+        return {
+            success: false,
+            message: "User profile not found."
+        };
+    } catch (error) {
+        console.error('Failed to get user profile from RTDB:', error);
+        return {
+            success: false,
+            message: error.message || 'Failed to fetch user profile.'
+        };
+    }
+}
+async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ updateRTDBUserProfileOnLogin(uid, details) {
+    if (!__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["rtdb"]) {
+        return {
+            success: false,
+            message: "Realtime Database is not configured."
+        };
+    }
+    try {
+        // This function can update details like photoURL or displayName on login if they've changed
+        const userRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ref"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["rtdb"], `users/${uid}`);
+        const snapshot = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["get"])(userRef);
+        if (snapshot.exists()) {
+            const updates = {};
+            if (details.displayName && details.displayName !== snapshot.val().displayName) {
+                updates.displayName = details.displayName;
+            }
+            if (details.photoURL && details.photoURL !== snapshot.val().photoURL) {
+                updates.photoURL = details.photoURL;
+            }
+            if (Object.keys(updates).length > 0) {
+                await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["update"])(userRef, updates);
+            }
+        }
+        return {
+            success: true
+        };
+    } catch (error) {
+        console.error('Profile Update Error on Login:', error);
+        return {
+            success: false,
+            message: error.message || 'Failed to update user profile in database.'
+        };
+    }
+}
+async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ signOut() {
+    try {
+    // Firebase signOut is client-side. The actual sign out is handled
+    // by onAuthStateChanged in AppContentWrapper and the client-side call in AppSidebarNav.
+    // This server action is primarily for a server-initiated redirect if ever needed.
+    } catch (error) {
+        console.error('SignOut Server Action Error (auth.signOut() should be client-side):', error);
+    }
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$components$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["redirect"])('/login');
+}
+async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ saveCompanyDetailsToRTDB(details) {
+    if (!__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["rtdb"]) {
+        return {
+            success: false,
+            message: "Realtime Database is not configured."
+        };
+    }
+    try {
+        const detailsRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ref"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["rtdb"], 'companyDetails/info');
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["set"])(detailsRef, details);
+        return {
+            success: true
+        };
+    } catch (error) {
+        console.error('Failed to save company details to RTDB:', error);
+        return {
+            success: false,
+            message: error.message || 'Failed to save company details.'
+        };
+    }
+}
+async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ getCompanyDetailsFromRTDB() {
+    if (!__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["rtdb"]) {
+        return {
+            success: false,
+            message: "Realtime Database is not configured."
+        };
+    }
+    try {
+        const detailsRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ref"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["rtdb"], 'companyDetails/info');
+        const snapshot = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["get"])(detailsRef);
+        if (snapshot.exists()) {
+            return {
+                success: true,
+                data: snapshot.val()
+            };
+        }
+        return {
+            success: true,
+            data: undefined
+        }; // No data found is not an error
+    } catch (error) {
+        console.error('Failed to get company details from RTDB:', error);
+        return {
+            success: false,
+            message: error.message || 'Failed to fetch company details.'
+        };
+    }
+}
+async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ getAllUsersFromRTDB() {
+    if (!__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["rtdb"]) {
+        return {
+            success: false,
+            message: "Realtime Database is not configured."
+        };
+    }
+    try {
+        const usersRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ref"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["rtdb"], 'users');
+        const snapshot = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["get"])(usersRef);
+        if (snapshot.exists()) {
+            const usersData = snapshot.val();
+            // The data is an object with UIDs as keys. Convert it to an array.
+            const usersArray = Object.keys(usersData).map((uid)=>({
+                    uid,
+                    ...usersData[uid]
+                }));
+            return {
+                success: true,
+                data: usersArray
+            };
+        }
+        return {
+            success: true,
+            data: []
+        }; // No users found is not an error
+    } catch (error) {
+        console.error('Failed to get all users from RTDB:', error);
+        return {
+            success: false,
+            message: error.message || 'Failed to fetch user profiles.'
+        };
+    }
+}
+async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ updateUserRoleInRTDB(userId, role, vendorCode) {
+    if (!__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["rtdb"]) {
+        return {
+            success: false,
+            message: "Realtime Database is not configured."
+        };
+    }
+    try {
+        const userRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ref"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["rtdb"], `users/${userId}`);
+        const updates = {
+            role
+        };
+        if (role === 'vendor') {
+            // If a vendor code is provided, set it. If not, it remains unchanged unless explicitly cleared.
+            if (vendorCode) {
+                updates.vendorCode = vendorCode;
+            }
+        } else {
+            // If the role is changed to anything other than 'vendor', remove the vendorCode.
+            updates.vendorCode = null; // Use null to remove the field in Firebase RTDB
+        }
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["update"])(userRef, updates);
+        return {
+            success: true
+        };
+    } catch (error) {
+        console.error('Failed to update user role in RTDB:', error);
+        return {
+            success: false,
+            message: error.message || 'Failed to update user role.'
+        };
+    }
+}
+;
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ensureServerEntryExports"])([
+    createRTDBUserProfileOnSignup,
+    getRTDBUserProfile,
+    updateRTDBUserProfileOnLogin,
+    signOut,
+    saveCompanyDetailsToRTDB,
+    getCompanyDetailsFromRTDB,
+    getAllUsersFromRTDB,
+    updateUserRoleInRTDB
+]);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(createRTDBUserProfileOnSignup, "40c48e813c46b3a647fdaba272c551bcf1164be5ed", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getRTDBUserProfile, "40044dd996ad1064b3f3a24c91499cd29194bb172f", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(updateRTDBUserProfileOnLogin, "601bd125fce01d8a580d96c85d8b9793241722e9b9", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(signOut, "0086d1454012dae48d87f8b73ffe6497b833c94961", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(saveCompanyDetailsToRTDB, "401f6e3642acf65262fa6d6423f207ff565e3c09fa", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getCompanyDetailsFromRTDB, "00cf5330395e82bf8255922e76b18a7d7fd7cd3e01", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getAllUsersFromRTDB, "001cc3512ac50ac640f8e12154dafa253185c9b403", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(updateUserRoleInRTDB, "70d7fb37e7ffec4105f273821f23897081314b0bd1", null);
+}}),
+"[externals]/https [external] (https, cjs)": (function(__turbopack_context__) {
+
+var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("https", () => require("https"));
+
+module.exports = mod;
+}}),
+"[externals]/assert [external] (assert, cjs)": (function(__turbopack_context__) {
+
+var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("assert", () => require("assert"));
+
+module.exports = mod;
+}}),
+"[externals]/tty [external] (tty, cjs)": (function(__turbopack_context__) {
+
+var { g: global, __dirname, m: module, e: exports } = __turbopack_context__;
+{
+const mod = __turbopack_context__.x("tty", () => require("tty"));
+
+module.exports = mod;
+}}),
+"[project]/src/lib/woocommerce.ts [app-rsc] (ecmascript)": ((__turbopack_context__) => {
+"use strict";
+
+var { g: global, __dirname } = __turbopack_context__;
+{
+__turbopack_context__.s({
+    "getOrders": (()=>getOrders),
+    "getProducts": (()=>getProducts),
+    "updateOrderAddress": (()=>updateOrderAddress),
+    "updateOrderStatus": (()=>updateOrderStatus)
+});
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$woocommerce$2f$woocommerce$2d$rest$2d$api$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@woocommerce/woocommerce-rest-api/index.js [app-rsc] (ecmascript)");
+;
+// Check if the required environment variables are available at runtime.
+const isWooCommerceConfigured = ()=>{
+    return ("TURBOPACK compile-time value", "https://sakibtruth.com/") && ("TURBOPACK compile-time value", "https://sakibtruth.com/") !== 'https://your-store-url.com' && ("TURBOPACK compile-time value", "ck_594c2082639e6c16e6448f472ae87600b1a376af") && ("TURBOPACK compile-time value", "cs_47e523e093da5d068f0a9303579ecb4949802ba6");
+};
+let api;
+if (isWooCommerceConfigured()) {
+    try {
+        // Basic validation to ensure the URL is somewhat valid before initializing
+        new URL(("TURBOPACK compile-time value", "https://sakibtruth.com/"));
+        api = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$woocommerce$2f$woocommerce$2d$rest$2d$api$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"]({
+            url: ("TURBOPACK compile-time value", "https://sakibtruth.com/"),
+            consumerKey: ("TURBOPACK compile-time value", "ck_594c2082639e6c16e6448f472ae87600b1a376af"),
+            consumerSecret: ("TURBOPACK compile-time value", "cs_47e523e093da5d068f0a9303579ecb4949802ba6"),
+            version: "wc/v3",
+            timeout: 60000
+        });
+    } catch (error) {
+        console.error("Failed to initialize WooCommerce API. Please check the store URL in your .env file.", error);
+        api = undefined;
+    }
+}
+const formatAddress = (address)=>{
+    if (!address || !Object.keys(address).some((key)=>address[key])) {
+        return '';
+    }
+    const addressParts = [
+        address.address_1,
+        address.address_2,
+        address.city,
+        address.state,
+        address.postcode,
+        address.country
+    ];
+    return addressParts.filter((part)=>part).join(', ');
+};
+const mapWCOrderToAppOrder = (wcOrder)=>{
+    let primaryVendorName = undefined;
+    const items = wcOrder.line_items.map((item)=>{
+        let itemVendorName = undefined;
+        if (item.sku && typeof item.sku === 'string' && item.sku.includes('-')) {
+            itemVendorName = item.sku.split('-')[0];
+            if (!primaryVendorName) {
+                primaryVendorName = itemVendorName;
+            }
+        }
+        return {
+            itemId: String(item.product_id),
+            name: item.name,
+            qty: item.quantity,
+            price: parseFloat(item.price),
+            imageUrl: item.image?.src || '',
+            vendorName: itemVendorName
+        };
+    });
+    const subTotal = parseFloat(wcOrder.total) - parseFloat(wcOrder.total_tax);
+    const billingAddress = formatAddress(wcOrder.billing);
+    const shippingAddress = formatAddress(wcOrder.shipping);
+    // Find alternate phone from meta data
+    const altPhoneMeta = wcOrder.meta_data.find((m)=>m.key === '_billing_alternate_phone');
+    const altPhone = altPhoneMeta ? altPhoneMeta.value : undefined;
+    return {
+        id: String(wcOrder.id),
+        customerName: `${wcOrder.billing.first_name} ${wcOrder.billing.last_name}`,
+        phone: wcOrder.billing.phone,
+        altPhone: altPhone,
+        pincode: wcOrder.billing.postcode,
+        gmail: wcOrder.billing.email,
+        items: items,
+        status: wcOrder.status,
+        orderType: 'delivery',
+        billingAddress: billingAddress,
+        billing_city: wcOrder.billing.city,
+        billing_state: wcOrder.billing.state,
+        billing_country: wcOrder.billing.country,
+        shippingAddress: shippingAddress,
+        trackingId: wcOrder.meta_data.find((m)=>m.key === '_wc_shipment_tracking_items')?.value[0]?.tracking_number || '',
+        totalAmount: parseFloat(wcOrder.total),
+        subTotal: subTotal,
+        taxAmount: parseFloat(wcOrder.total_tax),
+        timestamp: wcOrder.date_created_gmt + 'Z',
+        paymentMethod: wcOrder.payment_method_title,
+        paymentDate: wcOrder.date_paid_gmt ? wcOrder.date_paid_gmt + 'Z' : null,
+        vendorName: primaryVendorName
+    };
+};
+const getOrders = async ()=>{
+    if (!api || !isWooCommerceConfigured()) {
+        // Throw an error that will be caught by the server action and displayed to the user.
+        throw new Error('WooCommerce environment variables are not set correctly. Please check your .env file and ensure WOOCOMMERCE_STORE_URL, WOOCOMMERCE_CONSUMER_KEY, and WOOCOMMERCE_CONSUMER_SECRET are set correctly.');
+    }
+    try {
+        let allWCOrders = [];
+        let page = 1;
+        const perPage = 100; // Max per_page is 100
+        let keepFetching = true;
+        while(keepFetching){
+            const response = await api.get("orders", {
+                per_page: perPage,
+                page: page,
+                orderby: 'date',
+                order: 'desc'
+            });
+            if (response.status !== 200) {
+                throw new Error(`Failed to fetch orders on page ${page}: ${response.statusText}`);
+            }
+            const fetchedOrders = response.data;
+            allWCOrders = allWCOrders.concat(fetchedOrders);
+            if (fetchedOrders.length < perPage) {
+                keepFetching = false;
+            } else {
+                page++;
+            }
+        }
+        const orders = allWCOrders.map(mapWCOrderToAppOrder);
+        return orders;
+    } catch (error) {
+        console.error("Error fetching data from WooCommerce:", error);
+        if (error.code === 'ENOTFOUND' || error.message.includes('getaddrinfo ENOTFOUND')) {
+            throw new Error(`Could not connect to WooCommerce store. Hostname not found. Please check the store URL in your .env file: ${process.env.WOOCOMMERCE_STORE_URL}`);
+        }
+        if (error.message.includes('Failed to parse URL')) {
+            throw new Error(`Invalid WooCommerce store URL. Please check the format in your .env file: ${process.env.WOOCOMMERCE_STORE_URL}`);
+        }
+        // Re-throw a generic but informative error for other cases.
+        throw new Error('Failed to communicate with WooCommerce API. Verify store URL, keys, and network connection.');
+    }
+};
+const updateOrderStatus = async (orderId, status)=>{
+    if (!api) {
+        console.error('WooCommerce API is not configured. Cannot update order status.');
+        return false;
+    }
+    try {
+        const response = await api.put(`orders/${orderId}`, {
+            status: status
+        });
+        return response.status === 200;
+    } catch (error) {
+        console.error(`Failed to update order ${orderId} status in WooCommerce:`, error);
+        // You could re-throw a more specific error here to be handled by the server action
+        throw new Error('Failed to update order status in WooCommerce.');
+    }
+};
+const updateOrderAddress = async (orderId, payload)=>{
+    if (!api) {
+        console.error('WooCommerce API is not configured. Cannot update order address.');
+        return false;
+    }
+    try {
+        const data = {
+            billing: {}
+        };
+        // Map all possible fields from the payload to the billing object
+        const fields = [
+            'first_name',
+            'last_name',
+            'address_1',
+            'address_2',
+            'city',
+            'state',
+            'postcode',
+            'country',
+            'email',
+            'phone'
+        ];
+        fields.forEach((field)=>{
+            // Allow empty strings to clear a field in WC
+            if (payload[field] !== undefined) {
+                data.billing[field] = payload[field];
+            }
+        });
+        // Handle alternate phone as meta data
+        if (payload.alternate_phone !== undefined) {
+            data.meta_data = [
+                {
+                    key: '_billing_alternate_phone',
+                    value: payload.alternate_phone
+                }
+            ];
+        }
+        if (Object.keys(data.billing).length === 0 && !data.meta_data) {
+            console.log("No address data to update.");
+            return true; // Nothing to update, so we can consider it successful.
+        }
+        const response = await api.put(`orders/${orderId}`, data);
+        return response.status === 200;
+    } catch (error) {
+        console.error(`Failed to update order ${orderId} address in WooCommerce:`, error);
+        throw new Error('Failed to update order address in WooCommerce.');
+    }
+};
+const mapWCProductToMenuItem = (product)=>{
+    const isSale = product.on_sale && product.sale_price;
+    return {
+        id: String(product.id),
+        name: product.name,
+        // If it's on sale, price is the sale_price. Otherwise, it's the regular_price (or the price field as a fallback).
+        price: parseFloat(isSale ? product.sale_price : product.regular_price || product.price || '0'),
+        // Only set regularPrice if the item is on sale and the prices are different.
+        regularPrice: isSale && parseFloat(product.regular_price) > parseFloat(product.sale_price) ? parseFloat(product.regular_price) : undefined,
+        category: product.categories.length > 0 ? product.categories[0].name : 'Uncategorized',
+        imageUrl: product.images.length > 0 ? product.images[0].src : undefined,
+        availability: product.stock_status === 'instock',
+        description: product.short_description ? product.short_description.replace(/<[^>]*>?/gm, '') : product.description ? product.description.replace(/<[^>]*>?/gm, '') : undefined
+    };
+};
+const getProducts = async ()=>{
+    if (!api || !isWooCommerceConfigured()) {
+        throw new Error('WooCommerce environment variables are not set correctly.');
+    }
+    try {
+        let allProducts = [];
+        let page = 1;
+        const perPage = 100;
+        let keepFetching = true;
+        while(keepFetching){
+            const response = await api.get("products", {
+                per_page: perPage,
+                page: page
+            });
+            if (response.status !== 200) {
+                throw new Error(`Failed to fetch products on page ${page}: ${response.statusText}`);
+            }
+            const fetchedProducts = response.data;
+            allProducts = allProducts.concat(fetchedProducts);
+            if (fetchedProducts.length < perPage) {
+                keepFetching = false;
+            } else {
+                page++;
+            }
+        }
+        const products = allProducts.map(mapWCProductToMenuItem);
+        return products;
+    } catch (error) {
+        console.error("Error fetching products from WooCommerce:", error);
+        if (error.code === 'ENOTFOUND' || error.message.includes('getaddrinfo ENOTFOUND')) {
+            throw new Error(`Could not connect to WooCommerce store. Hostname not found. Please check the store URL in your .env file: ${process.env.WOOCOMMERCE_STORE_URL}`);
+        }
+        if (error.message.includes('Failed to parse URL')) {
+            throw new Error(`Invalid WooCommerce store URL. Please check the format in your .env file: ${process.env.WOOCOMMERCE_STORE_URL}`);
+        }
+        throw new Error('Failed to communicate with WooCommerce API to fetch products.');
+    }
+};
+}}),
+"[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)": ((__turbopack_context__) => {
+"use strict";
+
+var { g: global, __dirname } = __turbopack_context__;
+{
+/* __next_internal_action_entry_do_not_use__ {"00297a05172ea2864074da52ab33dfd029b3e8f318":"getOrdersFromWooCommerce","600529d4c40d5b4637b282fe829a47ef19349e74f0":"updateOrderAddressInWooCommerce","601f181b794cd63f50dfa4b14a542bb6ac1499894b":"updateOrderStatusInWooCommerce"} */ __turbopack_context__.s({
+    "getOrdersFromWooCommerce": (()=>getOrdersFromWooCommerce),
+    "updateOrderAddressInWooCommerce": (()=>updateOrderAddressInWooCommerce),
+    "updateOrderStatusInWooCommerce": (()=>updateOrderStatusInWooCommerce)
+});
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/build/webpack/loaders/next-flight-loader/server-reference.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$app$2d$render$2f$encryption$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/app-render/encryption.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/cache.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$woocommerce$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/woocommerce.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/build/webpack/loaders/next-flight-loader/action-validate.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ getOrdersFromWooCommerce() {
+    try {
+        const orders = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$woocommerce$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getOrders"])();
+        return {
+            success: true,
+            data: orders
+        };
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+        console.error("Server Action Error (getOrdersFromWooCommerce):", errorMessage);
+        return {
+            success: false,
+            error: errorMessage
+        };
+    }
+}
+async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ updateOrderStatusInWooCommerce(orderId, status) {
+    try {
+        const wasSuccessful = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$woocommerce$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["updateOrderStatus"])(orderId, status);
+        if (wasSuccessful) {
+            (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])('/orders'); // Revalidate the orders page to show the update
+            return {
+                success: true
+            };
+        } else {
+            return {
+                success: false,
+                error: `Order ID ${orderId} not found or failed to update in WooCommerce.`
+            };
+        }
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+        console.error("Server Action Error (updateOrderStatusInWooCommerce):", errorMessage);
+        return {
+            success: false,
+            error: errorMessage
+        };
+    }
+}
+async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ updateOrderAddressInWooCommerce(orderId, payload) {
+    try {
+        const wasSuccessful = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$woocommerce$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["updateOrderAddress"])(orderId, payload);
+        if (wasSuccessful) {
+            (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])('/orders');
+            return {
+                success: true
+            };
+        } else {
+            return {
+                success: false,
+                error: `Order ID ${orderId} not found or failed to update address in WooCommerce.`
+            };
+        }
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+        console.error("Server Action Error (updateOrderAddressInWooCommerce):", errorMessage);
+        return {
+            success: false,
+            error: errorMessage
+        };
+    }
+}
+;
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ensureServerEntryExports"])([
+    getOrdersFromWooCommerce,
+    updateOrderStatusInWooCommerce,
+    updateOrderAddressInWooCommerce
+]);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getOrdersFromWooCommerce, "00297a05172ea2864074da52ab33dfd029b3e8f318", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(updateOrderStatusInWooCommerce, "601f181b794cd63f50dfa4b14a542bb6ac1499894b", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(updateOrderAddressInWooCommerce, "600529d4c40d5b4637b282fe829a47ef19349e74f0", null);
+}}),
+"[project]/src/app/vendors/actions.ts [app-rsc] (ecmascript)": ((__turbopack_context__) => {
+"use strict";
+
+var { g: global, __dirname } = __turbopack_context__;
+{
+/* __next_internal_action_entry_do_not_use__ {"00e9455508c3d71181a085898a6501ba7d0fc865e2":"getVendorsFromRTDB","403c06377ee21b42ee69cd9daeb05c73f191a289d8":"deleteVendorFromRTDB","607d708a99658e6b301164e3fb93080179ad09b4fe":"saveVendorToRTDB"} */ __turbopack_context__.s({
+    "deleteVendorFromRTDB": (()=>deleteVendorFromRTDB),
+    "getVendorsFromRTDB": (()=>getVendorsFromRTDB),
+    "saveVendorToRTDB": (()=>saveVendorToRTDB)
+});
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/build/webpack/loaders/next-flight-loader/server-reference.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$app$2d$render$2f$encryption$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/app-render/encryption.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/firebase.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$database$2f$dist$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/database/dist/index.mjs [app-rsc] (ecmascript) <module evaluation>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@firebase/database/dist/node-esm/index.node.esm.js [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/build/webpack/loaders/next-flight-loader/action-validate.js [app-rsc] (ecmascript)");
+;
+;
+;
+;
+async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ saveVendorToRTDB(vendorData, vendorId) {
+    if (!__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["rtdb"]) {
+        return {
+            success: false,
+            error: "Realtime Database is not configured."
+        };
+    }
+    try {
+        const vendorsRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ref"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["rtdb"], 'vendors');
+        let vendorRef;
+        if (vendorId) {
+            // Updating an existing vendor
+            vendorRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["child"])(vendorsRef, vendorId);
+        } else {
+            // Creating a new vendor, RTDB will generate a unique ID
+            vendorRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["push"])(vendorsRef);
+        }
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["set"])(vendorRef, vendorData);
+        return {
+            success: true
+        };
+    } catch (error) {
+        console.error('Failed to save vendor to RTDB:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to save vendor.'
+        };
+    }
+}
+async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ getVendorsFromRTDB() {
+    if (!__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["rtdb"]) {
+        return {
+            success: false,
+            error: "Realtime Database is not configured."
+        };
+    }
+    try {
+        const vendorsRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ref"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["rtdb"], 'vendors');
+        const snapshot = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["get"])(vendorsRef);
+        if (snapshot.exists()) {
+            const vendorsData = snapshot.val();
+            const vendorsArray = Object.keys(vendorsData).map((id)=>({
+                    id,
+                    ...vendorsData[id]
+                }));
+            return {
+                success: true,
+                data: vendorsArray
+            };
+        }
+        return {
+            success: true,
+            data: []
+        }; // No vendors found is not an error
+    } catch (error) {
+        console.error('Failed to get vendors from RTDB:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to fetch vendors.'
+        };
+    }
+}
+async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ deleteVendorFromRTDB(vendorId) {
+    if (!__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["rtdb"]) {
+        return {
+            success: false,
+            error: "Realtime Database is not configured."
+        };
+    }
+    try {
+        const vendorRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ref"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["rtdb"], `vendors/${vendorId}`);
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["remove"])(vendorRef);
+        return {
+            success: true
+        };
+    } catch (error) {
+        console.error('Failed to delete vendor from RTDB:', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to delete vendor.'
+        };
+    }
+}
+;
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ensureServerEntryExports"])([
+    saveVendorToRTDB,
+    getVendorsFromRTDB,
+    deleteVendorFromRTDB
+]);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(saveVendorToRTDB, "607d708a99658e6b301164e3fb93080179ad09b4fe", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getVendorsFromRTDB, "00e9455508c3d71181a085898a6501ba7d0fc865e2", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(deleteVendorFromRTDB, "403c06377ee21b42ee69cd9daeb05c73f191a289d8", null);
+}}),
+"[project]/.next-internal/server/app/orders/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/app/vendors/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript) <locals>": ((__turbopack_context__) => {
+"use strict";
+
+var { g: global, __dirname } = __turbopack_context__;
+{
+__turbopack_context__.s({});
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+}}),
+"[project]/.next-internal/server/app/orders/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/app/vendors/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript) <module evaluation>": ((__turbopack_context__) => {
+"use strict";
+
+var { g: global, __dirname } = __turbopack_context__;
+{
+__turbopack_context__.s({});
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/app/vendors/actions.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$orders$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE2__$3d3e$__$225b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i('[project]/.next-internal/server/app/orders/page/actions.js { ACTIONS_MODULE0 => "[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)", ACTIONS_MODULE1 => "[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)", ACTIONS_MODULE2 => "[project]/src/app/vendors/actions.ts [app-rsc] (ecmascript)" } [app-rsc] (server actions loader, ecmascript) <locals>');
+}}),
+"[project]/.next-internal/server/app/orders/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/app/vendors/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript) <exports>": ((__turbopack_context__) => {
+"use strict";
+
+var { g: global, __dirname } = __turbopack_context__;
+{
+__turbopack_context__.s({
+    "001cc3512ac50ac640f8e12154dafa253185c9b403": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getAllUsersFromRTDB"]),
+    "00297a05172ea2864074da52ab33dfd029b3e8f318": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getOrdersFromWooCommerce"]),
+    "0086d1454012dae48d87f8b73ffe6497b833c94961": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["signOut"]),
+    "00cf5330395e82bf8255922e76b18a7d7fd7cd3e01": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getCompanyDetailsFromRTDB"]),
+    "00e9455508c3d71181a085898a6501ba7d0fc865e2": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getVendorsFromRTDB"]),
+    "40044dd996ad1064b3f3a24c91499cd29194bb172f": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getRTDBUserProfile"]),
+    "401f6e3642acf65262fa6d6423f207ff565e3c09fa": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["saveCompanyDetailsToRTDB"]),
+    "403c06377ee21b42ee69cd9daeb05c73f191a289d8": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["deleteVendorFromRTDB"]),
+    "40c48e813c46b3a647fdaba272c551bcf1164be5ed": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["createRTDBUserProfileOnSignup"]),
+    "600529d4c40d5b4637b282fe829a47ef19349e74f0": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["updateOrderAddressInWooCommerce"]),
+    "601bd125fce01d8a580d96c85d8b9793241722e9b9": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["updateRTDBUserProfileOnLogin"]),
+    "601f181b794cd63f50dfa4b14a542bb6ac1499894b": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["updateOrderStatusInWooCommerce"]),
+    "607d708a99658e6b301164e3fb93080179ad09b4fe": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["saveVendorToRTDB"]),
+    "70d7fb37e7ffec4105f273821f23897081314b0bd1": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["updateUserRoleInRTDB"])
+});
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/app/vendors/actions.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$orders$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE2__$3d3e$__$225b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i('[project]/.next-internal/server/app/orders/page/actions.js { ACTIONS_MODULE0 => "[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)", ACTIONS_MODULE1 => "[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)", ACTIONS_MODULE2 => "[project]/src/app/vendors/actions.ts [app-rsc] (ecmascript)" } [app-rsc] (server actions loader, ecmascript) <locals>');
+}}),
+"[project]/.next-internal/server/app/orders/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/app/vendors/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)": ((__turbopack_context__) => {
+"use strict";
+
+var { g: global, __dirname } = __turbopack_context__;
+{
+__turbopack_context__.s({
+    "001cc3512ac50ac640f8e12154dafa253185c9b403": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$orders$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE2__$3d3e$__$225b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["001cc3512ac50ac640f8e12154dafa253185c9b403"]),
+    "00297a05172ea2864074da52ab33dfd029b3e8f318": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$orders$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE2__$3d3e$__$225b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["00297a05172ea2864074da52ab33dfd029b3e8f318"]),
+    "0086d1454012dae48d87f8b73ffe6497b833c94961": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$orders$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE2__$3d3e$__$225b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["0086d1454012dae48d87f8b73ffe6497b833c94961"]),
+    "00cf5330395e82bf8255922e76b18a7d7fd7cd3e01": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$orders$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE2__$3d3e$__$225b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["00cf5330395e82bf8255922e76b18a7d7fd7cd3e01"]),
+    "00e9455508c3d71181a085898a6501ba7d0fc865e2": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$orders$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE2__$3d3e$__$225b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["00e9455508c3d71181a085898a6501ba7d0fc865e2"]),
+    "40044dd996ad1064b3f3a24c91499cd29194bb172f": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$orders$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE2__$3d3e$__$225b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["40044dd996ad1064b3f3a24c91499cd29194bb172f"]),
+    "401f6e3642acf65262fa6d6423f207ff565e3c09fa": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$orders$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE2__$3d3e$__$225b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["401f6e3642acf65262fa6d6423f207ff565e3c09fa"]),
+    "403c06377ee21b42ee69cd9daeb05c73f191a289d8": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$orders$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE2__$3d3e$__$225b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["403c06377ee21b42ee69cd9daeb05c73f191a289d8"]),
+    "40c48e813c46b3a647fdaba272c551bcf1164be5ed": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$orders$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE2__$3d3e$__$225b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["40c48e813c46b3a647fdaba272c551bcf1164be5ed"]),
+    "600529d4c40d5b4637b282fe829a47ef19349e74f0": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$orders$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE2__$3d3e$__$225b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["600529d4c40d5b4637b282fe829a47ef19349e74f0"]),
+    "601bd125fce01d8a580d96c85d8b9793241722e9b9": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$orders$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE2__$3d3e$__$225b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["601bd125fce01d8a580d96c85d8b9793241722e9b9"]),
+    "601f181b794cd63f50dfa4b14a542bb6ac1499894b": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$orders$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE2__$3d3e$__$225b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["601f181b794cd63f50dfa4b14a542bb6ac1499894b"]),
+    "607d708a99658e6b301164e3fb93080179ad09b4fe": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$orders$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE2__$3d3e$__$225b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["607d708a99658e6b301164e3fb93080179ad09b4fe"]),
+    "70d7fb37e7ffec4105f273821f23897081314b0bd1": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$orders$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE2__$3d3e$__$225b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["70d7fb37e7ffec4105f273821f23897081314b0bd1"])
+});
+var __TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$orders$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE2__$3d3e$__$225b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i('[project]/.next-internal/server/app/orders/page/actions.js { ACTIONS_MODULE0 => "[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)", ACTIONS_MODULE1 => "[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)", ACTIONS_MODULE2 => "[project]/src/app/vendors/actions.ts [app-rsc] (ecmascript)" } [app-rsc] (server actions loader, ecmascript) <module evaluation>');
+var __TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$orders$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE2__$3d3e$__$225b$project$5d2f$src$2f$app$2f$vendors$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__ = __turbopack_context__.i('[project]/.next-internal/server/app/orders/page/actions.js { ACTIONS_MODULE0 => "[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)", ACTIONS_MODULE1 => "[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)", ACTIONS_MODULE2 => "[project]/src/app/vendors/actions.ts [app-rsc] (ecmascript)" } [app-rsc] (server actions loader, ecmascript) <exports>');
+}}),
+"[project]/src/app/favicon.ico.mjs { IMAGE => \"[project]/src/app/favicon.ico (static in ecmascript)\" } [app-rsc] (structured image object, ecmascript, Next.js server component)": ((__turbopack_context__) => {
+
+var { g: global, __dirname } = __turbopack_context__;
+{
+__turbopack_context__.n(__turbopack_context__.i("[project]/src/app/favicon.ico.mjs { IMAGE => \"[project]/src/app/favicon.ico (static in ecmascript)\" } [app-rsc] (structured image object, ecmascript)"));
+}}),
+"[project]/src/app/layout.tsx [app-rsc] (ecmascript, Next.js server component)": ((__turbopack_context__) => {
+
+var { g: global, __dirname } = __turbopack_context__;
+{
+__turbopack_context__.n(__turbopack_context__.i("[project]/src/app/layout.tsx [app-rsc] (ecmascript)"));
+}}),
+"[project]/src/app/orders/page.tsx (client reference/proxy) <module evaluation>": ((__turbopack_context__) => {
+"use strict";
+
+var { g: global, __dirname } = __turbopack_context__;
+{
+__turbopack_context__.s({
+    "default": (()=>__TURBOPACK__default__export__)
+});
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$server$2d$dom$2d$turbopack$2d$server$2d$edge$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/rsc/react-server-dom-turbopack-server-edge.js [app-rsc] (ecmascript)");
+;
+const __TURBOPACK__default__export__ = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$server$2d$dom$2d$turbopack$2d$server$2d$edge$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerClientReference"])(function() {
+    throw new Error("Attempted to call the default export of [project]/src/app/orders/page.tsx <module evaluation> from the server, but it's on the client. It's not possible to invoke a client function from the server, it can only be rendered as a Component or passed to props of a Client Component.");
+}, "[project]/src/app/orders/page.tsx <module evaluation>", "default");
+}}),
+"[project]/src/app/orders/page.tsx (client reference/proxy)": ((__turbopack_context__) => {
+"use strict";
+
+var { g: global, __dirname } = __turbopack_context__;
+{
+__turbopack_context__.s({
+    "default": (()=>__TURBOPACK__default__export__)
+});
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$server$2d$dom$2d$turbopack$2d$server$2d$edge$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/rsc/react-server-dom-turbopack-server-edge.js [app-rsc] (ecmascript)");
+;
+const __TURBOPACK__default__export__ = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$server$2d$dom$2d$turbopack$2d$server$2d$edge$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerClientReference"])(function() {
+    throw new Error("Attempted to call the default export of [project]/src/app/orders/page.tsx from the server, but it's on the client. It's not possible to invoke a client function from the server, it can only be rendered as a Component or passed to props of a Client Component.");
+}, "[project]/src/app/orders/page.tsx", "default");
+}}),
+"[project]/src/app/orders/page.tsx [app-rsc] (ecmascript)": ((__turbopack_context__) => {
+"use strict";
+
+var { g: global, __dirname } = __turbopack_context__;
+{
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$orders$2f$page$2e$tsx__$28$client__reference$2f$proxy$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i("[project]/src/app/orders/page.tsx (client reference/proxy) <module evaluation>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$orders$2f$page$2e$tsx__$28$client__reference$2f$proxy$29$__ = __turbopack_context__.i("[project]/src/app/orders/page.tsx (client reference/proxy)");
+;
+__turbopack_context__.n(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$orders$2f$page$2e$tsx__$28$client__reference$2f$proxy$29$__);
+}}),
+"[project]/src/app/orders/page.tsx [app-rsc] (ecmascript, Next.js server component)": ((__turbopack_context__) => {
+
+var { g: global, __dirname } = __turbopack_context__;
+{
+__turbopack_context__.n(__turbopack_context__.i("[project]/src/app/orders/page.tsx [app-rsc] (ecmascript)"));
+}}),
+
+};
+
+//# sourceMappingURL=%5Broot%20of%20the%20server%5D__57f55f1d._.js.map
