@@ -19,6 +19,7 @@ import type { DateRange } from "react-day-picker";
 import { useAppContext } from '@/components/layout/app-content-wrapper';
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+const GRADIENT_COLORS = ["url(#colorSales)", "url(#colorOrders)", "url(#colorCustomers)", "url(#colorProcessing)", "url(#colorCancelled)"];
 
 const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; label: string }> = {
   pending: { icon: PackageSearch, color: 'bg-yellow-500', label: 'Pending' },
@@ -35,8 +36,8 @@ const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; 
 const gradientStyles = [
   "bg-gradient-to-br from-purple-500 to-pink-500",
   "bg-gradient-to-br from-blue-500 to-cyan-400",
-  "bg-gradient-to-br from-orange-400 to-red-500",
   "bg-gradient-to-br from-green-400 to-lime-500",
+  "bg-gradient-to-br from-orange-400 to-red-500",
 ];
 
 function DashboardContent() {
@@ -252,12 +253,12 @@ function DashboardContent() {
   const allStatsCards = [
     <StatsCard key="sales" title="Total Sale" value={`₹${totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[0])} />,
     <StatsCard key="orders" title="Total Orders" value={totalOrders.toString()} icon={<ShoppingBag className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[1])} />,
-    <StatsCard key="customers" title="New Customers" value={newCustomers.toLocaleString()} icon={<Users className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[3])} />,
+    <StatsCard key="customers" title="New Customers" value={newCustomers.toLocaleString()} icon={<Users className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[2])} />,
   ];
 
   if (isSuperAdmin) {
     allStatsCards.push(
-      <StatsCard key="admins" title="Admins" value={adminCount.toString()} icon={<ShieldCheck className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[2])} />,
+      <StatsCard key="admins" title="Admins" value={adminCount.toString()} icon={<ShieldCheck className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[3])} />,
       <StatsCard key="vendors" title="Vendors" value={vendorCount.toString()} icon={<Store className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[1])} />,
       <StatsCard key="super-admins" title="Super Admins" value={superAdminCount.toString()} icon={<Crown className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[0])} />
     );
@@ -283,6 +284,28 @@ function DashboardContent() {
                 <div>
                   <ResponsiveContainer width="100%" height={200}>
                       <PieChart>
+                          <defs>
+                              <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8}/>
+                                  <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.4}/>
+                              </linearGradient>
+                               <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.8}/>
+                                  <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0.4}/>
+                              </linearGradient>
+                               <linearGradient id="colorCustomers" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8}/>
+                                  <stop offset="95%" stopColor="hsl(var(--chart-3))" stopOpacity={0.4}/>
+                              </linearGradient>
+                               <linearGradient id="colorProcessing" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.8}/>
+                                  <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0.4}/>
+                              </linearGradient>
+                              <linearGradient id="colorCancelled" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="hsl(var(--chart-5))" stopOpacity={0.8}/>
+                                  <stop offset="95%" stopColor="hsl(var(--chart-5))" stopOpacity={0.4}/>
+                              </linearGradient>
+                          </defs>
                           <Pie
                               data={salesDetailsData}
                               cx="50%"
@@ -291,12 +314,11 @@ function DashboardContent() {
                               innerRadius={50}
                               outerRadius={90}
                               paddingAngle={2}
-                              fill="#8884d8"
                               dataKey="value"
                               nameKey="label"
                           >
                               {salesDetailsData.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                  <Cell key={`cell-${index}`} fill={GRADIENT_COLORS[index % GRADIENT_COLORS.length]} />
                               ))}
                           </Pie>
                            <Tooltip
@@ -393,7 +415,7 @@ function DashboardContent() {
                   />
                   <Bar dataKey="orders" name="Orders" radius={[4, 4, 0, 0]}>
                      {weeklyOrderData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS[index % COLORS.length]]} />
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                   </Bar>
                 </BarChart>
