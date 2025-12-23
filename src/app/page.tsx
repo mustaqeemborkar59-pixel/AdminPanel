@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DollarSign, Users, ShoppingBag, Activity, UsersRound, Package, ChevronDown, Loader2, Calendar as CalendarIcon, CheckCircle, Clock, PackageSearch, Truck, XCircle, Archive, Loader, ShieldCheck, Store, Crown } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label, LabelList } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label } from 'recharts';
 import type { Order, StaffMember, OrderStatus, OrderType, MenuItem, Vendor, UserProfile } from '@/types';
 import { cn } from '@/lib/utils';
 import { getOrdersFromWooCommerce } from '@/app/orders/actions';
@@ -280,50 +280,66 @@ function DashboardContent() {
             </CardHeader>
              <CardContent className="pt-2">
                {salesDetailsData.length > 0 ? (
-                <div className="flex items-center justify-center">
-                    <ResponsiveContainer width="100%" height={250}>
-                        <PieChart>
-                            <Pie
-                                data={salesDetailsData}
-                                cx="50%"
-                                cy="50%"
-                                labelLine={false}
-                                outerRadius={80}
-                                fill="#8884d8"
-                                dataKey="value"
-                                nameKey="label"
-                            >
-                                {salesDetailsData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                                <LabelList
-                                    dataKey="label"
-                                    position="outside"
-                                    offset={15}
-                                    className="text-xs fill-foreground"
-                                    formatter={(value: string) => `${value} (${((salesDetailsData.find(d => d.label === value)?.value || 0) / totalOrders * 100).toFixed(0)}%)`}
-                                />
-                            </Pie>
-                             <Tooltip
-                                contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }}
-                                labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
-                                itemStyle={{ color: 'hsl(var(--foreground))' }}
-                             />
+                <div>
+                  <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                          <Pie
+                              data={salesDetailsData}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={false}
+                              innerRadius={60}
+                              outerRadius={80}
+                              paddingAngle={5}
+                              fill="#8884d8"
+                              dataKey="value"
+                              nameKey="label"
+                              label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
+                                const RADIAN = Math.PI / 180;
+                                const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                                const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                                const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                                return (
+                                  <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-xs font-bold">
+                                    {`${(percent * 100).toFixed(0)}%`}
+                                  </text>
+                                );
+                              }}
+                          >
+                              {salesDetailsData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                          </Pie>
+                           <Tooltip
+                              contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }}
+                              labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
+                              itemStyle={{ color: 'hsl(var(--foreground))' }}
+                           />
+                            <Label
+                              value={totalOrders}
+                              position="center"
+                              fill="hsl(var(--foreground))"
+                              className="text-3xl font-bold"
+                              dy={-10}
+                              />
                               <Label
-                                value={totalOrders}
-                                position="center"
-                                fill="hsl(var(--foreground))"
-                                className="text-3xl font-bold"
-                                />
-                                <Label
-                                value="Total Orders"
-                                position="center"
-                                dy={25}
-                                fill="hsl(var(--muted-foreground))"
-                                className="text-sm"
-                                />
-                        </PieChart>
-                    </ResponsiveContainer>
+                              value="Total Orders"
+                              position="center"
+                              dy={15}
+                              fill="hsl(var(--muted-foreground))"
+                              className="text-sm"
+                              />
+                      </PieChart>
+                  </ResponsiveContainer>
+                  <div className="mt-4 space-y-2">
+                    {salesDetailsData.map((entry, index) => (
+                      <div key={entry.name} className="flex items-center text-sm">
+                        <span className="h-2.5 w-2.5 rounded-full mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                        <span className="text-muted-foreground flex-1">{entry.label}</span>
+                        <span className="font-medium text-foreground">{entry.value}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-[250px] text-muted-foreground">
@@ -388,7 +404,7 @@ function DashboardContent() {
                   />
                   <Bar dataKey="orders" name="Orders" radius={[4, 4, 0, 0]}>
                      {weeklyOrderData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS[index % COLORS.length]]} />
                       ))}
                   </Bar>
                 </BarChart>
@@ -434,3 +450,5 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
+
+    
