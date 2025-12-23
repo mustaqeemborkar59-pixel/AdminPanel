@@ -273,28 +273,57 @@ function DashboardContent() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-5">
-          <Card className="lg:col-span-2">
-            <CardHeader>
+           <Card className="lg:col-span-2">
+             <CardHeader>
                 <CardTitle className="font-headline text-xl">Sales Details</CardTitle>
                 <CardDescription className="text-xs text-muted-foreground mt-1">Breakdown by order status</CardDescription>
             </CardHeader>
-            <CardContent className="pt-2">
-              {salesDetailsData.length > 0 ? (
-                <div className="space-y-3">
-                  {salesDetailsData.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <div key={item.name} className="flex items-center p-2 rounded-md hover:bg-muted/50 transition-colors">
-                        <div className={cn("p-2 rounded-full mr-3", item.color)}>
-                            <Icon className="h-4 w-4 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">{item.label}</p>
-                        </div>
-                        <p className="text-sm font-semibold">{item.value}</p>
-                      </div>
-                    );
-                  })}
+             <CardContent className="pt-2">
+               {salesDetailsData.length > 0 ? (
+                <div className="flex items-center justify-center">
+                    <ResponsiveContainer width="100%" height={250}>
+                        <PieChart>
+                            <Pie
+                                data={salesDetailsData}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                outerRadius={80}
+                                fill="#8884d8"
+                                dataKey="value"
+                                nameKey="label"
+                            >
+                                {salesDetailsData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                                <LabelList
+                                    dataKey="label"
+                                    position="outside"
+                                    offset={15}
+                                    className="text-xs fill-foreground"
+                                    formatter={(value: string) => `${value} (${((salesDetailsData.find(d => d.label === value)?.value || 0) / totalOrders * 100).toFixed(0)}%)`}
+                                />
+                            </Pie>
+                             <Tooltip
+                                contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }}
+                                labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
+                                itemStyle={{ color: 'hsl(var(--foreground))' }}
+                             />
+                              <Label
+                                value={totalOrders}
+                                position="center"
+                                fill="hsl(var(--foreground))"
+                                className="text-3xl font-bold"
+                                />
+                                <Label
+                                value="Total Orders"
+                                position="center"
+                                dy={25}
+                                fill="hsl(var(--muted-foreground))"
+                                className="text-sm"
+                                />
+                        </PieChart>
+                    </ResponsiveContainer>
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-[250px] text-muted-foreground">
@@ -405,5 +434,3 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
-
-    
