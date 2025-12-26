@@ -156,6 +156,40 @@ export default function OrdersPage() {
       return true;
     });
   };
+  
+  const vendorOrderCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    if (!orders.length || !allVendors.length) {
+      return counts;
+    }
+
+    // Initialize counts for all known vendors to 0
+    allVendors.forEach(vendor => {
+      counts.set(vendor.name, 0);
+    });
+
+    // Iterate through each order
+    orders.forEach(order => {
+      // Create a set of unique vendor codes present in this specific order
+      const vendorsInOrder = new Set<string>();
+      order.items.forEach(item => {
+        if (item.vendorName) {
+            const vendorDetails = allVendors.find(v => v.code === item.vendorName);
+            if(vendorDetails) {
+                vendorsInOrder.add(vendorDetails.name);
+            }
+        }
+      });
+      
+      // For each unique vendor found in the order, increment their total order count
+      vendorsInOrder.forEach(vendorName => {
+        counts.set(vendorName, (counts.get(vendorName) || 0) + 1);
+      });
+    });
+
+    return counts;
+  }, [orders, allVendors]);
+
 
   const filteredOrders = useMemo(() => {
     const currentVendorCode = isVendor ? userProfile?.vendorCode : null;
@@ -590,7 +624,9 @@ export default function OrdersPage() {
                 <DropdownMenuRadioGroup value={vendorFilter} onValueChange={setVendorFilter}>
                   <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
                   {allVendors.map(vendor => (
-                    <DropdownMenuRadioItem key={vendor.id} value={vendor.name}>{vendor.name}</DropdownMenuRadioItem>
+                     <DropdownMenuRadioItem key={vendor.id} value={vendor.name}>
+                        {vendor.name} ({vendorOrderCounts.get(vendor.name) || 0})
+                    </DropdownMenuRadioItem>
                   ))}
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
