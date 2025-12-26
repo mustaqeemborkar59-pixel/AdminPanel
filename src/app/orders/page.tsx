@@ -157,71 +157,29 @@ export default function OrdersPage() {
     });
   };
   
-  const vendorOrderCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    if (!orders.length || !allVendors.length) {
-      return counts;
-    }
-
-    // Initialize counts for all known vendors to 0
-    allVendors.forEach(vendor => {
-      counts.set(vendor.name, 0);
-    });
-
-    // Iterate through each order
-    orders.forEach(order => {
-      // Create a set of unique vendor codes present in this specific order
-      const vendorsInOrder = new Set<string>();
-      order.items.forEach(item => {
-        if (item.vendorName) {
-            const vendorDetails = allVendors.find(v => v.code === item.vendorName);
-            if(vendorDetails) {
-                vendorsInOrder.add(vendorDetails.name);
-            }
-        }
-      });
-      
-      // For each unique vendor found in the order, increment their total order count
-      vendorsInOrder.forEach(vendorName => {
-        counts.set(vendorName, (counts.get(vendorName) || 0) + 1);
-      });
-    });
-
-    return counts;
-  }, [orders, allVendors]);
-
-
-  const filteredOrders = useMemo(() => {
+  // This calculates orders based on status, date, and search term first.
+  const preVendorFilteredOrders = useMemo(() => {
     const currentVendorCode = isVendor ? userProfile?.vendorCode : null;
 
-    let filteredByRoleAndFilter = orders.map(order => {
-        let itemsToShow = order.items;
-        
-        if (isVendor && currentVendorCode) {
-            itemsToShow = order.items.filter(item => item.vendorName === currentVendorCode);
-        } 
-        else if (!isVendor && vendorFilter !== 'all') {
-            const vendorCodeToFilter = allVendors.find(v => v.name === vendorFilter)?.code;
-            if (vendorCodeToFilter) {
-                 // Safely filter items by checking for vendorName existence
-                itemsToShow = order.items.filter(item => item.vendorName && item.vendorName === vendorCodeToFilter);
-            }
-        }
-        
-        if (itemsToShow.length === 0) return null;
-        
-        if (itemsToShow.length !== order.items.length) {
-            const subTotal = itemsToShow.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
-            const taxAmount = subTotal * taxRatio;
-            const totalAmount = subTotal + taxAmount;
-            return { ...order, items: itemsToShow, subTotal, taxAmount, totalAmount };
-        }
-        
-        return order;
-    }).filter((order): order is Order => order !== null);
+    let baseFiltered = orders;
 
-    let finalFiltered = filteredByRoleAndFilter
+    // Vendor role filtering (for items)
+    if (isVendor && currentVendorCode) {
+        baseFiltered = orders.map(order => {
+            const itemsToShow = order.items.filter(item => item.vendorName === currentVendorCode);
+            if (itemsToShow.length === 0) return null;
+            if (itemsToShow.length !== order.items.length) {
+                const subTotal = itemsToShow.reduce((sum, item) => sum + (item.price * item.qty), 0);
+                const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
+                const taxAmount = subTotal * taxRatio;
+                const totalAmount = subTotal + taxAmount;
+                return { ...order, items: itemsToShow, subTotal, taxAmount, totalAmount };
+            }
+            return order;
+        }).filter((order): order is Order => order !== null);
+    }
+
+    return baseFiltered
       .filter(order => statusFilter === 'all' || order.status === statusFilter)
       .filter(order => {
         if (!dateRange?.from) return true;
@@ -243,9 +201,63 @@ export default function OrdersPage() {
           order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (order.customerName && order.customerName.toLowerCase().includes(searchTerm.toLowerCase()))
       );
+  }, [orders, statusFilter, dateRange, searchTerm, isVendor, userProfile]);
+  
+  const vendorOrderCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    if (!preVendorFilteredOrders.length || !allVendors.length) {
+      return counts;
+    }
+
+    allVendors.forEach(vendor => {
+      counts.set(vendor.name, 0);
+    });
+
+    preVendorFilteredOrders.forEach(order => {
+      const vendorsInOrder = new Set<string>();
+      order.items.forEach(item => {
+        if (item.vendorName) {
+            const vendorDetails = allVendors.find(v => v.code === item.vendorName);
+            if(vendorDetails) {
+                vendorsInOrder.add(vendorDetails.name);
+            }
+        }
+      });
+      
+      vendorsInOrder.forEach(vendorName => {
+        counts.set(vendorName, (counts.get(vendorName) || 0) + 1);
+      });
+    });
+
+    return counts;
+  }, [preVendorFilteredOrders, allVendors]);
+
+
+  const filteredOrders = useMemo(() => {
+    let finalFiltered = preVendorFilteredOrders;
+
+    if (!isVendor && vendorFilter !== 'all') {
+        const vendorCodeToFilter = allVendors.find(v => v.name === vendorFilter)?.code;
+        if (vendorCodeToFilter) {
+            finalFiltered = preVendorFilteredOrders.map(order => {
+                const itemsToShow = order.items.filter(item => item.vendorName && item.vendorName === vendorCodeToFilter);
+                 if (itemsToShow.length === 0) return null;
+        
+                if (itemsToShow.length !== order.items.length) {
+                    const subTotal = itemsToShow.reduce((sum, item) => sum + (item.price * item.qty), 0);
+                    const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
+                    const taxAmount = subTotal * taxRatio;
+                    const totalAmount = subTotal + taxAmount;
+                    return { ...order, items: itemsToShow, subTotal, taxAmount, totalAmount };
+                }
+                
+                return order;
+            }).filter((order): order is Order => order !== null);
+        }
+    }
 
     return getUniqueOrders(finalFiltered);
-  }, [orders, statusFilter, vendorFilter, dateRange, searchTerm, vendorMap, userProfile, isVendor, allVendors]);
+  }, [preVendorFilteredOrders, vendorFilter, isVendor, allVendors]);
   
   const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
