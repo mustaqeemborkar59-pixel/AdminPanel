@@ -14,7 +14,7 @@ import { getVendorsFromFirestore, getAllUsers } from '@/app/auth/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { format, eachDayOfInterval, startOfTomorrow } from 'date-fns';
+import { format, eachDayOfInterval, startOfTomorrow, startOfDay, endOfDay } from 'date-fns';
 import type { DateRange } from "react-day-picker";
 import { useAppContext } from '@/components/layout/app-content-wrapper';
 
@@ -168,41 +168,48 @@ function DashboardContent() {
       setTotalOrders(currentTotalOrders);
       
       // --- Chart Data Processing ---
-      const fromDate = dateRange?.from ? new Date(dateRange.from) : new Date();
-      const toDate = dateRange?.to ? new Date(dateRange.to) : new Date();
+      const fromDate = dateRange?.from;
+      const toDate = dateRange?.to;
 
-      if (!dateRange?.from) fromDate.setDate(new Date().getDate() - 6);
+      if(fromDate && toDate) {
+        const startDate = startOfDay(fromDate);
+        const endDate = endOfDay(toDate);
 
-      fromDate.setHours(0,0,0,0);
-      toDate.setHours(23,59,59,999);
+        const recentPaidOrders = vendorFilteredOrders.filter(order => {
+            if (!order.paymentDate) return false;
+            try {
+              const paymentDateInIST = new Date(new Date(order.paymentDate).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+              return paymentDateInIST >= startDate && paymentDateInIST <= endDate;
+            } catch {
+              return false;
+            }
+        });
+        
+        const intervalDays = eachDayOfInterval({ start: startDate, end: endDate });
+        
+        const orderCountsByDay = intervalDays.map(day => ({
+          name: format(day, 'MMM d'),
+          date: format(day, 'yyyy-MM-dd'),
+          orders: 0
+        }));
 
-      const recentPaidOrders = vendorFilteredOrders.filter(order => {
-          if (!order.paymentDate) return false;
-          const paymentDateInIST = new Date(new Date(order.paymentDate).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-          return paymentDateInIST >= fromDate && paymentDateInIST <= toDate;
-      });
-      
-      const intervalDays = eachDayOfInterval({ start: fromDate, end: toDate });
-      
-      const orderCountsByDay = intervalDays.map(day => ({
-        name: format(day, 'MMM d'), // Format as 'Jan 1', 'Jan 2' etc.
-        date: format(day, 'yyyy-MM-dd'),
-        orders: 0
-      }));
+        recentPaidOrders.forEach(order => {
+            if (!order.paymentDate) return;
+            try {
+              const paymentDateInIST = new Date(new Date(order.paymentDate).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+              const paymentDateStr = format(paymentDateInIST, 'yyyy-MM-dd');
+              const dayData = orderCountsByDay.find(d => d.date === paymentDateStr);
+              if (dayData) {
+                  dayData.orders += 1;
+              }
+            } catch {}
+        });
+        setWeeklyOrderData(orderCountsByDay);
 
+      } else {
+        setWeeklyOrderData([]);
+      }
 
-      recentPaidOrders.forEach(order => {
-          if (!order.paymentDate) return;
-          const paymentDateInIST = new Date(new Date(order.paymentDate).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-          const paymentDateStr = format(paymentDateInIST, 'yyyy-MM-dd');
-
-          const dayData = orderCountsByDay.find(d => d.date === paymentDateStr);
-          if (dayData) {
-              dayData.orders += 1;
-          }
-      });
-      
-      setWeeklyOrderData(orderCountsByDay);
 
       // --- Sales Details List Data Processing ---
       const statusCounts: {[key in OrderStatus]?: number} = {};
@@ -461,3 +468,5 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
+
+    
