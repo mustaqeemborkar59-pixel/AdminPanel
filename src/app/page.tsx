@@ -178,8 +178,9 @@ function DashboardContent() {
         const recentPaidOrders = vendorFilteredOrders.filter(order => {
             if (!order.paymentDate) return false;
             try {
-              const paymentDateInIST = new Date(new Date(order.paymentDate).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-              return paymentDateInIST >= startDate && paymentDateInIST <= endDate;
+              const paymentDateObj = new Date(order.paymentDate);
+              if (isNaN(paymentDateObj.getTime())) return false; // Invalid date string
+              return paymentDateObj >= startDate && paymentDateObj <= endDate;
             } catch {
               return false;
             }
@@ -196,8 +197,9 @@ function DashboardContent() {
         recentPaidOrders.forEach(order => {
             if (!order.paymentDate) return;
             try {
-              const paymentDateInIST = new Date(new Date(order.paymentDate).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-              const paymentDateStr = format(paymentDateInIST, 'yyyy-MM-dd');
+              // Use startOfDay to ignore time and timezone issues for grouping
+              const paymentDayStart = startOfDay(new Date(order.paymentDate));
+              const paymentDateStr = format(paymentDayStart, 'yyyy-MM-dd');
               const dayData = orderCountsByDay.find(d => d.date === paymentDateStr);
               if (dayData) {
                   dayData.orders += 1;
