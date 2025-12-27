@@ -191,6 +191,15 @@ function DashboardContent() {
             }
         });
         
+        // TEMPORARY DEBUGGING: Show orders for the 25th
+        const ordersFor25th = vendorFilteredOrders
+          .filter(o => o.paymentDate && new Date(o.paymentDate).getDate() === 25)
+          .map(o => ({ id: o.id, payment: o.paymentDate, created: o.timestamp }));
+        
+        if (ordersFor25th.length > 0) {
+          alert(`Orders paid on 25th:\n${JSON.stringify(ordersFor25th, null, 2)}`);
+        }
+
         const intervalDays = eachDayOfInterval({ start: startDate, end: endDate });
         
         const orderCountsByDay = intervalDays.map(day => ({
