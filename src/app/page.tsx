@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format, eachDayOfInterval, startOfTomorrow, startOfDay, endOfDay } from 'date-fns';
-import { zonedTimeToUtc } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 import type { DateRange } from "react-day-picker";
 import { useAppContext } from '@/components/layout/app-content-wrapper';
 
@@ -181,7 +181,7 @@ function DashboardContent() {
             if (!order.paymentDate) return false;
             try {
               // Convert payment date string to a date object in the correct timezone
-              const paymentDateInIST = zonedTimeToUtc(order.paymentDate, timeZone);
+              const paymentDateInIST = toZonedTime(order.paymentDate, timeZone);
               if (isNaN(paymentDateInIST.getTime())) return false; // Invalid date string
               
               // Now the comparison is between two Date objects.
@@ -203,7 +203,7 @@ function DashboardContent() {
             if (!order.paymentDate) return;
             try {
               // Use startOfDay on the timezone-aware date to get the correct day for grouping
-              const paymentDayInIST = startOfDay(zonedTimeToUtc(order.paymentDate, timeZone));
+              const paymentDayInIST = startOfDay(toZonedTime(order.paymentDate, timeZone));
               const paymentDateStr = format(paymentDayInIST, 'yyyy-MM-dd');
               const dayData = orderCountsByDay.find(d => d.date === paymentDateStr);
               if (dayData) {
@@ -476,3 +476,5 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
   );
 }
 
+
+    
