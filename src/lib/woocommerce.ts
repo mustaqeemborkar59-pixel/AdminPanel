@@ -55,12 +55,13 @@ const mapWCOrderToAppOrder = (wcOrder: any): Order => {
   const items: OrderItem[] = (wcOrder.line_items || []).map((item: any) => {
     let itemVendorName: string | undefined = undefined;
     if (item.sku && typeof item.sku === 'string') {
-        if (item.sku.includes('_')) {
-            // Priority for underscore-based codes like "ST_GI"
-            itemVendorName = item.sku.split('_')[0] + '_' + item.sku.split('_')[1];
-        } else if (item.sku.includes('-')) {
-            // Fallback for hyphen-based codes
-            itemVendorName = item.sku.split('-')[0];
+        const hyphenIndex = item.sku.indexOf('-');
+        if (hyphenIndex > 0) {
+            // Extract the part before the first hyphen as the vendor code
+            itemVendorName = item.sku.substring(0, hyphenIndex);
+        } else {
+            // Fallback for SKUs without a hyphen (or other formats if needed)
+            itemVendorName = item.sku;
         }
 
         if (itemVendorName && !primaryVendorName) {
