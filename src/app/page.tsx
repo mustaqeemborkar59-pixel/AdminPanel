@@ -52,7 +52,7 @@ function DashboardContent() {
   const [totalSales, setTotalSales] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
   const [newCustomers, setNewCustomers] = useState(0);
-  const [weeklyOrderData, setWeeklyOrderData] = useState<{name: string, orders: number}[]>([]);
+  const [weeklyOrderData, setWeeklyOrderData] = useState<{name: string, date: string, orders: number}[]>([]);
   const [salesDetailsData, setSalesDetailsData] = useState<{name: string, value: number, label: string, icon: React.ElementType, color: string}[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
     const today = new Date();
@@ -191,15 +191,6 @@ function DashboardContent() {
             }
         });
         
-        // TEMPORARY DEBUGGING: Show orders for the 25th
-        const ordersFor25th = vendorFilteredOrders
-          .filter(o => o.paymentDate && new Date(o.paymentDate).getDate() === 25)
-          .map(o => ({ id: o.id, payment: o.paymentDate, created: o.timestamp }));
-        
-        if (ordersFor25th.length > 0) {
-          alert(`Orders paid on 25th:\n${JSON.stringify(ordersFor25th, null, 2)}`);
-        }
-
         const intervalDays = eachDayOfInterval({ start: startDate, end: endDate });
         
         const orderCountsByDay = intervalDays.map(day => ({
@@ -255,11 +246,32 @@ function DashboardContent() {
       setTotalSales(0);
       setTotalOrders(0);
       setNewCustomers(0);
-       const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-       setWeeklyOrderData(Array(7).fill(0).map((_, i) => ({ name: daysOfWeek[i], orders: 0 })));
+       setWeeklyOrderData([]);
        setSalesDetailsData([]);
     }
   }, [vendorFilteredOrders, dateRange, isVendor]);
+
+  const handleBarClick = (data: any) => {
+    if (!data || !data.activePayload || !data.activePayload.length) return;
+    const clickedDate = data.activePayload[0].payload.date; // e.g., "2024-09-25"
+    if (!clickedDate) return;
+
+    const timeZone = 'Asia/Kolkata';
+
+    const ordersForDate = vendorFilteredOrders.filter(order => {
+      if (!order.paymentDate) return false;
+      try {
+        const paymentDayInIST = startOfDay(toZonedTime(order.paymentDate, timeZone));
+        const paymentDateStr = format(paymentDayInIST, 'yyyy-MM-dd');
+        return paymentDateStr === clickedDate;
+      } catch {
+        return false;
+      }
+    });
+
+    const orderIds = ordersForDate.map(o => o.id);
+    alert(`Orders paid on ${clickedDate}:\n\n${orderIds.join(', ')}`);
+  };
 
 
   if (isLoading) {
@@ -426,7 +438,7 @@ function DashboardContent() {
             </CardHeader>
             <CardContent className="pt-4">
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={weeklyOrderData}>
+                <BarChart data={weeklyOrderData} onClick={handleBarClick}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" vertical={false} />
                   <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} />
                   <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} allowDecimals={false} />
@@ -436,7 +448,7 @@ function DashboardContent() {
                     itemStyle={{ color: 'hsl(var(--foreground))' }}
                     cursor={{fill: 'hsl(var(--muted)/0.3)'}}
                   />
-                  <Bar dataKey="orders" name="Orders" radius={[4, 4, 0, 0]}>
+                  <Bar dataKey="orders" name="Orders" radius={[4, 4, 0, 0]} className="cursor-pointer">
                      {weeklyOrderData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
@@ -486,4 +498,3 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
 }
 
 
-    
