@@ -9,11 +9,16 @@
         "app/page": {
           "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
+        },
+        "app/vendors/page": {
+          "moduleId": "[project]/.next-internal/server/app/vendors/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
         }
       },
       "layer": {
         "app/orders/page": "action-browser",
-        "app/page": "action-browser"
+        "app/page": "action-browser",
+        "app/vendors/page": "action-browser"
       }
     },
     "0086d1454012dae48d87f8b73ffe6497b833c94961": {
@@ -25,11 +30,16 @@
         "app/page": {
           "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
+        },
+        "app/vendors/page": {
+          "moduleId": "[project]/.next-internal/server/app/vendors/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
         }
       },
       "layer": {
         "app/orders/page": "action-browser",
-        "app/page": "action-browser"
+        "app/page": "action-browser",
+        "app/vendors/page": "action-browser"
       }
     },
     "00cf5330395e82bf8255922e76b18a7d7fd7cd3e01": {
@@ -41,11 +51,16 @@
         "app/page": {
           "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
+        },
+        "app/vendors/page": {
+          "moduleId": "[project]/.next-internal/server/app/vendors/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
         }
       },
       "layer": {
         "app/orders/page": "action-browser",
-        "app/page": "action-browser"
+        "app/page": "action-browser",
+        "app/vendors/page": "action-browser"
       }
     },
     "00fabfcbf6c7d5ce94aea620a37f0b27f8bc99710c": {
@@ -57,11 +72,16 @@
         "app/page": {
           "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
+        },
+        "app/vendors/page": {
+          "moduleId": "[project]/.next-internal/server/app/vendors/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
         }
       },
       "layer": {
         "app/orders/page": "action-browser",
-        "app/page": "action-browser"
+        "app/page": "action-browser",
+        "app/vendors/page": "action-browser"
       }
     },
     "401f6e3642acf65262fa6d6423f207ff565e3c09fa": {
@@ -73,11 +93,16 @@
         "app/page": {
           "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
+        },
+        "app/vendors/page": {
+          "moduleId": "[project]/.next-internal/server/app/vendors/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
         }
       },
       "layer": {
         "app/orders/page": "action-browser",
-        "app/page": "action-browser"
+        "app/page": "action-browser",
+        "app/vendors/page": "action-browser"
       }
     },
     "4042fba4c964c1220f40c2e6c13f0a0d862e8d948b": {
@@ -89,11 +114,16 @@
         "app/page": {
           "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
+        },
+        "app/vendors/page": {
+          "moduleId": "[project]/.next-internal/server/app/vendors/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
         }
       },
       "layer": {
         "app/orders/page": "action-browser",
-        "app/page": "action-browser"
+        "app/page": "action-browser",
+        "app/vendors/page": "action-browser"
       }
     },
     "40779c49dada2a560ce33d1bb110771da76088dfdb": {
@@ -105,11 +135,16 @@
         "app/page": {
           "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
+        },
+        "app/vendors/page": {
+          "moduleId": "[project]/.next-internal/server/app/vendors/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
         }
       },
       "layer": {
         "app/orders/page": "action-browser",
-        "app/page": "action-browser"
+        "app/page": "action-browser",
+        "app/vendors/page": "action-browser"
       }
     },
     "40bf1e58e37d64aa62551098cfe74d13ce5ca568e6": {
@@ -121,11 +156,16 @@
         "app/page": {
           "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
+        },
+        "app/vendors/page": {
+          "moduleId": "[project]/.next-internal/server/app/vendors/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
         }
       },
       "layer": {
         "app/orders/page": "action-browser",
-        "app/page": "action-browser"
+        "app/page": "action-browser",
+        "app/vendors/page": "action-browser"
       }
     },
     "600197aded821c9a500870fc90fb1fc9d483b962b8": {
@@ -137,11 +177,16 @@
         "app/page": {
           "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
+        },
+        "app/vendors/page": {
+          "moduleId": "[project]/.next-internal/server/app/vendors/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
         }
       },
       "layer": {
         "app/orders/page": "action-browser",
-        "app/page": "action-browser"
+        "app/page": "action-browser",
+        "app/vendors/page": "action-browser"
       }
     },
     "60264dd4e170d459c6d460ed6ff6579e23eea92dc5": {
@@ -153,11 +198,16 @@
         "app/page": {
           "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
+        },
+        "app/vendors/page": {
+          "moduleId": "[project]/.next-internal/server/app/vendors/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
         }
       },
       "layer": {
         "app/orders/page": "action-browser",
-        "app/page": "action-browser"
+        "app/page": "action-browser",
+        "app/vendors/page": "action-browser"
       }
     },
     "70ca33ff81d844b3ec58711e7aa07fe89bb380c947": {
@@ -169,11 +219,16 @@
         "app/page": {
           "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
+        },
+        "app/vendors/page": {
+          "moduleId": "[project]/.next-internal/server/app/vendors/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
         }
       },
       "layer": {
         "app/orders/page": "action-browser",
-        "app/page": "action-browser"
+        "app/page": "action-browser",
+        "app/vendors/page": "action-browser"
       }
     },
     "00297a05172ea2864074da52ab33dfd029b3e8f318": {

@@ -122,6 +122,7 @@ export default function OrdersPage() {
 
   useEffect(() => {
     setCurrentPage(1);
+    setSelectedOrderIds(new Set());
   }, [statusFilter, searchTerm, dateRange, vendorFilter]);
 
 
@@ -208,27 +209,29 @@ export default function OrdersPage() {
     if (!preVendorFilteredOrders.length || !allVendors.length) {
       return counts;
     }
-
+  
+    // Initialize counts for all known vendors to 0
     allVendors.forEach(vendor => {
       counts.set(vendor.name, 0);
     });
-
+  
     preVendorFilteredOrders.forEach(order => {
+      // Use a Set to count each vendor only once per order
       const vendorsInOrder = new Set<string>();
       order.items.forEach(item => {
-        if (item.vendorName) {
-            const vendorDetails = allVendors.find(v => v.code === item.vendorName);
-            if(vendorDetails) {
-                vendorsInOrder.add(vendorDetails.name);
-            }
+        // Find the vendor details (name) based on the item's vendor code
+        const vendorDetails = allVendors.find(v => v.code === item.vendorName);
+        if (vendorDetails) {
+          vendorsInOrder.add(vendorDetails.name);
         }
       });
       
+      // Increment the count for each unique vendor found in the order
       vendorsInOrder.forEach(vendorName => {
         counts.set(vendorName, (counts.get(vendorName) || 0) + 1);
       });
     });
-
+  
     return counts;
   }, [preVendorFilteredOrders, allVendors]);
 
@@ -290,7 +293,7 @@ export default function OrdersPage() {
   };
 
   const toggleSelectAll = () => {
-    if (selectedOrderIds.size === paginatedOrders.length) {
+    if (selectedOrderIds.size === paginatedOrders.length && paginatedOrders.length > 0) {
       setSelectedOrderIds(new Set());
     } else {
       setSelectedOrderIds(new Set(paginatedOrders.map(o => o.id)));
@@ -507,7 +510,7 @@ export default function OrdersPage() {
     
     const dateStr = new Date().toISOString().split('T')[0];
     let fileName = `orders-${dateStr}.xlsx`;
-    if (vendorFilter !== 'all') {
+    if (vendorFilter !== 'all' && !isVendor) {
         const safeVendorName = vendorFilter.replace(/[^a-zA-Z0-9]/g, '_');
         fileName = `${safeVendorName}_orders-${dateStr}.xlsx`;
     }
@@ -634,7 +637,7 @@ export default function OrdersPage() {
                 <DropdownMenuLabel>Vendor</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuRadioGroup value={vendorFilter} onValueChange={setVendorFilter}>
-                  <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="all">All Vendors ({preVendorFilteredOrders.length})</DropdownMenuRadioItem>
                   {allVendors.map(vendor => (
                      <DropdownMenuRadioItem key={vendor.id} value={vendor.name}>
                         {vendor.name} ({vendorOrderCounts.get(vendor.name) || 0})
@@ -711,7 +714,7 @@ export default function OrdersPage() {
                     aria-label="Select all orders on this page"
                 />
                 <Label htmlFor="select-all" className="text-sm font-medium text-muted-foreground">
-                    Select All on Page
+                    Select All on Page ({selectedOrderIds.size} selected)
                 </Label>
             </div>
             <Accordion type="single" collapsible className="space-y-4">

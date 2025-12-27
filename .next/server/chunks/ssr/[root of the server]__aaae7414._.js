@@ -546,9 +546,15 @@ const mapWCOrderToAppOrder = (wcOrder)=>{
     let primaryVendorName = undefined;
     const items = (wcOrder.line_items || []).map((item)=>{
         let itemVendorName = undefined;
-        if (item.sku && typeof item.sku === 'string' && item.sku.includes('-')) {
-            itemVendorName = item.sku.split('-')[0];
-            if (!primaryVendorName) {
+        if (item.sku && typeof item.sku === 'string') {
+            if (item.sku.includes('_')) {
+                // Priority for underscore-based codes like "ST_GI"
+                itemVendorName = item.sku.split('_')[0] + '_' + item.sku.split('_')[1];
+            } else if (item.sku.includes('-')) {
+                // Fallback for hyphen-based codes
+                itemVendorName = item.sku.split('-')[0];
+            }
+            if (itemVendorName && !primaryVendorName) {
                 primaryVendorName = itemVendorName;
             }
         }
