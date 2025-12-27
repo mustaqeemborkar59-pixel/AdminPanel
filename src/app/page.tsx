@@ -252,8 +252,7 @@ function DashboardContent() {
   }, [vendorFilteredOrders, dateRange, isVendor]);
 
   const handleBarClick = (data: any) => {
-    if (!data || !data.activePayload || !data.activePayload.length) return;
-    const clickedDate = data.activePayload[0].payload.date; // e.g., "2024-09-25"
+    const clickedDate = data.date;
     if (!clickedDate) return;
 
     const timeZone = 'Asia/Kolkata';
@@ -438,7 +437,7 @@ function DashboardContent() {
             </CardHeader>
             <CardContent className="pt-4">
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={weeklyOrderData} onClick={handleBarClick}>
+                <BarChart data={weeklyOrderData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" vertical={false} />
                   <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} />
                   <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} allowDecimals={false} />
@@ -448,7 +447,7 @@ function DashboardContent() {
                     itemStyle={{ color: 'hsl(var(--foreground))' }}
                     cursor={{fill: 'hsl(var(--muted)/0.3)'}}
                   />
-                  <Bar dataKey="orders" name="Orders" radius={[4, 4, 0, 0]} className="cursor-pointer">
+                  <Bar dataKey="orders" name="Orders" radius={[4, 4, 0, 0]} className="cursor-pointer" onClick={handleBarClick}>
                      {weeklyOrderData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
@@ -497,4 +496,4 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
   );
 }
 
-
+    
