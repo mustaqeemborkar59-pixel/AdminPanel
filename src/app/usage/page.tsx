@@ -9,78 +9,58 @@ import { Check, Gem, Loader2, Lock, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppContext } from '@/components/layout/app-content-wrapper';
 import { Badge } from '@/components/ui/badge';
+import { getSubscriptionPlans } from '@/app/auth/actions'; // Using new Firestore action
+import { Skeleton } from '@/components/ui/skeleton';
 
-
-// --- MOCK DATA FOR SUBSCRIPTION PLANS ---
-const subscriptionPlans = [
-  {
-    name: 'Basic',
-    price: '₹0',
-    pricePeriod: '/month',
-    description: 'For individuals and small teams just getting started.',
-    features: [
-      { text: '10,000 API Calls/mo', included: true },
-      { text: '5 GB Storage', included: true },
-      { text: '1 Vendor Account', included: true },
-      { text: 'Basic Analytics', included: true },
-      { text: 'Community Support', included: true },
-      { text: 'Email Support', included: false },
-      { text: 'Priority Support', included: false },
-    ],
-    cta: 'Downgrade',
-    variant: 'outline' as const,
-  },
-  {
-    name: 'Pro',
-    price: '₹4,999',
-    pricePeriod: '/month',
-    description: 'For growing businesses that need more power and support.',
-    features: [
-      { text: '500,000 API Calls/mo', included: true },
-      { text: '50 GB Storage', included: true },
-      { text: '5 Admin Accounts', included: true },
-      { text: 'Advanced Analytics', included: true },
-      { text: 'Community Support', included: true },
-      { text: 'Email Support', included: true },
-      { text: 'Priority Support', included: false },
-    ],
-    cta: 'Your Current Plan',
-    variant: 'default' as const,
-    isCurrent: true,
-  },
-  {
-    name: 'Enterprise',
-    price: 'Custom',
-    pricePeriod: '',
-    description: 'For large-scale applications with custom needs.',
-    features: [
-      { text: 'Unlimited API Calls', included: true },
-      { text: 'Unlimited Storage', included: true },
-      { text: 'Unlimited Accounts', included: true },
-      { text: 'Advanced Analytics & Reporting', included: true },
-      { text: 'Community Support', included: true },
-      { text: 'Email Support', included: true },
-      { text: 'Priority Support', included: true },
-    ],
-    cta: 'Contact Sales',
-    variant: 'outline' as const,
-  },
-];
+// The local data is now removed, as we will fetch it from Firestore.
+// We define a type for the plan data we expect.
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  price: string;
+  pricePeriod: string;
+  description: string;
+  features: { text: string; included: boolean }[];
+  cta: string;
+  variant: 'outline' | 'default';
+  isCurrent?: boolean; // This will be determined client-side
+  trialDays?: number;
+}
 
 
 export default function SubscriptionPage() {
   const { userProfile, authLoading } = useAppContext();
-  const [initialLoading, setInitialLoading] = useState(true);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
 
   const isVendor = userProfile?.role === 'vendor';
 
   useEffect(() => {
-    if (!authLoading) {
-      setInitialLoading(false);
+    async function fetchPlans() {
+      if (!authLoading && isVendor) {
+        setDataLoading(true);
+        const result = await getSubscriptionPlans();
+        if (result.success && result.data) {
+          // Assuming 'Pro' is the current plan for this example.
+          // In a real app, this would be based on the user's actual subscription.
+          const plansWithCurrent = result.data.map(p => ({
+            ...p,
+            isCurrent: p.id === 'pro' // Example logic
+          }));
+          setPlans(plansWithCurrent);
+        } else {
+          // Handle error case, maybe show a toast
+          console.error("Failed to fetch subscription plans:", result.error);
+        }
+        setDataLoading(false);
+      } else if (!authLoading) {
+        setDataLoading(false);
+      }
     }
-  }, [authLoading]);
+    fetchPlans();
+  }, [authLoading, isVendor]);
 
-  if (authLoading || initialLoading) {
+  if (authLoading) {
     return (
       <div className="flex flex-col h-full">
         <PageHeader
@@ -110,6 +90,45 @@ export default function SubscriptionPage() {
     );
   }
 
+  if (dataLoading) {
+     return (
+       <div className="flex flex-col h-full">
+        <PageHeader
+          title="Manage Your Subscription"
+          description="Choose the plan that's right for your business."
+        />
+        <div className="flex-1 p-4 md:p-6 overflow-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="shadow-lg flex flex-col">
+                <CardHeader className="text-center">
+                  <Skeleton className="h-6 w-2/4 mx-auto" />
+                  <Skeleton className="h-4 w-full mt-2" />
+                </CardHeader>
+                <CardContent className="flex-grow space-y-6">
+                  <div className="text-center space-y-2">
+                    <Skeleton className="h-8 w-1/3 mx-auto" />
+                  </div>
+                  <ul className="space-y-3 text-sm">
+                    {Array.from({ length: 7 }).map((_, j) => (
+                      <li key={j} className="flex items-center gap-3">
+                         <Skeleton className="h-4 w-4 rounded-full" />
+                         <Skeleton className="h-4 w-3/4" />
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                   <Skeleton className="h-10 w-full" />
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+     );
+  }
+
 
   return (
     <div className="flex flex-col h-full">
@@ -118,10 +137,10 @@ export default function SubscriptionPage() {
         description="Choose the plan that's right for your business."
       />
       <div className="flex-1 p-4 md:p-6 overflow-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-          {subscriptionPlans.map((plan) => (
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+          {plans.sort((a, b) => a.price.localeCompare(b.price, undefined, { numeric: true })).map((plan) => (
             <Card
-              key={plan.name}
+              key={plan.id}
               className={cn(
                 "shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col",
                 plan.isCurrent && "border-primary border-2 relative"
@@ -133,6 +152,9 @@ export default function SubscriptionPage() {
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl font-headline">{plan.name}</CardTitle>
                 <CardDescription>{plan.description}</CardDescription>
+                {plan.id === 'trial' && plan.trialDays && (
+                   <Badge variant="secondary" className="w-fit mx-auto mt-2">{plan.trialDays}-Day Free Trial</Badge>
+                )}
               </CardHeader>
               <CardContent className="flex-grow space-y-6">
                 <div className="text-center">
@@ -157,7 +179,7 @@ export default function SubscriptionPage() {
               <CardFooter>
                 <Button
                   className="w-full"
-                  variant={plan.variant}
+                  variant={plan.variant as any}
                   disabled={plan.isCurrent}
                 >
                   {plan.cta}

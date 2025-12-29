@@ -590,6 +590,11 @@ input, button, textarea, select {
   margin-bottom: .25rem;
 }
 
+.my-8 {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
 .mb-0\.5 {
   margin-bottom: .125rem;
 }
@@ -949,6 +954,14 @@ input, button, textarea, select {
 
 .w-full {
   width: 100%;
+}
+
+.w-1\/3 {
+  width: 33.3333%;
+}
+
+.w-2\/4 {
+  width: 50%;
 }
 
 .min-w-0 {
@@ -2394,6 +2407,10 @@ body {
   text-decoration-line: underline;
 }
 
+.hover\:no-underline:hover {
+  text-decoration-line: none;
+}
+
 .hover\:opacity-100:hover {
   opacity: 1;
 }
@@ -3170,6 +3187,10 @@ body {
 }
 
 @media (width >= 768px) {
+  .md\:col-span-2 {
+    grid-column: span 2 / span 2;
+  }
+
   .md\:mt-0 {
     margin-top: 0;
   }

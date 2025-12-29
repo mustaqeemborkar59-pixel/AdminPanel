@@ -2,11 +2,13 @@
 "use server";
 
 import { redirect } from 'next/navigation';
-import { getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp, FieldValue as AdminFieldValue } from 'firebase-admin/firestore';
 import { initializeApp, getApps, App, cert } from 'firebase-admin/app';
 import { getAuth as getAdminAuth } from 'firebase-admin/auth';
 import { getDatabase } from 'firebase-admin/database';
 import type { UserProfile, CompanyDetails, Vendor } from '@/types';
+import type { SubscriptionPlan } from '@/app/usage/page';
+
 
 // Server-side initialization for Firebase Admin SDK
 function initializeAdminApp(): App {
@@ -147,7 +149,7 @@ export async function getAllUsers(): Promise<{ success: boolean; data?: UserProf
 export async function updateUserRole(userId: string, role: 'admin' | 'vendor' | 'user' | 'super-admin', vendorCode?: string): Promise<{ success: boolean; message?: string }> {
     const adminApp = initializeAdminApp();
     const { firestore, auth } = getAdminServices(adminApp);
-    const FieldValue = require('firebase-admin/firestore').FieldValue;
+    const FieldValue = AdminFieldValue;
     try {
         const userRef = firestore.collection('users').doc(userId);
         const updates: { [key: string]: any } = { role };
@@ -281,5 +283,39 @@ export async function deleteVendorFromFirestore(vendorId: string): Promise<{ suc
     } catch (error: any) {
         console.error('Failed to delete vendor from Firestore (Admin):', error);
         return { success: false, error: error.message || 'Failed to delete vendor.' };
+    }
+}
+
+
+// --- Subscription Plan Actions ---
+
+export async function getSubscriptionPlans(): Promise<{ success: boolean; data?: SubscriptionPlan[]; error?: string }> {
+    const adminApp = initializeAdminApp();
+    const { firestore } = getAdminServices(adminApp);
+    try {
+        const plansRef = firestore.collection('subscriptionPlans');
+        const snapshot = await plansRef.get();
+        if (snapshot.empty) {
+            return { success: true, data: [] };
+        }
+        const plans = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SubscriptionPlan));
+        return { success: true, data: plans };
+    } catch (error: any) {
+        console.error('Failed to get subscription plans from Firestore (Admin):', error);
+        return { success: false, error: error.message || 'Failed to fetch subscription plans.' };
+    }
+}
+
+export async function saveSubscriptionPlan(planData: SubscriptionPlan): Promise<{ success: boolean; error?: string }> {
+    const adminApp = initializeAdminApp();
+    const { firestore } = getAdminServices(adminApp);
+    try {
+        const { id, ...dataToSave } = planData;
+        const planRef = firestore.collection('subscriptionPlans').doc(id);
+        await planRef.set(dataToSave, { merge: true });
+        return { success: true };
+    } catch (error: any) {
+        console.error('Failed to save subscription plan to Firestore (Admin):', error);
+        return { success: false, error: error.message || 'Failed to save subscription plan.' };
     }
 }

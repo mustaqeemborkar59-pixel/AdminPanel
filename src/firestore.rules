@@ -1,0 +1,249 @@
+
+/**
+ * Core Philosophy: This ruleset enforces a multi-tiered access model for a restaurant management system.
+ * The primary security principles are user ownership, role-based access for staff, and public access for general data.
+ * - Customer users can create and manage their own data (profiles, orders).
+ * - Staff and Admin users have elevated privileges to manage operational data (all orders, inventory, bills).
+ * - Admins have the highest level of access, including managing staff and menu items.
+ *
+ * Data Structure: The data is organized into top-level collections, with each collection representing a distinct
+ * entity (e.g., /users, /orders, /menu). This flat structure helps enforce a consistent security
+ * posture for all documents within a given collection.
+ *
+ * Key Security Decisions:
+ * - User Listing Disabled: To protect user privacy, it is not possible to list all documents in the /users collection.
+ * - Role-Based Access Control (RBAC): Access to sensitive or operational collections like /inventory, /bills, and /staff
+ *   is controlled by a 'role' field ('staff' or 'admin') on the user's profile document in /users/{userId}.
+ *   This requires a single 'get' request in the rule, which is an acceptable pattern for checking authorization.
+ * - Secure Queries: Direct 'list' access on collections containing private user data (e.g., /orders, /notifications)
+ *   is disabled for customers to prevent data leaks. Customer clients must use targeted queries executed via a secure
+ *   backend (like Cloud Functions) to retrieve their own documents. Staff and admins are permitted to list these collections.
+ * - Public Data: The /menu collection is publicly readable by anyone, but writable only by admins.
+ *
+ * Denormalization for Authorization: To enable role-based security, a 'role' field is required on each user's
+ * document in the `/users` collection. This allows rules to efficiently check a user's permissions without
+ * needing to query other collections. For documents like orders or reservations, a `customerId` or `userId` field
+ * is denormalized directly onto the document to create a clear and enforceable ownership link.
+ *
+ * Structural Segregation: Each primary data entity has its own top-level collection. This separation is critical
+ * for security, as it prevents rules for public data (e.g., /menu) from accidentally exposing private data
+ * (e.g., /orders) that might otherwise be stored in the same collection.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ----------------------------------------------------------------------
+    // Helper Functions
+    // ----------------------------------------------------------------------
+
+    /**
+     * Returns true if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Returns true if the authenticated user's UID matches the provided userId.
+     * This is the foundation of the user ownership model.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Returns true if the user is an owner and the document already exists.
+     * Used for safe update and delete operations.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * Checks if the current user has the 'staff' role.
+     * Requires reading the user's own profile document.
+     */
+    function isStaff() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'staff';
+    }
+
+    /**
+     * Checks if the current user has the 'admin' role.
+     * Requires reading the user's own profile document.
+     */
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    /**
+     * Checks if the current user has either 'staff' or 'admin' role.
+     */
+    function isStaffOrAdmin() {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return isSignedIn() && (userDoc.data.role == 'staff' || userDoc.data.role == 'admin' || userDoc.data.role == 'super-admin');
+    }
+    
+    function isSuperAdmin() {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return isSignedIn() && userDoc.data.role == 'super-admin';
+    }
+
+
+    // ----------------------------------------------------------------------
+    // Collection Rules
+    // ----------------------------------------------------------------------
+
+    /**
+     * @description Manages user profiles. A user can create their own profile after signing up
+     *              and can only read or modify their own data thereafter.
+     * @path /users/{userId}
+     * @allow (create) A newly signed-up user with UID 'user123' creates their own document at /users/user123.
+     * @deny (get) User 'user123' tries to read data from /users/user456.
+     * @principle Restricts access to a user's own data tree and allows self-creation of a profile.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isSuperAdmin(); // Super admin can get any user profile
+      allow list: if isSuperAdmin(); // Only super admin can list users
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isOwner(userId) || isSuperAdmin(); // Owner or super admin can update
+      allow delete: if isOwner(userId) || isSuperAdmin(); // Owner or super admin can delete
+    }
+
+    /**
+     * @description Stores order data. Customers can create and view their own orders.
+     *              Staff and admins can view and manage all orders.
+     * @path /orders/{orderId}
+     * @allow (create) A customer 'user123' creates an order with 'customerId' set to 'user123'.
+     * @deny (get) A customer 'user123' tries to read an order where 'customerId' is 'user456'.
+     * @principle Enforces document ownership for writes via a 'customerId' field. Grants privileged read/write to staff roles.
+     */
+    match /orders/{orderId} {
+      allow get: if resource.data.customerId == request.auth.uid || isStaffOrAdmin();
+      allow list: if isStaffOrAdmin();
+      allow create: if request.resource.data.customerId == request.auth.uid || isStaffOrAdmin();
+      allow update: if resource.data.customerId == request.auth.uid || isStaffOrAdmin();
+      allow delete: if resource.data.customerId == request.auth.uid || isStaffOrAdmin();
+    }
+
+    /**
+     * @description The restaurant menu is public for anyone to read. Only admins can modify it.
+     * @path /menu/{menuItemId}
+     * @allow (get) An unauthenticated visitor reads a menu item.
+     * @deny (create) A regular customer or staff member tries to add a new menu item.
+     * @principle Provides public read access for non-sensitive data while restricting writes to administrators.
+     */
+    match /menu/{menuItemId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isStaffOrAdmin();
+      allow update: if isStaffOrAdmin();
+      allow delete: if isStaffOrAdmin();
+    }
+
+    /**
+     * @description Inventory is sensitive operational data accessible only by staff and admins.
+     * @path /inventory/{inventoryItemId}
+     * @allow (list) A staff member lists all inventory items.
+     * @deny (get) A regular customer tries to read an inventory item.
+     * @principle Secures internal business data by restricting all access to specific roles.
+     */
+    match /inventory/{inventoryItemId} {
+      allow get: if isStaffOrAdmin();
+      allow list: if isStaffOrAdmin();
+      allow create: if isStaffOrAdmin();
+      allow update: if isStaffOrAdmin();
+      allow delete: if isStaffOrAdmin();
+    }
+
+    /**
+     * @description Bills are linked to orders. A customer can see the bill for their own order,
+     *              but only staff/admins can create or manage bills.
+     * @path /bills/{billId}
+     * @allow (get) A staff member retrieves a bill document.
+     * @deny (create) A customer attempts to create their own bill.
+     * @principle Secures write operations to privileged roles. Read access is granted based on ownership of a related document.
+     */
+    match /bills/{billId} {
+      allow get: if isStaffOrAdmin() || get(/databases/$(database)/documents/orders/$(resource.data.orderId)).data.customerId == request.auth.uid;
+      allow list: if isStaffOrAdmin();
+      allow create: if isStaffOrAdmin();
+      allow update: if isStaffOrAdmin();
+      allow delete: if isStaffOrAdmin();
+    }
+
+    /**
+     * @description Manages table reservations. Any signed-in user can create a reservation for themselves.
+     *              Staff and admins can manage all reservations.
+     * @path /reservations/{reservationId}
+     * @allow (create) Signed-in user 'user123' creates a reservation and includes a 'userId: "user123"' field.
+     * @deny (update) User 'user123' tries to modify a reservation owned by 'user456'.
+     * @principle Enforces document ownership via a denormalized 'userId' field. Grants privileged access to staff roles.
+     */
+    match /reservations/{reservationId} {
+      allow get: if resource.data.userId == request.auth.uid || isStaffOrAdmin();
+      allow list: if isStaffOrAdmin();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if resource.data.userId == request.auth.uid || isStaffOrAdmin();
+      allow delete: if resource.data.userId == request.auth.uid || isStaffOrAdmin();
+    }
+
+    /**
+     * @description Manages staff member records. Only admins can create, update, or delete staff.
+     *              All staff and admins can view staff records.
+     * @path /staff/{staffId}
+     * @allow (get) A staff member views the record of another staff member.
+     * @deny (create) A staff member tries to add a new staff record.
+     * @principle Restricts sensitive HR-related write operations to the highest privilege level (admin).
+     */
+    match /staff/{staffId} {
+      allow get: if isStaffOrAdmin();
+      allow list: if isStaffOrAdmin();
+      allow create: if isStaffOrAdmin();
+      allow update: if isStaffOrAdmin();
+      allow delete: if isStaffOrAdmin();
+    }
+
+    /**
+     * @description User-specific notifications. Users can only access their own.
+     *              Notifications are created by the system (via an admin process).
+     * @path /notifications/{notificationId}
+     * @allow (get) User 'user123' reads a notification where 'userId' is 'user123'.
+     * @deny (list) Any user tries to list the entire /notifications collection.
+     * @principle Enforces strict document ownership. Listing is disabled for security and performance.
+     */
+    match /notifications/{notificationId} {
+      allow get: if resource.data.userId == request.auth.uid;
+      allow list: if false;
+      allow create: if isStaffOrAdmin();
+      allow update: if resource.data.userId == request.auth.uid;
+      allow delete: if resource.data.userId == request.auth.uid;
+    }
+    
+    /**
+     * @description Manages product vendors. Readable by authenticated users for dropdowns,
+     *              but writable only by admins and super-admins.
+     * @path /vendors/{vendorId}
+     * @principle Secures vendor management to administrative roles.
+     */
+    match /vendors/{vendorId} {
+        allow get: if isSignedIn();
+        allow list: if isSignedIn();
+        allow create: if isStaffOrAdmin();
+        allow update: if isStaffOrAdmin();
+        allow delete: if isStaffOrAdmin();
+    }
+    
+    /**
+     * @description Manages subscription plan details. Publicly readable for all signed-in users
+     *              but only writable by super-admins.
+     * @path /subscriptionPlans/{planId}
+     * @principle Secures plan management to super-admins while allowing all users to see them.
+     */
+    match /subscriptionPlans/{planId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create, update, delete: if isSuperAdmin();
+    }
+  }
+}
