@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowUpRight, BarChart3, Database, Cable } from 'lucide-react';
+import { ArrowUpRight, BarChart3, Database, Cable, Loader2, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAppContext } from '@/components/layout/app-content-wrapper';
 
 // Placeholder data - replace with actual data from your backend/service
 const usageData = {
@@ -41,11 +42,43 @@ const usageData = {
 };
 
 export default function UsagePage() {
+  const { userProfile, authLoading } = useAppContext();
+  const isVendor = userProfile?.role === 'vendor';
 
   const apiUsagePercentage = (usageData.api.used / usageData.api.limit) * 100;
   const storageUsagePercentage = (usageData.storage.used / usageData.storage.limit) * 100;
   const goldGradientText = "text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-500";
   const goldGradientBg = "bg-gradient-to-r from-amber-400 to-yellow-600 hover:from-amber-500 hover:to-yellow-700";
+
+  if (authLoading) {
+    return (
+      <div className="flex flex-col h-full">
+        <PageHeader
+          title="Usage & Billing"
+          description="Monitor your API usage, data storage, and monthly costs."
+        />
+        <div className="flex-1 p-4 md:p-6 flex justify-center items-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!isVendor) {
+    return (
+      <div className="flex flex-col h-full">
+        <PageHeader
+          title="Usage & Billing"
+          description="Monitor your API usage, data storage, and monthly costs."
+        />
+        <div className="flex-1 p-4 md:p-6 flex flex-col justify-center items-center text-center">
+          <Lock className="h-16 w-16 text-destructive mb-4" />
+          <h2 className="text-2xl font-bold text-destructive">Access Denied</h2>
+          <p className="text-muted-foreground mt-2">You do not have permission to view this page.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full">
