@@ -11,6 +11,7 @@ import { useAppContext } from '@/components/layout/app-content-wrapper';
 import { Badge } from '@/components/ui/badge';
 import { getSubscriptionPlans } from '@/app/auth/actions'; // Using new Firestore action
 import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
 
 // The local data is now removed, as we will fetch it from Firestore.
 // We define a type for the plan data we expect.
@@ -150,51 +151,62 @@ export default function SubscriptionPage() {
             <Card
               key={plan.id}
               className={cn(
-                "shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col",
-                plan.isCurrent && "border-primary border-2 relative"
+                "shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col transform hover:-translate-y-1",
+                plan.isCurrent && "border-primary border-2 ring-2 ring-primary/20",
+                plan.variant === 'default' && !plan.isCurrent && "bg-primary/5 dark:bg-primary/10"
               )}
             >
               {plan.isCurrent && (
-                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">Current Plan</Badge>
+                <Badge className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 text-sm">Current Plan</Badge>
               )}
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl font-headline">{plan.name}</CardTitle>
-                <CardDescription>{plan.description}</CardDescription>
-                 {plan.trialDays && plan.trialDays > 0 && (
-                   <Badge variant="secondary" className="w-fit mx-auto mt-2">
-                     {plan.price === '₹0' ? `${plan.trialDays}-Day Free Trial` : `Duration: ${plan.trialDays} Days`}
-                   </Badge>
-                )}
+              <CardHeader className="text-center pt-8">
+                  <div className="flex items-center justify-center gap-2">
+                    <Gem className={cn("h-6 w-6", plan.variant === 'default' ? 'text-primary' : 'text-muted-foreground/80')} />
+                    <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
+                  </div>
+                <CardDescription className="pt-1">{plan.description}</CardDescription>
               </CardHeader>
-              <CardContent className="flex-grow space-y-6">
-                <div className="text-center flex items-baseline justify-center gap-2">
-                    <span className="text-4xl font-bold">{plan.price}</span>
-                    {plan.regularPrice && (
-                      <span className="text-xl font-medium text-muted-foreground line-through">
-                        {plan.regularPrice}
-                      </span>
+              <CardContent className="flex-grow flex flex-col justify-between">
+                <div className="my-6">
+                    <div className="text-center flex items-baseline justify-center gap-2">
+                        <span className="text-5xl font-extrabold tracking-tight">{plan.price}</span>
+                        {plan.regularPrice && (
+                          <span className="text-2xl font-medium text-muted-foreground line-through">
+                            {plan.regularPrice}
+                          </span>
+                        )}
+                    </div>
+                    {plan.trialDays && plan.trialDays > 0 && (
+                      <Badge variant="secondary" className="w-fit mx-auto mt-2 font-semibold">
+                         {plan.price === '₹0' ? `${plan.trialDays}-Day Free Trial` : `Duration: ${plan.trialDays} Days`}
+                      </Badge>
                     )}
                 </div>
-                <ul className="space-y-3 text-sm">
-                    {plan.features.map((feature, index) => (
-                        <li key={index} className="flex items-center gap-3">
-                            {feature.included ? (
-                                <Check className="h-4 w-4 text-green-500" />
-                            ) : (
-                                <X className="h-4 w-4 text-red-400" />
-                            )}
-                            <span className={cn(!feature.included && "text-muted-foreground line-through")}>
-                                {feature.text}
-                            </span>
-                        </li>
-                    ))}
-                </ul>
+
+                <div className="space-y-4 text-sm">
+                    <Separator />
+                    <ul className="space-y-3">
+                        {plan.features.map((feature, index) => (
+                            <li key={index} className="flex items-start gap-3">
+                                {feature.included ? (
+                                    <Check className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
+                                ) : (
+                                    <X className="h-5 w-5 text-red-500 mt-0.5 shrink-0" />
+                                )}
+                                <span className={cn("flex-1", !feature.included && "text-muted-foreground line-through")}>
+                                    {feature.text}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="p-6">
                 <Button
-                  className="w-full"
+                  className="w-full text-base h-11 font-semibold"
                   variant={plan.isCurrent ? 'secondary' : (plan.variant as any)}
                   disabled={plan.isCurrent}
+                  size="lg"
                 >
                   {plan.isCurrent ? 'Your Current Plan' : plan.cta || "Upgrade plan"}
                 </Button>
@@ -206,3 +218,5 @@ export default function SubscriptionPage() {
     </div>
   );
 }
+
+    
