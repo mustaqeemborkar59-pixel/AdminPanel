@@ -43,6 +43,21 @@ const newPlanDefault: Omit<SubscriptionPlan, 'id'> = {
   trialDays: 0,
 };
 
+const defaultTrialPlan: SubscriptionPlan = {
+  id: 'trial',
+  name: 'Free Trial',
+  price: '₹0',
+  pricePeriod: '',
+  description: 'Get started with our basic features.',
+  features: [
+    { text: '100 API Calls', included: true },
+    { text: 'Basic Support', included: true },
+  ],
+  cta: 'Start Trial',
+  variant: 'default',
+  trialDays: 14
+};
+
 export function SubscriptionPlanSettings() {
   const { toast } = useToast();
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
@@ -53,13 +68,19 @@ export function SubscriptionPlanSettings() {
     setIsLoading(true);
     const result = await getSubscriptionPlans();
     if (result.success && result.data) {
-      setPlans(result.data.length > 0 ? result.data : []);
+      // If no plans exist, create a default trial plan.
+      if (result.data.length === 0) {
+        setPlans([defaultTrialPlan]);
+      } else {
+        setPlans(result.data);
+      }
     } else {
       toast({
         variant: "destructive",
         title: "Failed to load plans",
         description: result.error || "Could not fetch plans from DB.",
       });
+      setPlans([defaultTrialPlan]); // Set default even on failure
     }
     setIsLoading(false);
   }
@@ -113,10 +134,16 @@ export function SubscriptionPlanSettings() {
   const handleAddNewPlan = () => {
       // Use a temporary ID for the new plan for state management
       const tempId = `new-${Date.now()}`;
-      setPlans(prevPlans => [...prevPlans, { ...newPlanDefault, id: tempId }]);
+      setPlans(prevPlans => [...prevPlans, { ...newPlanDefault, id: tempId, cta: 'Upgrade Plan' }]);
   };
 
   const handleRemovePlan = async (planId: string) => {
+      // Prevent deleting the default trial plan
+      if(planId === 'trial') {
+        toast({ variant: 'destructive', title: 'Action Not Allowed', description: 'The default Free Trial plan cannot be deleted.' });
+        return;
+      }
+
       // If it's a new plan that hasn't been saved, just remove from state
       if(planId.startsWith('new-')) {
           setPlans(prevPlans => prevPlans.filter(p => p.id !== planId));
@@ -189,7 +216,11 @@ export function SubscriptionPlanSettings() {
       </CardHeader>
       <CardContent>
         <Accordion type="single" collapsible className="w-full space-y-4">
-            {plans.sort((a, b) => a.price.localeCompare(b.price, undefined, { numeric: true })).map(plan => (
+            {plans.sort((a, b) => {
+                if (a.id === 'trial') return -1; // always show trial first
+                if (b.id === 'trial') return 1;
+                return a.price.localeCompare(b.price, undefined, { numeric: true })
+            }).map(plan => (
                 <AccordionItem value={plan.id} key={plan.id} className="border rounded-lg px-4 bg-background">
                     <AccordionTrigger className="font-semibold text-lg hover:no-underline">
                         {plan.name}
@@ -247,7 +278,7 @@ export function SubscriptionPlanSettings() {
                         <div className="flex justify-between pt-4 border-t">
                              <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                    <Button variant="destructive" disabled={isSaving === plan.id}>
+                                    <Button variant="destructive" disabled={isSaving === plan.id || plan.id === 'trial'}>
                                         <Trash2 className="mr-2 h-4 w-4" /> Remove Plan
                                     </Button>
                                 </AlertDialogTrigger>

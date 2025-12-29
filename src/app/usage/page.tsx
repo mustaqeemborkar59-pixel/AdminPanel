@@ -42,11 +42,13 @@ export default function SubscriptionPage() {
         const result = await getSubscriptionPlans();
         if (result.success && result.data) {
           // In a real app, this would be based on the user's actual subscription.
-          // We are not setting a default plan here anymore.
+          // For now, we'll default new users to the 'trial' plan if no other plan is active.
+          const hasActivePlan = result.data.some(p => p.isCurrent); // This would come from user profile in a real app
+
           const plansWithCurrent = result.data.map(p => ({
             ...p,
-             // No plan is current by default
-            isCurrent: false,
+            // If no plan is active, mark the trial plan as current.
+            isCurrent: !hasActivePlan && p.id === 'trial',
           }));
           setPlans(plansWithCurrent);
         } else {
@@ -139,7 +141,11 @@ export default function SubscriptionPage() {
       />
       <div className="flex-1 p-4 md:p-6 overflow-auto">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
-          {plans.sort((a, b) => a.price.localeCompare(b.price, undefined, { numeric: true })).map((plan) => (
+          {plans.sort((a, b) => {
+              if (a.id === 'trial') return -1;
+              if (b.id === 'trial') return 1;
+              return a.price.localeCompare(b.price, undefined, { numeric: true });
+            }).map((plan) => (
             <Card
               key={plan.id}
               className={cn(
@@ -153,7 +159,7 @@ export default function SubscriptionPage() {
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl font-headline">{plan.name}</CardTitle>
                 <CardDescription>{plan.description}</CardDescription>
-                {plan.id === 'trial' && plan.trialDays && (
+                {plan.trialDays && plan.trialDays > 0 && (
                    <Badge variant="secondary" className="w-fit mx-auto mt-2">{plan.trialDays}-Day Free Trial</Badge>
                 )}
               </CardHeader>
@@ -183,7 +189,7 @@ export default function SubscriptionPage() {
                   variant={plan.isCurrent ? 'secondary' : (plan.variant as any)}
                   disabled={plan.isCurrent}
                 >
-                  {plan.isCurrent ? 'Your Current Plan' : plan.cta}
+                  {plan.isCurrent ? 'Your Current Plan' : plan.cta || "Upgrade plan"}
                 </Button>
               </CardFooter>
             </Card>
