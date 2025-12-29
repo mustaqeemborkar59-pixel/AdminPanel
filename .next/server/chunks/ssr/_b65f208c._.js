@@ -884,7 +884,6 @@ function StaffPage() {
     }, [
         authLoading,
         isSuperAdmin,
-        toast,
         userProfile
     ]);
     const handleStatusChange = async (userId, newStatus)=>{

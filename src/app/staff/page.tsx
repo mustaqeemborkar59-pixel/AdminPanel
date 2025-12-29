@@ -41,7 +41,7 @@ export default function StaffPage() {
     } else if (!authLoading && !isSuperAdmin) {
       setDataLoading(false);
     }
-  }, [authLoading, isSuperAdmin, toast, userProfile]);
+  }, [authLoading, isSuperAdmin, userProfile]);
 
   const handleStatusChange = async (userId: string, newStatus: 'active' | 'blocked') => {
       const result = await updateUserStatus(userId, newStatus);

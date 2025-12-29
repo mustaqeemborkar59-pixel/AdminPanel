@@ -3023,7 +3023,6 @@ __turbopack_context__.s({
     "AppContentWrapper": (()=>AppContentWrapper),
     "useAppContext": (()=>useAppContext)
 });
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/build/polyfills/process.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/navigation.js [app-client] (ecmascript)");
@@ -3169,15 +3168,7 @@ function AppContentWrapper({ children }) {
                             router.replace('/login');
                             return;
                         }
-                        // Handle role corrections for super admin
-                        const isSuperAdminByEmail = user.email === ("TURBOPACK compile-time value", "yasirsolkar28@gmail.com");
-                        if (isSuperAdminByEmail && profileData.role !== 'super-admin') {
-                            console.log("Correcting user role to super-admin for:", user.email);
-                            await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["updateUserRole"])(user.uid, 'super-admin');
-                        // The onSnapshot listener will pick up this change and re-run, so we don't need to manually set state here.
-                        } else {
-                            setUserProfile(profileData);
-                        }
+                        setUserProfile(profileData);
                     } else {
                         // Profile doesn't exist, create it.
                         console.log("Profile not found for user, creating one...");
@@ -3263,12 +3254,12 @@ function AppContentWrapper({ children }) {
                 className: "h-10 w-10 animate-spin text-primary"
             }, void 0, false, {
                 fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                lineNumber: 230,
+                lineNumber: 222,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-            lineNumber: 229,
+            lineNumber: 221,
             columnNumber: 7
         }, this);
     }
@@ -3282,7 +3273,7 @@ function AppContentWrapper({ children }) {
             children: children
         }, void 0, false, {
             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-            lineNumber: 237,
+            lineNumber: 229,
             columnNumber: 7
         }, this);
     }
@@ -3295,12 +3286,12 @@ function AppContentWrapper({ children }) {
                 className: "h-10 w-10 animate-spin text-primary"
             }, void 0, false, {
                 fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                lineNumber: 249,
+                lineNumber: 241,
                 columnNumber: 11
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-            lineNumber: 248,
+            lineNumber: 240,
             columnNumber: 10
         }, this);
     }
@@ -3320,12 +3311,12 @@ function AppContentWrapper({ children }) {
                         authLoading: loading
                     }, void 0, false, {
                         fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                        lineNumber: 258,
+                        lineNumber: 250,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                    lineNumber: 257,
+                    lineNumber: 249,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sidebar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SidebarInset"], {
@@ -3333,7 +3324,7 @@ function AppContentWrapper({ children }) {
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$layout$2f$header$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Header"], {}, void 0, false, {
                             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                            lineNumber: 261,
+                            lineNumber: 253,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -3341,24 +3332,24 @@ function AppContentWrapper({ children }) {
                             children: children
                         }, void 0, false, {
                             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                            lineNumber: 262,
+                            lineNumber: 254,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                    lineNumber: 260,
+                    lineNumber: 252,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-            lineNumber: 256,
+            lineNumber: 248,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-        lineNumber: 255,
+        lineNumber: 247,
         columnNumber: 5
     }, this);
 }

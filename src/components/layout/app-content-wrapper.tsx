@@ -145,16 +145,8 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
           router.replace('/login');
           return;
         }
-
-        // Handle role corrections for super admin
-        const isSuperAdminByEmail = user.email === process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
-        if (isSuperAdminByEmail && profileData.role !== 'super-admin') {
-            console.log("Correcting user role to super-admin for:", user.email);
-            await updateUserRole(user.uid, 'super-admin');
-            // The onSnapshot listener will pick up this change and re-run, so we don't need to manually set state here.
-        } else {
-            setUserProfile(profileData);
-        }
+        
+        setUserProfile(profileData);
 
       } else {
         // Profile doesn't exist, create it.
