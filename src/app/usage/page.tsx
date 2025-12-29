@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -17,36 +18,63 @@ import { Button } from '@/components/ui/button';
 import { ArrowUpRight, BarChart3, Database, Cable, Loader2, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppContext } from '@/components/layout/app-content-wrapper';
+import { Skeleton } from '@/components/ui/skeleton';
 
-// Placeholder data - replace with actual data from your backend/service
-const usageData = {
-  plan: 'Standard Plan',
-  api: {
-    used: 125340,
-    limit: 500000,
-  },
-  storage: {
-    used: 2.7, // in GB
-    limit: 10, // in GB
-  },
-  cost: {
-    current: 19.99,
-    currency: 'USD'
-  },
-  breakdown: [
-    { service: 'Order Lookups', requests: 75230, cost: 9.50 },
-    { service: 'Product Syncs', requests: 35110, cost: 5.49 },
-    { service: 'User Management API Calls', requests: 12500, cost: 3.00 },
-    { service: 'Real-time Listeners', requests: 2500, cost: 2.00 },
-  ]
+// --- SIMULATED BACKEND CALL ---
+// In a real application, this function would be a server action
+// that securely fetches data from Google Cloud Billing/Usage APIs.
+const fetchUsageData = async () => {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // Return placeholder data. Replace this with a real API call.
+  return {
+    plan: 'Standard Plan',
+    api: {
+      used: 125340,
+      limit: 500000,
+    },
+    storage: {
+      used: 2.7, // in GB
+      limit: 10, // in GB
+    },
+    cost: {
+      current: 19.99,
+      currency: 'USD'
+    },
+    breakdown: [
+      { service: 'Order Lookups', requests: 75230, cost: 9.50 },
+      { service: 'Product Syncs', requests: 35110, cost: 5.49 },
+      { service: 'User Management API Calls', requests: 12500, cost: 3.00 },
+      { service: 'Real-time Listeners', requests: 2500, cost: 2.00 },
+    ]
+  };
 };
+
 
 export default function UsagePage() {
   const { userProfile, authLoading } = useAppContext();
+  const [usageData, setUsageData] = useState<any>(null);
+  const [dataLoading, setDataLoading] = useState(true);
+
   const isVendor = userProfile?.role === 'vendor';
 
-  const apiUsagePercentage = (usageData.api.used / usageData.api.limit) * 100;
-  const storageUsagePercentage = (usageData.storage.used / usageData.storage.limit) * 100;
+  useEffect(() => {
+    if (!isVendor) {
+      setDataLoading(false);
+      return;
+    }
+    const loadData = async () => {
+      setDataLoading(true);
+      const data = await fetchUsageData();
+      setUsageData(data);
+      setDataLoading(false);
+    };
+    loadData();
+  }, [isVendor]);
+
+  const apiUsagePercentage = usageData ? (usageData.api.used / usageData.api.limit) * 100 : 0;
+  const storageUsagePercentage = usageData ? (usageData.storage.used / usageData.storage.limit) * 100 : 0;
   const goldGradientText = "text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-500";
   const goldGradientBg = "bg-gradient-to-r from-amber-400 to-yellow-600 hover:from-amber-500 hover:to-yellow-700";
 
@@ -75,6 +103,32 @@ export default function UsagePage() {
           <Lock className="h-16 w-16 text-destructive mb-4" />
           <h2 className="text-2xl font-bold text-destructive">Access Denied</h2>
           <p className="text-muted-foreground mt-2">You do not have permission to view this page.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (dataLoading) {
+    return (
+      <div className="flex flex-col h-full">
+        <PageHeader
+          title="Usage & Billing"
+          description="Monitor your API usage, data storage, and monthly costs."
+          actions={<Skeleton className="h-10 w-32" />}
+        />
+        <div className="flex-1 p-4 md:p-6 space-y-6 overflow-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-28 w-full lg:col-span-2" />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Skeleton className="h-96 w-full lg:col-span-2" />
+            <div className="space-y-6">
+              <Skeleton className="h-48 w-full" />
+              <Skeleton className="h-40 w-full" />
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -141,7 +195,7 @@ export default function UsagePage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {usageData.breakdown.map((item) => (
+                            {usageData.breakdown.map((item: any) => (
                                 <TableRow key={item.service}>
                                     <TableCell className="font-medium">{item.service}</TableCell>
                                     <TableCell className="text-right font-mono">{item.requests.toLocaleString()}</TableCell>
