@@ -35,6 +35,7 @@ import {
 const newPlanDefault: Omit<SubscriptionPlan, 'id'> = {
   name: 'New Plan',
   price: '₹',
+  regularPrice: '',
   pricePeriod: '/month',
   description: 'A new subscription plan.',
   features: [{ text: 'New Feature', included: true }],
@@ -47,6 +48,7 @@ const defaultTrialPlan: SubscriptionPlan = {
   id: 'trial',
   name: 'Free Trial',
   price: '₹0',
+  regularPrice: '',
   pricePeriod: '',
   description: 'Get started with our basic features.',
   features: [
@@ -135,7 +137,7 @@ export function SubscriptionPlanSettings() {
   const handleAddNewPlan = () => {
       // Use a temporary ID for the new plan for state management
       const tempId = `new-${Date.now()}`;
-      setPlans(prevPlans => [...prevPlans, { ...newPlanDefault, id: tempId, cta: 'Upgrade Plan' }]);
+      setPlans(prevPlans => [...prevPlans, { ...newPlanDefault, id: tempId, cta: 'Upgrade plan' }]);
   };
 
   const handleRemovePlan = async (planId: string) => {
@@ -235,6 +237,10 @@ export function SubscriptionPlanSettings() {
                             <div className="space-y-1">
                                 <Label htmlFor={`price-${plan.id}`}>Price</Label>
                                 <Input id={`price-${plan.id}`} value={plan.price} onChange={(e) => handlePlanChange(plan.id, 'price', e.target.value)} disabled={isSaving === plan.id} />
+                            </div>
+                            <div className="space-y-1">
+                                <Label htmlFor={`regularPrice-${plan.id}`}>Regular Price (Optional)</Label>
+                                <Input id={`regularPrice-${plan.id}`} value={plan.regularPrice || ''} onChange={(e) => handlePlanChange(plan.id, 'regularPrice', e.target.value)} disabled={isSaving === plan.id} placeholder="e.g., ₹999"/>
                             </div>
                             <div className="space-y-1">
                                 <Label htmlFor={`trialDays-${plan.id}`}>Trial Duration (Days)</Label>

@@ -18,6 +18,7 @@ export interface SubscriptionPlan {
   id: string;
   name: string;
   price: string;
+  regularPrice?: string; // For strikethrough price
   pricePeriod: string;
   description: string;
   features: { text: string; included: boolean }[];
@@ -166,10 +167,12 @@ export default function SubscriptionPage() {
                 )}
               </CardHeader>
               <CardContent className="flex-grow space-y-6">
-                <div className="text-center">
+                <div className="text-center flex items-baseline justify-center gap-2">
                     <span className="text-4xl font-bold">{plan.price}</span>
-                    {plan.pricePeriod && plan.price !== '₹0' && (
-                      <span className="text-muted-foreground">{plan.pricePeriod}</span>
+                    {plan.regularPrice && (
+                      <span className="text-xl font-medium text-muted-foreground line-through">
+                        {plan.regularPrice}
+                      </span>
                     )}
                 </div>
                 <ul className="space-y-3 text-sm">

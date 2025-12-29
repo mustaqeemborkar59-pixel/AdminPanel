@@ -137,6 +137,7 @@ export interface SubscriptionPlan {
   id: string;
   name: string;
   price: string;
+  regularPrice?: string;
   pricePeriod: string;
   description: string;
   features: { text: string; included: boolean }[];
