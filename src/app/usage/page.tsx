@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Gem, Loader2, Lock, X } from 'lucide-react';
+import { Check, Loader2, Lock, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppContext } from '@/components/layout/app-content-wrapper';
 import { Badge } from '@/components/ui/badge';
@@ -160,18 +160,15 @@ export default function SubscriptionPage() {
                 <Badge className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 text-sm">Current Plan</Badge>
               )}
               <CardHeader className="text-center pt-8">
-                  <div className="flex items-center justify-center gap-2">
-                    <Gem className={cn("h-6 w-6", plan.variant === 'default' ? 'text-primary' : 'text-muted-foreground/80')} />
-                    <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
-                  </div>
+                  <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
                 <CardDescription className="pt-1">{plan.description}</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow flex flex-col justify-between">
                 <div className="my-6">
                     <div className="text-center flex items-baseline justify-center gap-2">
-                        <span className="text-5xl font-extrabold tracking-tight">{plan.price}</span>
+                        <span className="text-4xl font-extrabold tracking-tight">{plan.price}</span>
                         {plan.regularPrice && (
-                          <span className="text-2xl font-medium text-muted-foreground line-through">
+                          <span className="text-xl font-medium text-muted-foreground line-through">
                             {plan.regularPrice}
                           </span>
                         )}
@@ -218,5 +215,3 @@ export default function SubscriptionPage() {
     </div>
   );
 }
-
-    
