@@ -52,7 +52,7 @@ const defaultPlans: SubscriptionPlan[] = [
         { text: 'Email Support', included: false },
         { text: 'Priority Support', included: false },
       ],
-      cta: 'Downgrade',
+      cta: 'Switch to Basic',
       variant: 'outline',
     },
     {
