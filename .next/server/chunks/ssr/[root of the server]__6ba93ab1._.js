@@ -2840,6 +2840,22 @@ function AppContentWrapper({ children }) {
     const isAuthPage = pathname === '/login' || pathname === '/signup';
     const isPendingPage = pathname === '/pending-verification';
     const loading = authLoading || profileLoading;
+    const refreshUserProfile = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])(async ()=>{
+        if (user && firestore) {
+            const userDocRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["doc"])(firestore, 'users', user.uid);
+            // This is a one-time fetch, not a listener.
+            // onSnapshot inside a useCallback without proper dependency management is tricky.
+            // A one-time get is safer for a manual refresh function.
+            const { getDoc } = await __turbopack_context__.r("[project]/node_modules/firebase/firestore/dist/index.mjs [app-ssr] (ecmascript, async loader)")(__turbopack_context__.i);
+            const docSnap = await getDoc(userDocRef);
+            if (docSnap.exists()) {
+                setUserProfile(docSnap.data());
+            }
+        }
+    }, [
+        user,
+        firestore
+    ]);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         if (!user || !firestore || !auth) {
             setUserProfile(null);
@@ -2941,12 +2957,12 @@ function AppContentWrapper({ children }) {
                 className: "h-10 w-10 animate-spin text-primary"
             }, void 0, false, {
                 fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                lineNumber: 152,
+                lineNumber: 167,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-            lineNumber: 151,
+            lineNumber: 166,
             columnNumber: 7
         }, this);
     }
@@ -2955,12 +2971,13 @@ function AppContentWrapper({ children }) {
             value: {
                 user,
                 userProfile,
-                authLoading: loading
+                authLoading: loading,
+                refreshUserProfile
             },
             children: children
         }, void 0, false, {
             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-            lineNumber: 159,
+            lineNumber: 174,
             columnNumber: 7
         }, this);
     }
@@ -2973,12 +2990,12 @@ function AppContentWrapper({ children }) {
                 className: "h-10 w-10 animate-spin text-primary"
             }, void 0, false, {
                 fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                lineNumber: 171,
+                lineNumber: 186,
                 columnNumber: 11
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-            lineNumber: 170,
+            lineNumber: 185,
             columnNumber: 10
         }, this);
     }
@@ -2986,7 +3003,8 @@ function AppContentWrapper({ children }) {
         value: {
             user,
             userProfile,
-            authLoading: loading
+            authLoading: loading,
+            refreshUserProfile
         },
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sidebar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SidebarProvider"], {
             defaultOpen: true,
@@ -2998,12 +3016,12 @@ function AppContentWrapper({ children }) {
                         authLoading: loading
                     }, void 0, false, {
                         fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                        lineNumber: 180,
+                        lineNumber: 195,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                    lineNumber: 179,
+                    lineNumber: 194,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sidebar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SidebarInset"], {
@@ -3011,7 +3029,7 @@ function AppContentWrapper({ children }) {
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$layout$2f$header$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Header"], {}, void 0, false, {
                             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                            lineNumber: 183,
+                            lineNumber: 198,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -3019,24 +3037,24 @@ function AppContentWrapper({ children }) {
                             children: children
                         }, void 0, false, {
                             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                            lineNumber: 184,
+                            lineNumber: 199,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                    lineNumber: 182,
+                    lineNumber: 197,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-            lineNumber: 178,
+            lineNumber: 193,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-        lineNumber: 177,
+        lineNumber: 192,
         columnNumber: 5
     }, this);
 }

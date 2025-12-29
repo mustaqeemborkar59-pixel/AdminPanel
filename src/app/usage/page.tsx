@@ -27,12 +27,12 @@ export interface SubscriptionPlan {
   cta: string;
   variant: 'outline' | 'default';
   isCurrent?: boolean; // This will be determined client-side
-  trialDays?: number;
+  durationDays?: number;
 }
 
 
 export default function SubscriptionPage() {
-  const { user, userProfile, authLoading } = useAppContext();
+  const { user, userProfile, authLoading, refreshUserProfile } = useAppContext();
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [endDate, setEndDate] = useState<Date | null>(null);
@@ -68,20 +68,20 @@ export default function SubscriptionPage() {
   }, [authLoading, isVendor, trialUsed]);
 
   useEffect(() => {
-    // Only set up a timer if the active plan is 'trial' and it hasn't been marked as used yet.
-    if (activePlanId === 'trial' && !trialUsed && userProfile?.subscriptionStartDate) {
-      const trialPlan = plans.find(p => p.id === 'trial');
-      if (trialPlan && trialPlan.trialDays) {
+    if (activePlanId && userProfile?.subscriptionStartDate) {
+      const activePlan = plans.find(p => p.id === activePlanId);
+      if (activePlan && activePlan.durationDays && activePlan.durationDays > 0) {
         const subscriptionStartDate = new Date(userProfile.subscriptionStartDate);
         const end = new Date(subscriptionStartDate.getTime());
-        end.setDate(end.getDate() + trialPlan.trialDays);
+        end.setDate(end.getDate() + activePlan.durationDays);
         setEndDate(end);
+      } else {
+        setEndDate(null);
       }
     } else {
-      setEndDate(null); // No trial or trial is used or not the active plan
-      setTimeLeft(null);
+      setEndDate(null);
     }
-  }, [plans, userProfile?.subscriptionStartDate, trialUsed, activePlanId]);
+  }, [plans, userProfile?.subscriptionStartDate, activePlanId]);
 
 
   useEffect(() => {
@@ -98,8 +98,9 @@ export default function SubscriptionPage() {
         clearInterval(timer);
         setTimeLeft(null);
         // If trial has ended and status is not yet updated in DB, update it.
-        if (!trialUsed) {
+        if (activePlanId === 'trial' && !trialUsed) {
           await updateUserTrialStatus(user.uid, true);
+          await refreshUserProfile(); // Refresh profile to get the latest `trialUsed` status
         }
         return;
       }
@@ -113,7 +114,7 @@ export default function SubscriptionPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [endDate, user, trialUsed]);
+  }, [endDate, user, trialUsed, activePlanId, refreshUserProfile]);
 
   const handleUpgradePlan = async (planId: string) => {
     if (!user) return;
@@ -124,6 +125,7 @@ export default function SubscriptionPage() {
         title: "Plan Updated!",
         description: "Your subscription plan has been successfully updated.",
       });
+       await refreshUserProfile(); // Manually trigger profile refresh
     } else {
        toast({
         variant: "destructive",
@@ -137,9 +139,7 @@ export default function SubscriptionPage() {
 
   const plansWithCurrentStatus = plans.map(p => ({
     ...p,
-    // A plan is current if its ID matches the activePlanId in the user's profile
-    // For the trial, it's only current if the timer is also running
-    isCurrent: p.id === 'trial' ? (p.id === activePlanId && timeLeft !== null) : p.id === activePlanId,
+    isCurrent: p.id === activePlanId,
   }));
 
   if (authLoading) {
@@ -220,12 +220,12 @@ export default function SubscriptionPage() {
       />
       <div className="flex-1 p-4 md:p-6 overflow-auto">
       
-        {timeLeft && activePlanId === 'trial' && (
+        {timeLeft && (
             <Card className="mb-8 bg-gradient-to-r from-yellow-400/20 to-amber-500/20 border-amber-500/50 shadow-lg">
                 <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="text-center md:text-left">
                         <h3 className="text-xl font-bold text-amber-800 dark:text-amber-300">Premium Ends In</h3>
-                        <p className="text-sm text-amber-700 dark:text-amber-400">Your current trial plan is ending soon.</p>
+                        <p className="text-sm text-amber-700 dark:text-amber-400">Your current plan is ending soon.</p>
                     </div>
                     <div className="flex items-center gap-4 text-center">
                         <div>
@@ -276,9 +276,9 @@ export default function SubscriptionPage() {
               
               
               <div className="px-6 pb-2 text-center">
-                  {plan.trialDays && plan.trialDays > 0 && (
+                  {plan.durationDays && plan.durationDays > 0 && (
                      <Badge variant="outline" className="w-fit mx-auto font-semibold border-amber-400/30 bg-amber-400/20 text-amber-600 dark:text-amber-400">
-                      {plan.price === '₹0' ? `${plan.trialDays}-Day Free Trial` : `Duration: ${plan.trialDays} Days`}
+                      {plan.price === '₹0' ? `${plan.durationDays}-Day Free Trial` : `Duration: ${plan.durationDays} Days`}
                     </Badge>
                   )}
               </div>

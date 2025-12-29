@@ -501,11 +501,11 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ updateUserActivePlan(us
     const { firestore } = getAdminServices(adminApp);
     try {
         const userRef = firestore.collection('users').doc(userId);
-        // If the user is moving away from the trial, mark it as used.
         const userSnap = await userRef.get();
         const userData = userSnap.data();
         const updates = {
-            activePlanId: planId
+            activePlanId: planId,
+            subscriptionStartDate: new Date().toISOString()
         };
         if (userData?.activePlanId === 'trial' && planId !== 'trial') {
             updates.trialUsed = true;

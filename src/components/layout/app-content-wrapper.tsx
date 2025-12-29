@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, type ReactNode, createContext, useContext, useRef } from 'react';
+import React, { useState, useEffect, type ReactNode, createContext, useContext, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { type User } from 'firebase/auth';
 import { useUser, useFirebase, useFirestore } from '@/firebase';
@@ -19,6 +19,7 @@ interface AppContextType {
   user: User | null;
   userProfile: UserProfile | null;
   authLoading: boolean;
+  refreshUserProfile: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -47,6 +48,20 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   const isPendingPage = pathname === '/pending-verification';
   
   const loading = authLoading || profileLoading;
+
+  const refreshUserProfile = useCallback(async () => {
+    if (user && firestore) {
+      const userDocRef = doc(firestore, 'users', user.uid);
+      // This is a one-time fetch, not a listener.
+      // onSnapshot inside a useCallback without proper dependency management is tricky.
+      // A one-time get is safer for a manual refresh function.
+      const { getDoc } = await import('firebase/firestore');
+      const docSnap = await getDoc(userDocRef);
+      if (docSnap.exists()) {
+        setUserProfile(docSnap.data() as UserProfile);
+      }
+    }
+  }, [user, firestore]);
 
   useEffect(() => {
     if (!user || !firestore || !auth) {
@@ -156,7 +171,7 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   
   if (isAuthPage || isPendingPage) {
     return (
-      <AppContext.Provider value={{ user, userProfile, authLoading: loading }}>
+      <AppContext.Provider value={{ user, userProfile, authLoading: loading, refreshUserProfile }}>
         {children}
       </AppContext.Provider>
     );
@@ -174,7 +189,7 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   }
 
   return (
-    <AppContext.Provider value={{ user, userProfile, authLoading: loading }}>
+    <AppContext.Provider value={{ user, userProfile, authLoading: loading, refreshUserProfile }}>
       <SidebarProvider defaultOpen>
         <Sidebar>
           <AppSidebarNav user={user} userProfile={userProfile} authLoading={loading} />

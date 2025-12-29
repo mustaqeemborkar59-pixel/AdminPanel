@@ -395,9 +395,9 @@
           "type": "string",
           "description": "A short description of the plan."
         },
-        "trialDays": {
+        "durationDays": {
             "type": "number",
-            "description": "Duration of the free trial in days. Only applicable to trial plans."
+            "description": "Duration of the plan in days. Used for timers."
         },
         "features": {
           "type": "array",

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, Gem, Trash2, PlusCircle, Check, X } from "lucide-react";
+import { Loader2, Trash2, PlusCircle, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getSubscriptionPlans, saveSubscriptionPlan, deleteSubscriptionPlan } from '@/app/auth/actions';
 import type { SubscriptionPlan } from '@/app/usage/page';
@@ -41,7 +41,7 @@ const newPlanDefault: Omit<SubscriptionPlan, 'id'> = {
   features: [{ text: 'New Feature', included: true }],
   cta: 'Upgrade plan',
   variant: 'outline',
-  trialDays: 0,
+  durationDays: 0,
 };
 
 const defaultTrialPlan: SubscriptionPlan = {
@@ -57,7 +57,7 @@ const defaultTrialPlan: SubscriptionPlan = {
   ],
   cta: 'Start Trial',
   variant: 'default',
-  trialDays: 14
+  durationDays: 14
 };
 
 export function SubscriptionPlanSettings() {
@@ -192,7 +192,7 @@ export function SubscriptionPlanSettings() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="font-headline flex items-center">
-            <Gem className="mr-2 h-5 w-5 text-primary" /> Subscription Plans
+            <Loader2 className="mr-2 h-5 w-5 text-primary animate-spin" /> Subscription Plans
           </CardTitle>
           <CardDescription className="font-body">
             Manage the details for each subscription plan offered to vendors.
@@ -211,7 +211,7 @@ export function SubscriptionPlanSettings() {
     <Card className="shadow-lg">
       <CardHeader>
         <CardTitle className="font-headline flex items-center">
-          <Gem className="mr-2 h-5 w-5 text-primary" /> Subscription Plans
+          Subscription Plans
         </CardTitle>
         <CardDescription className="font-body">
           Manage the details for each subscription plan offered to vendors.
@@ -243,8 +243,8 @@ export function SubscriptionPlanSettings() {
                                 <Input id={`regularPrice-${plan.id}`} value={plan.regularPrice || ''} onChange={(e) => handlePlanChange(plan.id, 'regularPrice', e.target.value)} disabled={isSaving === plan.id} placeholder="e.g., ₹999"/>
                             </div>
                             <div className="space-y-1">
-                                <Label htmlFor={`trialDays-${plan.id}`}>Trial Duration (Days)</Label>
-                                <Input id={`trialDays-${plan.id}`} type="number" value={plan.trialDays || 0} onChange={(e) => handlePlanChange(plan.id, 'trialDays', parseInt(e.target.value) || 0)} disabled={isSaving === plan.id} />
+                                <Label htmlFor={`durationDays-${plan.id}`}>Duration (Days)</Label>
+                                <Input id={`durationDays-${plan.id}`} type="number" value={plan.durationDays || 0} onChange={(e) => handlePlanChange(plan.id, 'durationDays', parseInt(e.target.value) || 0)} disabled={isSaving === plan.id} />
                             </div>
                              <div className="space-y-1">
                                 <Label htmlFor={`cta-${plan.id}`}>Button Text (CTA)</Label>
