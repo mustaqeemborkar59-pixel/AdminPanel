@@ -1655,7 +1655,7 @@ const defaultPlans = [
                 included: false
             }
         ],
-        cta: 'Switch to Basic',
+        cta: 'Upgrade Premium',
         variant: 'outline'
     },
     {
@@ -1694,7 +1694,7 @@ const defaultPlans = [
                 included: false
             }
         ],
-        cta: 'Your Current Plan',
+        cta: 'Upgrade Premium',
         variant: 'default'
     },
     {
@@ -1733,7 +1733,7 @@ const defaultPlans = [
                 included: true
             }
         ],
-        cta: 'Contact Sales',
+        cta: 'Upgrade Premium',
         variant: 'outline'
     }
 ];

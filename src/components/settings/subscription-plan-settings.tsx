@@ -52,7 +52,7 @@ const defaultPlans: SubscriptionPlan[] = [
         { text: 'Email Support', included: false },
         { text: 'Priority Support', included: false },
       ],
-      cta: 'Upgrade Premium',
+      cta: 'Upgrade Plan',
       variant: 'outline',
     },
     {
@@ -70,7 +70,7 @@ const defaultPlans: SubscriptionPlan[] = [
         { text: 'Email Support', included: true },
         { text: 'Priority Support', included: false },
       ],
-      cta: 'Upgrade Premium',
+      cta: 'Upgrade Plan',
       variant: 'default',
     },
     {
@@ -88,7 +88,7 @@ const defaultPlans: SubscriptionPlan[] = [
         { text: 'Email Support', included: true },
         { text: 'Priority Support', included: true },
       ],
-      cta: 'Upgrade Premium',
+      cta: 'Upgrade Plan',
       variant: 'outline',
     },
 ];
@@ -282,3 +282,5 @@ export function SubscriptionPlanSettings() {
     </Card>
   );
 }
+
+    
