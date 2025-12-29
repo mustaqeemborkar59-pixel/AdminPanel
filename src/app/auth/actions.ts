@@ -340,3 +340,17 @@ export async function deleteSubscriptionPlan(planId: string): Promise<{ success:
         return { success: false, error: error.message || 'Failed to delete subscription plan.' };
     }
 }
+
+
+export async function updateUserTrialStatus(userId: string, trialUsed: boolean): Promise<{ success: boolean; message?: string }> {
+    const adminApp = initializeAdminApp();
+    const { firestore } = getAdminServices(adminApp);
+    try {
+        const userRef = firestore.collection('users').doc(userId);
+        await userRef.update({ trialUsed: trialUsed });
+        return { success: true };
+    } catch (error: any) {
+        console.error('Failed to update user trial status (Admin):', error);
+        return { success: false, message: error.message || 'Failed to update trial status.' };
+    }
+}

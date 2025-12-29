@@ -9,7 +9,7 @@ import { Check, Loader2, Lock, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppContext } from '@/components/layout/app-content-wrapper';
 import { Badge } from '@/components/ui/badge';
-import { getSubscriptionPlans } from '@/app/auth/actions'; // Using new Firestore action
+import { getSubscriptionPlans, updateUserTrialStatus } from '@/app/auth/actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 
@@ -31,7 +31,7 @@ export interface SubscriptionPlan {
 
 
 export default function SubscriptionPage() {
-  const { userProfile, authLoading } = useAppContext();
+  const { user, userProfile, authLoading } = useAppContext();
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [endDate, setEndDate] = useState<Date | null>(null);
@@ -79,20 +79,22 @@ export default function SubscriptionPage() {
 
 
   useEffect(() => {
-    if (!endDate) {
+    if (!endDate || !user) {
        setTimeLeft(null);
        return;
     };
 
-    const timer = setInterval(() => {
+    const timer = setInterval(async () => {
       const now = new Date().getTime();
       const distance = endDate.getTime() - now;
 
       if (distance < 0) {
         clearInterval(timer);
         setTimeLeft(null);
-        // Here you could trigger a server action to set userProfile.trialUsed = true
-        // For now, the UI will just stop showing the timer and the current plan status.
+        // If trial has ended and status is not yet updated in DB, update it.
+        if (!trialUsed) {
+          await updateUserTrialStatus(user.uid, true);
+        }
         return;
       }
 
@@ -105,7 +107,7 @@ export default function SubscriptionPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [endDate]);
+  }, [endDate, user, trialUsed]);
 
   const plansWithCurrentStatus = plans.map(p => ({
     ...p,
