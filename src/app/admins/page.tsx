@@ -2,10 +2,10 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
-import { getAllUsers, updateUserRole, getVendorsFromFirestore, updateUserStatus } from '@/app/auth/actions'; // Using Firestore actions
+import { getAllUsers, updateUserRole, getVendorsFromFirestore } from '@/app/auth/actions'; // Using Firestore actions
 import type { UserProfile, Vendor } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ShieldCheck, Store, User, Lock, Crown, Ban, CheckCircle } from 'lucide-react';
+import { Loader2, ShieldCheck, Store, User, Lock, Crown } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -21,22 +21,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useAppContext } from '@/components/layout/app-content-wrapper';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export default function AdminsPage() {
@@ -105,23 +93,6 @@ export default function AdminsPage() {
         description: result.message || "Could not update the user's role.",
       });
     }
-  };
-  
-  const handleStatusChange = async (userId: string, newStatus: 'active' | 'blocked') => {
-      const result = await updateUserStatus(userId, newStatus);
-      if (result.success) {
-          toast({
-              title: "Status Updated",
-              description: `User has been ${newStatus === 'blocked' ? 'blocked' : 'unblocked'}.`
-          });
-          await fetchAllData();
-      } else {
-          toast({
-              variant: "destructive",
-              title: "Status Update Failed",
-              description: result.message || "Could not update user status."
-          });
-      }
   };
 
   const getRoleBadge = (user: UserProfile) => {
@@ -244,34 +215,6 @@ export default function AdminsPage() {
                               <SelectItem value="super-admin">Super Admin</SelectItem>
                             </SelectContent>
                           </Select>
-                           <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              {user.status === 'blocked' ? (
-                                <Button variant="outline" size="sm" className="bg-green-100 dark:bg-green-900 border-green-500 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800">
-                                  <CheckCircle className="mr-2 h-4 w-4" /> Unblock
-                                </Button>
-                              ) : (
-                                <Button variant="destructive" size="sm">
-                                  <Ban className="mr-2 h-4 w-4" /> Block
-                                </Button>
-                              )}
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  You are about to {user.status === 'blocked' ? 'unblock' : 'block'} the user: <span className="font-semibold">{user.displayName}</span>. 
-                                  {user.status !== 'blocked' && ' They will be unable to log in.'}
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleStatusChange(user.uid, user.status === 'blocked' ? 'active' : 'blocked')}>
-                                  Confirm
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
                        </div>
                     </TableCell>
                   </TableRow>

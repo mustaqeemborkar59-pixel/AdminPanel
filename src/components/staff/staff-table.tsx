@@ -8,14 +8,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from '@/components/ui/badge';
-import { ShieldCheck, User, Store, Crown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ShieldCheck, User, Store, Crown, Ban, CheckCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
 
 
 interface StaffTableProps {
   users: UserProfile[];
+  onStatusChange: (userId: string, newStatus: 'active' | 'blocked') => void;
 }
 
 const getRoleBadge = (user: UserProfile) => {
@@ -31,7 +45,7 @@ const getRoleBadge = (user: UserProfile) => {
     }
 };
 
-export function StaffTable({ users }: StaffTableProps) {
+export function StaffTable({ users, onStatusChange }: StaffTableProps) {
   if (users.length === 0) {
     return <div className="text-center py-12 font-body text-muted-foreground">No users found.</div>;
   }
@@ -44,26 +58,64 @@ export function StaffTable({ users }: StaffTableProps) {
             <TableHead className="font-headline">User</TableHead>
             <TableHead className="font-headline">Email</TableHead>
             <TableHead className="font-headline">Role</TableHead>
-            <TableHead className="font-headline text-right">User ID</TableHead>
+            <TableHead className="font-headline text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {users.map((user) => (
-            <TableRow key={user.uid} className="font-body hover:bg-muted/50">
+            <TableRow 
+                key={user.uid} 
+                className={cn(
+                    "font-body hover:bg-muted/50",
+                    user.status === 'blocked' && 'bg-destructive/10 text-muted-foreground'
+                )}
+            >
               <TableCell className="font-medium">
                  <div className="flex items-center gap-3">
                     <Avatar className="h-9 w-9">
                         <AvatarImage src={user.photoURL} alt={user.displayName} data-ai-hint="user avatar"/>
                         <AvatarFallback>{user.displayName?.[0] || 'U'}</AvatarFallback>
                     </Avatar>
-                    <span>{user.displayName}</span>
+                    <div>
+                        <span>{user.displayName}</span>
+                        {user.status === 'blocked' && <Badge variant="destructive" className="mt-1 text-xs">Blocked</Badge>}
+                    </div>
                  </div>
               </TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>
                 {getRoleBadge(user)}
               </TableCell>
-              <TableCell className="text-right font-mono text-xs text-muted-foreground">{user.uid}</TableCell>
+              <TableCell className="text-right">
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      {user.status === 'blocked' ? (
+                        <Button variant="outline" size="sm" className="bg-green-100 dark:bg-green-900 border-green-500 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800">
+                          <CheckCircle className="mr-2 h-4 w-4" /> Unblock
+                        </Button>
+                      ) : (
+                        <Button variant="destructive" size="sm">
+                          <Ban className="mr-2 h-4 w-4" /> Block
+                        </Button>
+                      )}
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          You are about to {user.status === 'blocked' ? 'unblock' : 'block'} the user: <span className="font-semibold">{user.displayName}</span>. 
+                          {user.status !== 'blocked' && ' They will be unable to log in.'}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => onStatusChange(user.uid, user.status === 'blocked' ? 'active' : 'blocked')}>
+                          Confirm
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
