@@ -131,3 +131,17 @@ export interface CompanyDetails {
   city: string;
   email: string;
 }
+
+
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  price: string;
+  pricePeriod: string;
+  description: string;
+  features: { text: string; included: boolean }[];
+  cta: string;
+  variant: 'outline' | 'default';
+  isCurrent?: boolean;
+  trialDays?: number;
+}

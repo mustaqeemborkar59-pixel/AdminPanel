@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Gem, Trash2, PlusCircle, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getSubscriptionPlans, saveSubscriptionPlan } from '@/app/auth/actions';
+import { getSubscriptionPlans, saveSubscriptionPlan, deleteSubscriptionPlan } from '@/app/auth/actions';
 import type { SubscriptionPlan } from '@/app/usage/page';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
@@ -18,80 +18,30 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 
-// Default structure for plans if they don't exist in Firestore
-const defaultPlans: SubscriptionPlan[] = [
-    {
-      id: 'trial',
-      name: 'Free Trial',
-      price: '₹0',
-      pricePeriod: '',
-      description: 'A temporary plan to explore features.',
-      features: [
-        { text: '1,000 API Calls/mo', included: true },
-        { text: '1 GB Storage', included: true },
-        { text: '1 Vendor Account', included: true },
-      ],
-      cta: 'Start Trial',
-      variant: 'default',
-      trialDays: 14,
-    },
-    {
-      id: 'basic',
-      name: 'Basic',
-      price: '₹0',
-      pricePeriod: '/month',
-      description: 'For individuals and small teams just getting started.',
-      features: [
-        { text: '10,000 API Calls/mo', included: true },
-        { text: '5 GB Storage', included: true },
-        { text: '1 Vendor Account', included: true },
-        { text: 'Basic Analytics', included: true },
-        { text: 'Community Support', included: true },
-        { text: 'Email Support', included: false },
-        { text: 'Priority Support', included: false },
-      ],
-      cta: 'Upgrade plan',
-      variant: 'outline',
-    },
-    {
-      id: 'pro',
-      name: 'Pro',
-      price: '₹4,999',
-      pricePeriod: '/month',
-      description: 'For growing businesses that need more power and support.',
-      features: [
-        { text: '500,000 API Calls/mo', included: true },
-        { text: '50 GB Storage', included: true },
-        { text: '5 Admin Accounts', included: true },
-        { text: 'Advanced Analytics', included: true },
-        { text: 'Community Support', included: true },
-        { text: 'Email Support', included: true },
-        { text: 'Priority Support', included: false },
-      ],
-      cta: 'Upgrade plan',
-      variant: 'default',
-    },
-    {
-      id: 'enterprise',
-      name: 'Enterprise',
-      price: 'Custom',
-      pricePeriod: '',
-      description: 'For large-scale applications with custom needs.',
-      features: [
-        { text: 'Unlimited API Calls', included: true },
-        { text: 'Unlimited Storage', included: true },
-        { text: 'Unlimited Accounts', included: true },
-        { text: 'Advanced Analytics & Reporting', included: true },
-        { text: 'Community Support', included: true },
-        { text: 'Email Support', included: true },
-        { text: 'Priority Support', included: true },
-      ],
-      cta: 'Upgrade plan',
-      variant: 'outline',
-    },
-];
+// Default structure for a new plan
+const newPlanDefault: Omit<SubscriptionPlan, 'id'> = {
+  name: 'New Plan',
+  price: '₹',
+  pricePeriod: '/month',
+  description: 'A new subscription plan.',
+  features: [{ text: 'New Feature', included: true }],
+  cta: 'Upgrade plan',
+  variant: 'outline',
+  trialDays: 0,
+};
 
 export function SubscriptionPlanSettings() {
   const { toast } = useToast();
@@ -99,26 +49,23 @@ export function SubscriptionPlanSettings() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState<string | null>(null); // Saving state per plan ID
 
-  useEffect(() => {
-    async function fetchDetails() {
-      setIsLoading(true);
-      const result = await getSubscriptionPlans();
-      if (result.success && result.data && result.data.length > 0) {
-        setPlans(result.data);
-      } else {
-        // If no plans in DB, populate with defaults for the admin to save.
-        setPlans(defaultPlans);
-        if (!result.success) {
-          toast({
-            variant: "destructive",
-            title: "Failed to load plans",
-            description: result.error || "Could not fetch plans from DB. Showing defaults.",
-          });
-        }
-      }
-      setIsLoading(false);
+  const fetchPlans = async () => {
+    setIsLoading(true);
+    const result = await getSubscriptionPlans();
+    if (result.success && result.data) {
+      setPlans(result.data.length > 0 ? result.data : []);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Failed to load plans",
+        description: result.error || "Could not fetch plans from DB.",
+      });
     }
-    fetchDetails();
+    setIsLoading(false);
+  }
+
+  useEffect(() => {
+    fetchPlans();
   }, [toast]);
 
   const handlePlanChange = (planId: string, field: keyof SubscriptionPlan, value: any) => {
@@ -162,16 +109,44 @@ export function SubscriptionPlanSettings() {
       })
     );
   };
+  
+  const handleAddNewPlan = () => {
+      // Use a temporary ID for the new plan for state management
+      const tempId = `new-${Date.now()}`;
+      setPlans(prevPlans => [...prevPlans, { ...newPlanDefault, id: tempId }]);
+  };
+
+  const handleRemovePlan = async (planId: string) => {
+      // If it's a new plan that hasn't been saved, just remove from state
+      if(planId.startsWith('new-')) {
+          setPlans(prevPlans => prevPlans.filter(p => p.id !== planId));
+          return;
+      }
+      
+      const result = await deleteSubscriptionPlan(planId);
+      if(result.success) {
+          toast({ title: "Plan Removed", description: "The subscription plan has been deleted." });
+          await fetchPlans(); // Refresh from DB
+      } else {
+          toast({ variant: "destructive", title: "Deletion Failed", description: result.error || "Could not delete the plan." });
+      }
+  };
 
 
   const handleSave = async (plan: SubscriptionPlan) => {
     setIsSaving(plan.id);
-    const result = await saveSubscriptionPlan(plan);
+    const { id, isCurrent, ...planData } = plan;
+    
+    // Check if it's a new plan (has temp ID) or an existing one
+    const isNew = id.startsWith('new-');
+    const result = await saveSubscriptionPlan(planData, isNew ? undefined : id);
+
     if (result.success) {
       toast({
         title: "Plan Saved",
-        description: `"${plan.name}" plan has been updated.`,
+        description: `"${plan.name}" plan has been saved successfully.`,
       });
+      await fetchPlans(); // Refresh all plans from DB to get new IDs and ensure consistency
     } else {
       toast({
         variant: "destructive",
@@ -215,7 +190,7 @@ export function SubscriptionPlanSettings() {
       <CardContent>
         <Accordion type="single" collapsible className="w-full space-y-4">
             {plans.sort((a, b) => a.price.localeCompare(b.price, undefined, { numeric: true })).map(plan => (
-                <AccordionItem value={plan.id} key={plan.id} className="border rounded-lg px-4">
+                <AccordionItem value={plan.id} key={plan.id} className="border rounded-lg px-4 bg-background">
                     <AccordionTrigger className="font-semibold text-lg hover:no-underline">
                         {plan.name}
                     </AccordionTrigger>
@@ -229,12 +204,14 @@ export function SubscriptionPlanSettings() {
                                 <Label htmlFor={`price-${plan.id}`}>Price</Label>
                                 <Input id={`price-${plan.id}`} value={plan.price} onChange={(e) => handlePlanChange(plan.id, 'price', e.target.value)} disabled={isSaving === plan.id} />
                             </div>
-                             {plan.id === 'trial' && (
-                                <div className="space-y-1">
-                                    <Label htmlFor={`trialDays-${plan.id}`}>Trial Duration (Days)</Label>
-                                    <Input id={`trialDays-${plan.id}`} type="number" value={plan.trialDays || 0} onChange={(e) => handlePlanChange(plan.id, 'trialDays', parseInt(e.target.value) || 0)} disabled={isSaving === plan.id} />
-                                </div>
-                            )}
+                            <div className="space-y-1">
+                                <Label htmlFor={`trialDays-${plan.id}`}>Trial Duration (Days)</Label>
+                                <Input id={`trialDays-${plan.id}`} type="number" value={plan.trialDays || 0} onChange={(e) => handlePlanChange(plan.id, 'trialDays', parseInt(e.target.value) || 0)} disabled={isSaving === plan.id} />
+                            </div>
+                             <div className="space-y-1">
+                                <Label htmlFor={`cta-${plan.id}`}>Button Text (CTA)</Label>
+                                <Input id={`cta-${plan.id}`} value={plan.cta} onChange={(e) => handlePlanChange(plan.id, 'cta', e.target.value)} disabled={isSaving === plan.id} />
+                            </div>
                              <div className="space-y-1 md:col-span-2">
                                 <Label htmlFor={`desc-${plan.id}`}>Description</Label>
                                 <Input id={`desc-${plan.id}`} value={plan.description} onChange={(e) => handlePlanChange(plan.id, 'description', e.target.value)} disabled={isSaving === plan.id} />
@@ -267,7 +244,29 @@ export function SubscriptionPlanSettings() {
                             </Button>
                         </div>
                         
-                        <div className="flex justify-end pt-4 border-t">
+                        <div className="flex justify-between pt-4 border-t">
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" disabled={isSaving === plan.id}>
+                                        <Trash2 className="mr-2 h-4 w-4" /> Remove Plan
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete the <strong>{plan.name}</strong> plan.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleRemovePlan(plan.id)} className="bg-destructive hover:bg-destructive/90">
+                                        Yes, delete it
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+
                             <Button onClick={() => handleSave(plan)} disabled={isSaving === plan.id}>
                                 {isSaving === plan.id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 {isSaving === plan.id ? 'Saving...' : 'Save Plan'}
@@ -278,9 +277,14 @@ export function SubscriptionPlanSettings() {
                 </AccordionItem>
             ))}
         </Accordion>
+
+        <div className="mt-6">
+            <Button onClick={handleAddNewPlan} variant="outline" className="w-full">
+                <PlusCircle className="mr-2 h-4 w-4"/>
+                Add New Plan
+            </Button>
+        </div>
       </CardContent>
     </Card>
   );
 }
-
-    

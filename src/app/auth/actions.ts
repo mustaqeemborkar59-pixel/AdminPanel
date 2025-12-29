@@ -306,16 +306,35 @@ export async function getSubscriptionPlans(): Promise<{ success: boolean; data?:
     }
 }
 
-export async function saveSubscriptionPlan(planData: SubscriptionPlan): Promise<{ success: boolean; error?: string }> {
+export async function saveSubscriptionPlan(planData: Omit<SubscriptionPlan, 'id'>, planId?: string): Promise<{ success: boolean; id: string | null; error?: string }> {
     const adminApp = initializeAdminApp();
     const { firestore } = getAdminServices(adminApp);
     try {
-        const { id, ...dataToSave } = planData;
-        const planRef = firestore.collection('subscriptionPlans').doc(id);
-        await planRef.set(dataToSave, { merge: true });
-        return { success: true };
+        let planRef;
+        if (planId) {
+            planRef = firestore.collection('subscriptionPlans').doc(planId);
+            await planRef.set(planData, { merge: true });
+        } else {
+            planRef = firestore.collection('subscriptionPlans').doc();
+            await planRef.set({ ...planData, id: planRef.id });
+        }
+        return { success: true, id: planRef.id };
     } catch (error: any) {
         console.error('Failed to save subscription plan to Firestore (Admin):', error);
-        return { success: false, error: error.message || 'Failed to save subscription plan.' };
+        return { success: false, id: null, error: error.message || 'Failed to save subscription plan.' };
+    }
+}
+
+
+export async function deleteSubscriptionPlan(planId: string): Promise<{ success: boolean; error?: string }> {
+    const adminApp = initializeAdminApp();
+    const { firestore } = getAdminServices(adminApp);
+    try {
+        const planRef = firestore.collection('subscriptionPlans').doc(planId);
+        await planRef.delete();
+        return { success: true };
+    } catch (error: any) {
+        console.error('Failed to delete subscription plan from Firestore (Admin):', error);
+        return { success: false, error: error.message || 'Failed to delete subscription plan.' };
     }
 }

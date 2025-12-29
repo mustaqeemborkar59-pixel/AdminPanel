@@ -42,10 +42,11 @@ export default function SubscriptionPage() {
         const result = await getSubscriptionPlans();
         if (result.success && result.data) {
           // In a real app, this would be based on the user's actual subscription.
-          // Setting 'trial' as the default current plan for new users.
+          // We are not setting a default plan here anymore.
           const plansWithCurrent = result.data.map(p => ({
             ...p,
-            isCurrent: p.id === 'trial' // Set 'trial' as the current plan by default
+             // No plan is current by default
+            isCurrent: false,
           }));
           setPlans(plansWithCurrent);
         } else {
@@ -179,10 +180,10 @@ export default function SubscriptionPage() {
               <CardFooter>
                 <Button
                   className="w-full"
-                  variant={plan.variant as any}
+                  variant={plan.isCurrent ? 'secondary' : (plan.variant as any)}
                   disabled={plan.isCurrent}
                 >
-                  {plan.cta}
+                  {plan.isCurrent ? 'Your Current Plan' : plan.cta}
                 </Button>
               </CardFooter>
             </Card>
