@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -14,6 +13,7 @@ import {
   LogOut,
   ShieldCheck,
   Store,
+  AreaChart,
 } from 'lucide-react';
 import {
   SidebarHeader,
@@ -42,6 +42,7 @@ const allNavItems = [
   { href: '/staff', label: 'Staff', icon: Users, roles: ['super-admin'] },
   { href: '/vendors', label: 'Vendors', icon: Store, roles: ['admin', 'super-admin'] },
   { href: '/delivery', label: 'Delivery', icon: Truck, roles: ['admin', 'super-admin'] },
+  { href: '/usage', label: 'Usage', icon: AreaChart, roles: ['admin', 'vendor', 'user', 'super-admin']},
   { href: '/settings', label: 'Settings', icon: Settings, roles: ['admin', 'super-admin'] },
 ];
 
