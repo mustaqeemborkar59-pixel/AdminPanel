@@ -98,7 +98,7 @@ export default function SubscriptionPage() {
         clearInterval(timer);
         setTimeLeft(null);
         // If trial has ended and status is not yet updated in DB, update it.
-        if (activePlanId === 'trial' && !trialUsed) {
+        if (!trialUsed) {
           await updateUserTrialStatus(user.uid, true);
           await refreshUserProfile(); // Refresh profile to get the latest `trialUsed` status
         }
@@ -106,7 +106,7 @@ export default function SubscriptionPage() {
       }
 
       const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
@@ -332,3 +332,5 @@ export default function SubscriptionPage() {
     </div>
   );
 }
+
+    
