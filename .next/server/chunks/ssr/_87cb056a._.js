@@ -233,11 +233,11 @@ function SubscriptionPage() {
                 setDataLoading(true);
                 const result = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getSubscriptionPlans"])();
                 if (result.success && result.data) {
-                    // Assuming 'Pro' is the current plan for this example.
                     // In a real app, this would be based on the user's actual subscription.
+                    // Setting 'trial' as the default current plan for new users.
                     const plansWithCurrent = result.data.map((p)=>({
                             ...p,
-                            isCurrent: p.id === 'pro' // Example logic
+                            isCurrent: p.id === 'trial' // Set 'trial' as the current plan by default
                         }));
                     setPlans(plansWithCurrent);
                 } else {
