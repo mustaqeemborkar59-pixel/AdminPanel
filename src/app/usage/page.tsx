@@ -160,10 +160,19 @@ export default function SubscriptionPage() {
                 <Badge className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 text-sm">Current Plan</Badge>
               )}
               <CardHeader className="text-center pt-8">
-                  <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
+                <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
                 <CardDescription className="pt-1">{plan.description}</CardDescription>
               </CardHeader>
-              <CardContent className="flex-grow flex flex-col justify-between">
+              
+              {plan.trialDays && plan.trialDays > 0 && (
+                <div className="px-6 pb-2 text-center">
+                  <Badge variant="outline" className="w-fit mx-auto font-semibold border-amber-400/30 bg-amber-400/20 text-amber-600 dark:text-amber-400">
+                      {plan.price === '₹0' ? `${plan.trialDays}-Day Free Trial` : `Duration: ${plan.trialDays} Days`}
+                  </Badge>
+                </div>
+              )}
+              
+              <CardContent className="flex-grow flex flex-col justify-between pt-4">
                 <div className="my-6">
                     <div className="text-center flex items-baseline justify-center gap-2">
                         <span className="text-4xl font-extrabold tracking-tight">{plan.price}</span>
@@ -173,11 +182,6 @@ export default function SubscriptionPage() {
                           </span>
                         )}
                     </div>
-                    {plan.trialDays && plan.trialDays > 0 && (
-                      <Badge variant="secondary" className="w-fit mx-auto mt-2 font-semibold">
-                         {plan.price === '₹0' ? `${plan.trialDays}-Day Free Trial` : `Duration: ${plan.trialDays} Days`}
-                      </Badge>
-                    )}
                 </div>
 
                 <div className="space-y-4 text-sm">
