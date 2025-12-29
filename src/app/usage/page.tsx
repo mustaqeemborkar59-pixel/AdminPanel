@@ -159,14 +159,16 @@ export default function SubscriptionPage() {
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl font-headline">{plan.name}</CardTitle>
                 <CardDescription>{plan.description}</CardDescription>
-                {plan.trialDays && plan.trialDays > 0 && (
+                {plan.trialDays && plan.trialDays > 0 && plan.price === '₹0' && (
                    <Badge variant="secondary" className="w-fit mx-auto mt-2">{plan.trialDays}-Day Free Trial</Badge>
                 )}
               </CardHeader>
               <CardContent className="flex-grow space-y-6">
                 <div className="text-center">
                     <span className="text-4xl font-bold">{plan.price}</span>
-                    {plan.pricePeriod && plan.price !== '₹0' && (!plan.trialDays || plan.trialDays === 0) && <span className="text-muted-foreground">{plan.pricePeriod}</span>}
+                    {plan.pricePeriod && plan.price !== '₹0' && (
+                      <span className="text-muted-foreground">{plan.pricePeriod}</span>
+                    )}
                 </div>
                 <ul className="space-y-3 text-sm">
                     {plan.features.map((feature, index) => (

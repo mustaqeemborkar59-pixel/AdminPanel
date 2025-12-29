@@ -599,13 +599,13 @@ function SubscriptionPage() {
                                                     lineNumber: 168,
                                                     columnNumber: 21
                                                 }, this),
-                                                plan.pricePeriod && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                plan.pricePeriod && plan.price !== '₹0' && (!plan.trialDays || plan.trialDays === 0) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                     className: "text-muted-foreground",
                                                     children: plan.pricePeriod
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/usage/page.tsx",
                                                     lineNumber: 169,
-                                                    columnNumber: 42
+                                                    columnNumber: 110
                                                 }, this)
                                             ]
                                         }, void 0, true, {

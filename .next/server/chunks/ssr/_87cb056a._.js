@@ -557,13 +557,13 @@ function SubscriptionPage() {
                                                     lineNumber: 168,
                                                     columnNumber: 21
                                                 }, this),
-                                                plan.pricePeriod && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                plan.pricePeriod && plan.price !== '₹0' && (!plan.trialDays || plan.trialDays === 0) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                     className: "text-muted-foreground",
                                                     children: plan.pricePeriod
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/usage/page.tsx",
                                                     lineNumber: 169,
-                                                    columnNumber: 42
+                                                    columnNumber: 110
                                                 }, this)
                                             ]
                                         }, void 0, true, {
