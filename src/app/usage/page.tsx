@@ -34,6 +34,8 @@ export default function SubscriptionPage() {
   const { userProfile, authLoading } = useAppContext();
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number; } | null>(null);
 
   const isVendor = userProfile?.role === 'vendor';
 
@@ -64,6 +66,43 @@ export default function SubscriptionPage() {
     }
     fetchPlans();
   }, [authLoading, isVendor]);
+
+  useEffect(() => {
+    const currentPlan = plans.find(p => p.isCurrent);
+    if (currentPlan && currentPlan.trialDays) {
+      const now = new Date();
+      // This is a placeholder. In a real app, you'd use the user's actual subscription start date.
+      const subscriptionStartDate = new Date(); 
+      const end = new Date(subscriptionStartDate.getTime());
+      end.setDate(end.getDate() + currentPlan.trialDays);
+      setEndDate(end);
+    }
+  }, [plans]);
+
+
+  useEffect(() => {
+    if (!endDate) return;
+
+    const timer = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = endDate.getTime() - now;
+
+      if (distance < 0) {
+        clearInterval(timer);
+        setTimeLeft(null);
+        return;
+      }
+
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      setTimeLeft({ days, hours, minutes, seconds });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [endDate]);
 
   if (authLoading) {
     return (
@@ -142,6 +181,39 @@ export default function SubscriptionPage() {
         description="Choose the plan that's right for your business."
       />
       <div className="flex-1 p-4 md:p-6 overflow-auto">
+      
+        {timeLeft && (
+            <Card className="mb-8 bg-gradient-to-r from-yellow-400/20 to-amber-500/20 border-amber-500/50 shadow-lg">
+                <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="text-center md:text-left">
+                        <h3 className="text-xl font-bold text-amber-800 dark:text-amber-300">Premium Ends In</h3>
+                        <p className="text-sm text-amber-700 dark:text-amber-400">Your current trial plan is ending soon.</p>
+                    </div>
+                    <div className="flex items-center gap-4 text-center">
+                        <div>
+                            <p className="text-4xl font-bold text-amber-900 dark:text-amber-200">{timeLeft.days}</p>
+                            <p className="text-xs uppercase text-amber-800/80 dark:text-amber-300/80">Days</p>
+                        </div>
+                         <div className="text-2xl font-semibold opacity-50">:</div>
+                        <div>
+                            <p className="text-4xl font-bold text-amber-900 dark:text-amber-200">{String(timeLeft.hours).padStart(2, '0')}</p>
+                            <p className="text-xs uppercase text-amber-800/80 dark:text-amber-300/80">Hours</p>
+                        </div>
+                         <div className="text-2xl font-semibold opacity-50">:</div>
+                        <div>
+                            <p className="text-4xl font-bold text-amber-900 dark:text-amber-200">{String(timeLeft.minutes).padStart(2, '0')}</p>
+                            <p className="text-xs uppercase text-amber-800/80 dark:text-amber-300/80">Minutes</p>
+                        </div>
+                         <div className="text-2xl font-semibold opacity-50">:</div>
+                        <div>
+                            <p className="text-4xl font-bold text-amber-900 dark:text-amber-200">{String(timeLeft.seconds).padStart(2, '0')}</p>
+                            <p className="text-xs uppercase text-amber-800/80 dark:text-amber-300/80">Seconds</p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
           {plans.sort((a, b) => {
               if (a.id === 'trial') return -1;
@@ -164,14 +236,15 @@ export default function SubscriptionPage() {
                 <CardDescription className="pt-1">{plan.description}</CardDescription>
               </CardHeader>
               
-              {plan.trialDays && plan.trialDays > 0 && (
-                <div className="px-6 pb-2 text-center">
-                  <Badge variant="outline" className="w-fit mx-auto font-semibold border-amber-400/30 bg-amber-400/20 text-amber-600 dark:text-amber-400">
-                      {plan.price === '₹0' ? `${plan.trialDays}-Day Free Trial` : `Duration: ${plan.trialDays} Days`}
-                  </Badge>
-                </div>
-              )}
               
+              <div className="px-6 pb-2 text-center">
+                  {plan.trialDays && plan.trialDays > 0 && (
+                     <Badge variant="outline" className="w-fit mx-auto font-semibold border-amber-400/30 bg-amber-400/20 text-amber-600 dark:text-amber-400">
+                      {plan.price === '₹0' ? `${plan.trialDays}-Day Free Trial` : `Duration: ${plan.trialDays} Days`}
+                    </Badge>
+                  )}
+              </div>
+
               <CardContent className="flex-grow flex flex-col justify-between pt-4">
                 <div className="my-6">
                     <div className="text-center flex items-baseline justify-center gap-2">
@@ -219,3 +292,5 @@ export default function SubscriptionPage() {
     </div>
   );
 }
+
+    
