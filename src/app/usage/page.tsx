@@ -27,26 +27,26 @@ const fetchUsageData = async () => {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 1000));
   
-  // Return placeholder data. Replace this with a real API call.
+  // Return placeholder data reflecting a NEW USER with 0 usage.
   return {
     plan: 'Standard Plan',
     api: {
-      used: 125340,
+      used: 0,
       limit: 500000,
     },
     storage: {
-      used: 2.7, // in GB
+      used: 0, // in GB
       limit: 10, // in GB
     },
     cost: {
-      current: 19.99,
+      current: 0,
       currency: 'USD'
     },
     breakdown: [
-      { service: 'Order Lookups', requests: 75230, cost: 9.50 },
-      { service: 'Product Syncs', requests: 35110, cost: 5.49 },
-      { service: 'User Management API Calls', requests: 12500, cost: 3.00 },
-      { service: 'Real-time Listeners', requests: 2500, cost: 2.00 },
+      { service: 'Order Lookups', requests: 0, cost: 0 },
+      { service: 'Product Syncs', requests: 0, cost: 0 },
+      { service: 'User Management API Calls', requests: 0, cost: 0 },
+      { service: 'Real-time Listeners', requests: 0, cost: 0 },
     ]
   };
 };
@@ -60,18 +60,20 @@ export default function UsagePage() {
   const isVendor = userProfile?.role === 'vendor';
 
   useEffect(() => {
-    if (!isVendor) {
+    // Only fetch data if the user is a vendor.
+    if (!authLoading && isVendor) {
+      const loadData = async () => {
+        setDataLoading(true);
+        const data = await fetchUsageData();
+        setUsageData(data);
+        setDataLoading(false);
+      };
+      loadData();
+    } else if (!authLoading) {
+      // If not a vendor, just stop the loading process.
       setDataLoading(false);
-      return;
     }
-    const loadData = async () => {
-      setDataLoading(true);
-      const data = await fetchUsageData();
-      setUsageData(data);
-      setDataLoading(false);
-    };
-    loadData();
-  }, [isVendor]);
+  }, [isVendor, authLoading]);
 
   const apiUsagePercentage = usageData ? (usageData.api.used / usageData.api.limit) * 100 : 0;
   const storageUsagePercentage = usageData ? (usageData.storage.used / usageData.storage.limit) * 100 : 0;
@@ -102,7 +104,7 @@ export default function UsagePage() {
         <div className="flex-1 p-4 md:p-6 flex flex-col justify-center items-center text-center">
           <Lock className="h-16 w-16 text-destructive mb-4" />
           <h2 className="text-2xl font-bold text-destructive">Access Denied</h2>
-          <p className="text-muted-foreground mt-2">You do not have permission to view this page.</p>
+          <p className="text-muted-foreground mt-2">Only vendors can view this page.</p>
         </div>
       </div>
     );
