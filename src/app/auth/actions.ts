@@ -74,6 +74,7 @@ export async function createUserProfile(details: UserProfileOnSignup): Promise<{
       photoURL: details.photoURL || '',
       role: role,
       status: 'active', // Set default status to active
+      subscriptionStartDate: new Date().toISOString(), // Set subscription start date on creation
     };
 
     await userRef.set(userProfile, { merge: true });

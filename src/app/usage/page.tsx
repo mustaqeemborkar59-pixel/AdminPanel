@@ -69,15 +69,14 @@ export default function SubscriptionPage() {
 
   useEffect(() => {
     const currentPlan = plans.find(p => p.isCurrent);
-    if (currentPlan && currentPlan.trialDays) {
-      const now = new Date();
-      // This is a placeholder. In a real app, you'd use the user's actual subscription start date.
-      const subscriptionStartDate = new Date(); 
+    if (currentPlan && currentPlan.trialDays && userProfile?.subscriptionStartDate) {
+      // Use the stored subscription start date from the user profile
+      const subscriptionStartDate = new Date(userProfile.subscriptionStartDate); 
       const end = new Date(subscriptionStartDate.getTime());
       end.setDate(end.getDate() + currentPlan.trialDays);
       setEndDate(end);
     }
-  }, [plans]);
+  }, [plans, userProfile?.subscriptionStartDate]);
 
 
   useEffect(() => {
@@ -292,5 +291,3 @@ export default function SubscriptionPage() {
     </div>
   );
 }
-
-    

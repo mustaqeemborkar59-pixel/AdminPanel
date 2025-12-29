@@ -134,7 +134,8 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ createUserProfile(detai
             displayName: details.displayName || 'New User',
             photoURL: details.photoURL || '',
             role: role,
-            status: 'active'
+            status: 'active',
+            subscriptionStartDate: new Date().toISOString()
         };
         await userRef.set(userProfile, {
             merge: true

@@ -105,6 +105,7 @@ export interface UserProfile {
   role: 'admin' | 'vendor' | 'user' | 'super-admin'; // Role is now mandatory
   status: 'active' | 'blocked'; // Add status field
   vendorCode?: string | null; // Associated vendor code
+  subscriptionStartDate?: string; // ISO string for when subscription/trial starts
 }
 
 export interface Vendor {
