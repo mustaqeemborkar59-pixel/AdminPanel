@@ -1,3 +1,4 @@
+
 "use client";
 
 import { PageHeader } from '@/components/page-header';
@@ -14,6 +15,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowUpRight, BarChart3, Database, Cable } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // Placeholder data - replace with actual data from your backend/service
 const usageData = {
@@ -42,6 +44,8 @@ export default function UsagePage() {
 
   const apiUsagePercentage = (usageData.api.used / usageData.api.limit) * 100;
   const storageUsagePercentage = (usageData.storage.used / usageData.storage.limit) * 100;
+  const goldGradientText = "text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-500";
+  const goldGradientBg = "bg-gradient-to-r from-amber-400 to-yellow-600 hover:from-amber-500 hover:to-yellow-700";
 
   return (
     <div className="flex flex-col h-full">
@@ -49,7 +53,7 @@ export default function UsagePage() {
         title="Usage & Billing"
         description="Monitor your API usage, data storage, and monthly costs."
         actions={
-          <Button>
+          <Button className={cn("text-white", goldGradientBg)}>
             Upgrade Plan <ArrowUpRight className="h-4 w-4 ml-2" />
           </Button>
         }
@@ -60,7 +64,7 @@ export default function UsagePage() {
             <Card className="shadow-lg">
                 <CardHeader className="pb-2">
                     <CardDescription className="font-body">Current Plan</CardDescription>
-                    <CardTitle className="text-3xl font-headline text-primary">{usageData.plan}</CardTitle>
+                    <CardTitle className={cn("text-3xl font-headline", goldGradientText)}>{usageData.plan}</CardTitle>
                 </CardHeader>
             </Card>
              <Card className="shadow-lg">
@@ -75,7 +79,7 @@ export default function UsagePage() {
             <Card className="shadow-lg lg:col-span-2">
                 <CardHeader>
                     <CardTitle className="font-headline text-lg flex items-center">
-                        <Cable className="h-5 w-5 mr-2 text-primary"/> API Requests
+                        <Cable className={cn("h-5 w-5 mr-2", goldGradientText)}/> API Requests
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -83,7 +87,7 @@ export default function UsagePage() {
                     <p className="text-xs text-muted-foreground">
                         of {usageData.api.limit.toLocaleString()} requests used
                     </p>
-                    <Progress value={apiUsagePercentage} className="w-full mt-2 h-2" />
+                    <Progress value={apiUsagePercentage} className="w-full mt-2 h-2" indicatorClassName={goldGradientBg} />
                 </CardContent>
             </Card>
         </div>
@@ -120,7 +124,7 @@ export default function UsagePage() {
                 <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle className="font-headline text-lg flex items-center">
-                            <Database className="h-5 w-5 mr-2 text-primary"/> Data Storage
+                            <Database className={cn("h-5 w-5 mr-2", goldGradientText)}/> Data Storage
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -128,7 +132,7 @@ export default function UsagePage() {
                         <p className="text-xs text-muted-foreground">
                             of {usageData.storage.limit} GB storage used
                         </p>
-                        <Progress value={storageUsagePercentage} className="w-full mt-2 h-2" />
+                        <Progress value={storageUsagePercentage} className="w-full mt-2 h-2" indicatorClassName={goldGradientBg} />
                     </CardContent>
                 </Card>
                 <Card className="shadow-lg bg-muted/40">
@@ -137,7 +141,7 @@ export default function UsagePage() {
                     </CardHeader>
                     <CardContent>
                         <p className="text-sm text-muted-foreground mb-4">Upgrade your plan to get higher limits, priority support, and more.</p>
-                        <Button className="w-full">View All Plans</Button>
+                        <Button className={cn("w-full text-white", goldGradientBg)}>View All Plans</Button>
                     </CardContent>
                 </Card>
             </div>
