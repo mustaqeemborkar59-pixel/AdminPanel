@@ -2366,6 +2366,10 @@ input, button, textarea, select {
   animation-timing-function: linear;
 }
 
+.running {
+  animation-play-state: running;
+}
+
 body {
   font-family: Inter, sans-serif;
 }

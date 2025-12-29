@@ -106,6 +106,7 @@ export interface UserProfile {
   status: 'active' | 'blocked'; // Add status field
   vendorCode?: string | null; // Associated vendor code
   subscriptionStartDate?: string; // ISO string for when subscription/trial starts
+  trialUsed?: boolean; // To track if the user has used their trial
 }
 
 export interface Vendor {

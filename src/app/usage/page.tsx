@@ -38,6 +38,7 @@ export default function SubscriptionPage() {
   const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number; } | null>(null);
 
   const isVendor = userProfile?.role === 'vendor';
+  const trialUsed = userProfile?.trialUsed || false;
 
   useEffect(() => {
     async function fetchPlans() {
@@ -45,16 +46,11 @@ export default function SubscriptionPage() {
         setDataLoading(true);
         const result = await getSubscriptionPlans();
         if (result.success && result.data) {
-          // In a real app, this would be based on the user's actual subscription.
-          // For now, we'll default new users to the 'trial' plan if no other plan is active.
-          const hasActivePlan = result.data.some(p => p.isCurrent); // This would come from user profile in a real app
+          // Filter out the trial plan if the user has already used it
+          const availablePlans = trialUsed ? result.data.filter(p => p.id !== 'trial') : result.data;
+          
+          setPlans(availablePlans);
 
-          const plansWithCurrent = result.data.map(p => ({
-            ...p,
-            // If no plan is active, mark the trial plan as current.
-            isCurrent: !hasActivePlan && p.id === 'trial',
-          }));
-          setPlans(plansWithCurrent);
         } else {
           // Handle error case, maybe show a toast
           console.error("Failed to fetch subscription plans:", result.error);
@@ -65,22 +61,28 @@ export default function SubscriptionPage() {
       }
     }
     fetchPlans();
-  }, [authLoading, isVendor]);
+  }, [authLoading, isVendor, trialUsed]);
 
   useEffect(() => {
-    const currentPlan = plans.find(p => p.isCurrent);
-    if (currentPlan && currentPlan.trialDays && userProfile?.subscriptionStartDate) {
-      // Use the stored subscription start date from the user profile
-      const subscriptionStartDate = new Date(userProfile.subscriptionStartDate); 
-      const end = new Date(subscriptionStartDate.getTime());
-      end.setDate(end.getDate() + currentPlan.trialDays);
-      setEndDate(end);
+    if (!trialUsed && userProfile?.subscriptionStartDate) {
+      const trialPlan = plans.find(p => p.id === 'trial');
+      if (trialPlan && trialPlan.trialDays) {
+        const subscriptionStartDate = new Date(userProfile.subscriptionStartDate);
+        const end = new Date(subscriptionStartDate.getTime());
+        end.setDate(end.getDate() + trialPlan.trialDays);
+        setEndDate(end);
+      }
+    } else {
+      setEndDate(null); // No trial or trial is used
     }
-  }, [plans, userProfile?.subscriptionStartDate]);
+  }, [plans, userProfile?.subscriptionStartDate, trialUsed]);
 
 
   useEffect(() => {
-    if (!endDate) return;
+    if (!endDate) {
+       setTimeLeft(null);
+       return;
+    };
 
     const timer = setInterval(() => {
       const now = new Date().getTime();
@@ -89,6 +91,8 @@ export default function SubscriptionPage() {
       if (distance < 0) {
         clearInterval(timer);
         setTimeLeft(null);
+        // Here you could trigger a server action to set userProfile.trialUsed = true
+        // For now, the UI will just stop showing the timer and the current plan status.
         return;
       }
 
@@ -102,6 +106,13 @@ export default function SubscriptionPage() {
 
     return () => clearInterval(timer);
   }, [endDate]);
+
+  const plansWithCurrentStatus = plans.map(p => ({
+    ...p,
+    // The trial plan is current only if the timer is running
+    isCurrent: p.id === 'trial' && timeLeft !== null,
+    // In a real app, you'd check a user's subscription status for other plans
+  }));
 
   if (authLoading) {
     return (
@@ -214,7 +225,7 @@ export default function SubscriptionPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
-          {plans.sort((a, b) => {
+          {plansWithCurrentStatus.sort((a, b) => {
               if (a.id === 'trial') return -1;
               if (b.id === 'trial') return 1;
               return a.price.localeCompare(b.price, undefined, { numeric: true });

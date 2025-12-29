@@ -75,6 +75,7 @@ export async function createUserProfile(details: UserProfileOnSignup): Promise<{
       role: role,
       status: 'active', // Set default status to active
       subscriptionStartDate: new Date().toISOString(), // Set subscription start date on creation
+      trialUsed: false, // Initialize trialUsed as false for new users
     };
 
     await userRef.set(userProfile, { merge: true });
