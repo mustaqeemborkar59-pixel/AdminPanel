@@ -2156,7 +2156,6 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$re
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$log$2d$out$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__LogOut$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/log-out.js [app-ssr] (ecmascript) <export default as LogOut>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$shield$2d$check$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ShieldCheck$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/shield-check.js [app-ssr] (ecmascript) <export default as ShieldCheck>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$store$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Store$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/store.js [app-ssr] (ecmascript) <export default as Store>");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$activity$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Activity$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/activity.js [app-ssr] (ecmascript) <export default as Activity>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sidebar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/sidebar.tsx [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$tooltip$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/tooltip.tsx [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$layout$2f$logo$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/layout/logo.tsx [app-ssr] (ecmascript)");
@@ -2213,14 +2212,6 @@ const allNavItems = [
         href: '/staff',
         label: 'Staff',
         icon: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$users$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Users$3e$__["Users"],
-        roles: [
-            'super-admin'
-        ]
-    },
-    {
-        href: '/analytics',
-        label: 'Analytics',
-        icon: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$activity$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Activity$3e$__["Activity"],
         roles: [
             'super-admin'
         ]
@@ -2299,12 +2290,12 @@ function AppSidebarNav({ user, userProfile, authLoading }) {
                         className: "flex items-center justify-center h-[28px]"
                     }, void 0, false, {
                         fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                        lineNumber: 94,
+                        lineNumber: 92,
                         columnNumber: 14
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                    lineNumber: 93,
+                    lineNumber: 91,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sidebar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SidebarContent"], {
@@ -2316,22 +2307,22 @@ function AppSidebarNav({ user, userProfile, authLoading }) {
                                     className: "h-5 w-5 text-sidebar-foreground/70 mr-2"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                    lineNumber: 101,
+                                    lineNumber: 99,
                                     columnNumber: 19
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                lineNumber: 100,
+                                lineNumber: 98,
                                 columnNumber: 17
                             }, this)
                         }, item.href + "-skeleton", false, {
                             fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                            lineNumber: 99,
+                            lineNumber: 97,
                             columnNumber: 15
                         }, this))
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                    lineNumber: 97,
+                    lineNumber: 95,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sidebar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SidebarFooter"], {
@@ -2344,33 +2335,33 @@ function AppSidebarNav({ user, userProfile, authLoading }) {
                                     className: "h-9 w-9 rounded-full bg-muted"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                    lineNumber: 108,
+                                    lineNumber: 106,
                                     columnNumber: 17
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "h-9 w-96 max-w-[100px] bg-muted rounded"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                    lineNumber: 109,
+                                    lineNumber: 107,
                                     columnNumber: 17
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                            lineNumber: 107,
+                            lineNumber: 105,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                             className: "h-9 w-full bg-muted rounded"
                         }, void 0, false, {
                             fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                            lineNumber: 111,
+                            lineNumber: 109,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                    lineNumber: 106,
+                    lineNumber: 104,
                     columnNumber: 9
                 }, this)
             ]
@@ -2385,7 +2376,7 @@ function AppSidebarNav({ user, userProfile, authLoading }) {
                     children: [
                         open && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$layout$2f$logo$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Logo"], {}, void 0, false, {
                             fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                            lineNumber: 122,
+                            lineNumber: 120,
                             columnNumber: 20
                         }, this),
                         !open && !isMobile && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -2403,17 +2394,17 @@ function AppSidebarNav({ user, userProfile, authLoading }) {
                                     fill: "currentColor"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                    lineNumber: 126,
+                                    lineNumber: 124,
                                     columnNumber: 17
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                lineNumber: 125,
+                                lineNumber: 123,
                                 columnNumber: 16
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                            lineNumber: 124,
+                            lineNumber: 122,
                             columnNumber: 13
                         }, this),
                         isMobile && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -2423,23 +2414,23 @@ function AppSidebarNav({ user, userProfile, authLoading }) {
                             className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["cn"])("ml-auto", openMobile ? "" : "absolute top-3 left-3 z-50"),
                             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$panel$2d$left$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__PanelLeft$3e$__["PanelLeft"], {}, void 0, false, {
                                 fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                lineNumber: 132,
+                                lineNumber: 130,
                                 columnNumber: 17
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                            lineNumber: 131,
+                            lineNumber: 129,
                             columnNumber: 14
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                    lineNumber: 121,
+                    lineNumber: 119,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                lineNumber: 120,
+                lineNumber: 118,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sidebar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SidebarContent"], {
@@ -2469,30 +2460,30 @@ function AppSidebarNav({ user, userProfile, authLoading }) {
                                                              : "text-sidebar-foreground/70 group-hover/menu-button:text-sidebar-accent-foreground")
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                                            lineNumber: 157,
+                                                            lineNumber: 155,
                                                             columnNumber: 27
                                                         }, this),
                                                         open && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                             children: item.label
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                                            lineNumber: 163,
+                                                            lineNumber: 161,
                                                             columnNumber: 36
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                                    lineNumber: 148,
+                                                    lineNumber: 146,
                                                     columnNumber: 25
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                                lineNumber: 147,
+                                                lineNumber: 145,
                                                 columnNumber: 23
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                            lineNumber: 146,
+                                            lineNumber: 144,
                                             columnNumber: 21
                                         }, this),
                                         state === 'collapsed' && !isMobile && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$tooltip$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TooltipContent"], {
@@ -2501,34 +2492,34 @@ function AppSidebarNav({ user, userProfile, authLoading }) {
                                             children: item.label
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                            lineNumber: 168,
+                                            lineNumber: 166,
                                             columnNumber: 23
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                    lineNumber: 145,
+                                    lineNumber: 143,
                                     columnNumber: 19
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                lineNumber: 144,
+                                lineNumber: 142,
                                 columnNumber: 17
                             }, this)
                         }, item.href, false, {
                             fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                            lineNumber: 143,
+                            lineNumber: 141,
                             columnNumber: 15
                         }, this);
                     })
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                    lineNumber: 138,
+                    lineNumber: 136,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                lineNumber: 137,
+                lineNumber: 135,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sidebar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SidebarFooter"], {
@@ -2548,20 +2539,20 @@ function AppSidebarNav({ user, userProfile, authLoading }) {
                                                 "data-ai-hint": "user avatar"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                                lineNumber: 184,
+                                                lineNumber: 182,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["AvatarFallback"], {
                                                 children: user.displayName?.[0] || user.email?.[0]?.toUpperCase() || 'U'
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                                lineNumber: 185,
+                                                lineNumber: 183,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                        lineNumber: 183,
+                                        lineNumber: 181,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2571,7 +2562,7 @@ function AppSidebarNav({ user, userProfile, authLoading }) {
                                                 children: user.displayName || user.email?.split('@')[0]
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                                lineNumber: 188,
+                                                lineNumber: 186,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2579,19 +2570,19 @@ function AppSidebarNav({ user, userProfile, authLoading }) {
                                                 children: userRole.replace('-', ' ')
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                                lineNumber: 189,
+                                                lineNumber: 187,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                        lineNumber: 187,
+                                        lineNumber: 185,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                lineNumber: 182,
+                                lineNumber: 180,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -2605,14 +2596,14 @@ function AppSidebarNav({ user, userProfile, authLoading }) {
                                         className: "mr-2 h-5 w-5 text-sidebar-foreground/70"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                        lineNumber: 198,
+                                        lineNumber: 196,
                                         columnNumber: 15
                                     }, this),
                                     " Logout"
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                lineNumber: 192,
+                                lineNumber: 190,
                                 columnNumber: 13
                             }, this)
                         ]
@@ -2635,25 +2626,25 @@ function AppSidebarNav({ user, userProfile, authLoading }) {
                                                         "data-ai-hint": "user avatar"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                                        lineNumber: 208,
+                                                        lineNumber: 206,
                                                         columnNumber: 29
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["AvatarFallback"], {
                                                         children: user.displayName?.[0] || user.email?.[0]?.toUpperCase() || 'U'
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                                        lineNumber: 209,
+                                                        lineNumber: 207,
                                                         columnNumber: 29
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                                lineNumber: 207,
+                                                lineNumber: 205,
                                                 columnNumber: 26
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                            lineNumber: 206,
+                                            lineNumber: 204,
                                             columnNumber: 21
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$tooltip$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TooltipContent"], {
@@ -2662,13 +2653,13 @@ function AppSidebarNav({ user, userProfile, authLoading }) {
                                             children: user.displayName || user.email
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                            lineNumber: 212,
+                                            lineNumber: 210,
                                             columnNumber: 21
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                    lineNumber: 205,
+                                    lineNumber: 203,
                                     columnNumber: 17
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$tooltip$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Tooltip"], {
@@ -2686,17 +2677,17 @@ function AppSidebarNav({ user, userProfile, authLoading }) {
                                                     className: "h-5 w-5 text-sidebar-foreground/70"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                                    lineNumber: 223,
+                                                    lineNumber: 221,
                                                     columnNumber: 29
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                                lineNumber: 216,
+                                                lineNumber: 214,
                                                 columnNumber: 26
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                            lineNumber: 215,
+                                            lineNumber: 213,
                                             columnNumber: 21
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$tooltip$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TooltipContent"], {
@@ -2705,30 +2696,30 @@ function AppSidebarNav({ user, userProfile, authLoading }) {
                                             children: "Logout"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                            lineNumber: 226,
+                                            lineNumber: 224,
                                             columnNumber: 21
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                                    lineNumber: 214,
+                                    lineNumber: 212,
                                     columnNumber: 17
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                            lineNumber: 204,
+                            lineNumber: 202,
                             columnNumber: 14
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                        lineNumber: 203,
+                        lineNumber: 201,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/layout/app-sidebar-nav.tsx",
-                lineNumber: 179,
+                lineNumber: 177,
                 columnNumber: 7
             }, this)
         ]
@@ -2799,10 +2790,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$s
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$layout$2f$app$2d$sidebar$2d$nav$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/layout/app-sidebar-nav.tsx [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$layout$2f$header$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/layout/header.tsx [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$toast$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/hooks/use-toast.ts [app-ssr] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$database$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/database/dist/index.mjs [app-ssr] (ecmascript) <module evaluation>");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@firebase/database/dist/node-esm/index.node.esm.js [app-ssr] (ecmascript)");
 "use client";
-;
 ;
 ;
 ;
@@ -2827,73 +2815,12 @@ function AppContentWrapper({ children }) {
     const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRouter"])();
     const { toast } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$toast$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useToast"])();
     const { user, isUserLoading: authLoading, userError, auth } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useUser"])();
-    const { rtdb, firestore } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useFirebase"])();
+    const { firestore } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useFirebase"])();
     const [userProfile, setUserProfile] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const [profileLoading, setProfileLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(true);
     const isAuthPage = pathname === '/login' || pathname === '/signup';
     const isPendingPage = pathname === '/pending-verification';
     const loading = authLoading || profileLoading;
-    const sessionStartTime = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(null);
-    // --- Final & Guaranteed WhatsApp-like Presence System ---
-    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
-        if (!user || !rtdb) {
-            return;
-        }
-        const uid = user.uid;
-        const userStatusRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["ref"])(rtdb, `/status/${uid}`);
-        const connectedRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["ref"])(rtdb, '.info/connected');
-        const listener = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["onValue"])(connectedRef, (snap)=>{
-            if (snap.val() === true) {
-                // --- User is connected ---
-                sessionStartTime.current = Date.now();
-                const onDisconnectRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["onDisconnect"])(userStatusRef);
-                // This will run when the client disconnects uncleanly.
-                onDisconnectRef.update({
-                    state: 'offline',
-                    last_seen: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["serverTimestamp"])(),
-                    time_spent: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["increment"])(Math.max(1, Math.round((Date.now() - (sessionStartTime.current || Date.now())) / 1000)))
-                });
-                // Set the user's initial status to online.
-                (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["get"])(userStatusRef).then((snapshot)=>{
-                    if (!snapshot.exists()) {
-                        // If user has no presence data, create it with time_spent=0
-                        (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["set"])(userStatusRef, {
-                            state: 'online',
-                            last_seen: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["serverTimestamp"])(),
-                            time_spent: 0
-                        });
-                    } else {
-                        // User record exists, just update state to online. Don't touch time_spent.
-                        (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["update"])(userStatusRef, {
-                            state: 'online',
-                            last_seen: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["serverTimestamp"])()
-                        });
-                    }
-                });
-            }
-        });
-        // --- Cleanup function ---
-        return ()=>{
-            listener(); // Detach the onValue listener.
-            // When component unmounts (e.g., logout), we need to update the time spent
-            // for the current session cleanly.
-            if (sessionStartTime.current) {
-                const sessionDuration = Math.max(1, Math.round((Date.now() - sessionStartTime.current) / 1000));
-                (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["update"])(userStatusRef, {
-                    state: 'offline',
-                    last_seen: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["serverTimestamp"])(),
-                    time_spent: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["increment"])(sessionDuration)
-                });
-            }
-            if (userStatusRef) {
-                (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$database$2f$dist$2f$node$2d$esm$2f$index$2e$node$2e$esm$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["onDisconnect"])(userStatusRef).cancel(); // Important: cancel the onDisconnect plan
-            }
-            sessionStartTime.current = null;
-        };
-    }, [
-        user,
-        rtdb
-    ]);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         if (!user || !firestore || !auth) {
             setUserProfile(null);
@@ -2995,12 +2922,12 @@ function AppContentWrapper({ children }) {
                 className: "h-10 w-10 animate-spin text-primary"
             }, void 0, false, {
                 fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                lineNumber: 222,
+                lineNumber: 152,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-            lineNumber: 221,
+            lineNumber: 151,
             columnNumber: 7
         }, this);
     }
@@ -3014,7 +2941,7 @@ function AppContentWrapper({ children }) {
             children: children
         }, void 0, false, {
             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-            lineNumber: 229,
+            lineNumber: 159,
             columnNumber: 7
         }, this);
     }
@@ -3027,12 +2954,12 @@ function AppContentWrapper({ children }) {
                 className: "h-10 w-10 animate-spin text-primary"
             }, void 0, false, {
                 fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                lineNumber: 241,
+                lineNumber: 171,
                 columnNumber: 11
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-            lineNumber: 240,
+            lineNumber: 170,
             columnNumber: 10
         }, this);
     }
@@ -3052,12 +2979,12 @@ function AppContentWrapper({ children }) {
                         authLoading: loading
                     }, void 0, false, {
                         fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                        lineNumber: 250,
+                        lineNumber: 180,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                    lineNumber: 249,
+                    lineNumber: 179,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sidebar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SidebarInset"], {
@@ -3065,7 +2992,7 @@ function AppContentWrapper({ children }) {
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$layout$2f$header$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Header"], {}, void 0, false, {
                             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                            lineNumber: 253,
+                            lineNumber: 183,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -3073,24 +3000,24 @@ function AppContentWrapper({ children }) {
                             children: children
                         }, void 0, false, {
                             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                            lineNumber: 254,
+                            lineNumber: 184,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                    lineNumber: 252,
+                    lineNumber: 182,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-            lineNumber: 248,
+            lineNumber: 178,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-        lineNumber: 247,
+        lineNumber: 177,
         columnNumber: 5
     }, this);
 }

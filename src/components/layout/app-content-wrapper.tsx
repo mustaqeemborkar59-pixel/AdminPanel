@@ -6,14 +6,13 @@ import { usePathname, useRouter } from 'next/navigation';
 import { type User } from 'firebase/auth';
 import { useUser, useFirebase, useFirestore } from '@/firebase';
 import { doc, onSnapshot } from 'firebase/firestore'; // Import onSnapshot
-import { getUserProfile, updateUserRole, createUserProfile } from '@/app/auth/actions';
+import { createUserProfile } from '@/app/auth/actions';
 import type { UserProfile } from '@/types';
 import { Loader2 } from 'lucide-react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebarNav } from '@/components/layout/app-sidebar-nav';
 import { Header } from '@/components/layout/header';
 import { useToast } from '@/hooks/use-toast';
-import { getDatabase, ref, onValue, onDisconnect, set, serverTimestamp, goOffline, goOnline, increment, update, get, type DatabaseReference } from "firebase/database";
 
 
 interface AppContextType {
@@ -40,7 +39,7 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   const router = useRouter();
   const { toast } = useToast();
   const { user, isUserLoading: authLoading, userError, auth } = useUser();
-  const { rtdb, firestore } = useFirebase();
+  const { firestore } = useFirebase();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
@@ -48,75 +47,6 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   const isPendingPage = pathname === '/pending-verification';
   
   const loading = authLoading || profileLoading;
-  
-  const sessionStartTime = useRef<number | null>(null);
-
-
-  // --- Final & Guaranteed WhatsApp-like Presence System ---
-  useEffect(() => {
-    if (!user || !rtdb) {
-      return;
-    }
-
-    const uid = user.uid;
-    const userStatusRef = ref(rtdb, `/status/${uid}`);
-    const connectedRef = ref(rtdb, '.info/connected');
-
-    const listener = onValue(connectedRef, (snap) => {
-      if (snap.val() === true) {
-        // --- User is connected ---
-        sessionStartTime.current = Date.now();
-        
-        const onDisconnectRef = onDisconnect(userStatusRef);
-        // This will run when the client disconnects uncleanly.
-        onDisconnectRef.update({
-            state: 'offline',
-            last_seen: serverTimestamp(),
-            time_spent: increment(Math.max(1, Math.round((Date.now() - (sessionStartTime.current || Date.now())) / 1000)))
-        });
-
-
-        // Set the user's initial status to online.
-        get(userStatusRef).then(snapshot => {
-            if (!snapshot.exists()) {
-                // If user has no presence data, create it with time_spent=0
-                set(userStatusRef, {
-                    state: 'online',
-                    last_seen: serverTimestamp(),
-                    time_spent: 0
-                });
-            } else {
-                 // User record exists, just update state to online. Don't touch time_spent.
-                 update(userStatusRef, {
-                    state: 'online',
-                    last_seen: serverTimestamp(),
-                });
-            }
-        });
-      }
-    });
-    
-    // --- Cleanup function ---
-    return () => {
-        listener(); // Detach the onValue listener.
-        
-        // When component unmounts (e.g., logout), we need to update the time spent
-        // for the current session cleanly.
-        if (sessionStartTime.current) {
-            const sessionDuration = Math.max(1, Math.round((Date.now() - sessionStartTime.current) / 1000));
-            update(userStatusRef, {
-                state: 'offline',
-                last_seen: serverTimestamp(),
-                time_spent: increment(sessionDuration)
-            });
-        }
-        if (userStatusRef) {
-          onDisconnect(userStatusRef).cancel(); // Important: cancel the onDisconnect plan
-        }
-        sessionStartTime.current = null;
-    };
-}, [user, rtdb]);
-
 
   useEffect(() => {
     if (!user || !firestore || !auth) {
