@@ -25,9 +25,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 // that securely fetches data from Google Cloud Billing/Usage APIs.
 const fetchUsageData = async () => {
   // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await new Promise(resolve => setTimeout(resolve, 500));
   
   // Return placeholder data reflecting a NEW USER with 0 usage.
+  // In a real scenario, you could introduce logic to randomly increment values
+  // to better simulate real-time changes, e.g., `used: Math.floor(Math.random() * 100)`.
   return {
     plan: 'Standard Plan',
     api: {
@@ -55,7 +57,7 @@ const fetchUsageData = async () => {
 export default function UsagePage() {
   const { userProfile, authLoading } = useAppContext();
   const [usageData, setUsageData] = useState<any>(null);
-  const [dataLoading, setDataLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const isVendor = userProfile?.role === 'vendor';
 
@@ -63,17 +65,26 @@ export default function UsagePage() {
     // Only fetch data if the user is a vendor.
     if (!authLoading && isVendor) {
       const loadData = async () => {
-        setDataLoading(true);
         const data = await fetchUsageData();
         setUsageData(data);
-        setDataLoading(false);
+        if (initialLoading) {
+            setInitialLoading(false);
+        }
       };
-      loadData();
+      
+      loadData(); // Initial load
+
+      // Set up an interval to simulate real-time updates every 5 seconds
+      const intervalId = setInterval(loadData, 5000);
+
+      // Cleanup function to clear the interval when the component unmounts
+      return () => clearInterval(intervalId);
+
     } else if (!authLoading) {
       // If not a vendor, just stop the loading process.
-      setDataLoading(false);
+      setInitialLoading(false);
     }
-  }, [isVendor, authLoading]);
+  }, [isVendor, authLoading, initialLoading]);
 
   const apiUsagePercentage = usageData ? (usageData.api.used / usageData.api.limit) * 100 : 0;
   const storageUsagePercentage = usageData ? (usageData.storage.used / usageData.storage.limit) * 100 : 0;
@@ -110,7 +121,7 @@ export default function UsagePage() {
     );
   }
 
-  if (dataLoading) {
+  if (initialLoading) {
     return (
       <div className="flex flex-col h-full">
         <PageHeader
