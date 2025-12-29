@@ -2,10 +2,10 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
-import { getAllUsers, updateUserRole, getVendorsFromFirestore } from '@/app/auth/actions'; // Using Firestore actions
+import { getAllUsers, updateUserRole, getVendorsFromFirestore, updateUserStatus } from '@/app/auth/actions'; // Using Firestore actions
 import type { UserProfile, Vendor } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ShieldCheck, Store, User, Lock, Crown } from 'lucide-react';
+import { Loader2, ShieldCheck, Store, User, Lock, Crown, Ban, CheckCircle } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -21,10 +21,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useAppContext } from '@/components/layout/app-content-wrapper';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export default function AdminsPage() {
   const { userProfile: currentUserProfile, authLoading } = useAppContext();
@@ -35,34 +48,38 @@ export default function AdminsPage() {
 
   const isCurrentUserSuperAdmin = currentUserProfile?.role === 'super-admin';
 
+  const fetchAllData = async () => {
+      if (!currentUserProfile) return;
+      
+      const usersResult = await getAllUsers(); // Firestore action
+      if (usersResult.success && usersResult.data) {
+          const filteredUsers = usersResult.data.filter(user => user.uid !== currentUserProfile.uid);
+          setUsers(filteredUsers);
+      } else if (!usersResult.success) {
+        toast({
+          variant: "destructive",
+          title: "Failed to load users",
+          description: usersResult.message || "Could not fetch user profiles.",
+        });
+      }
+
+      const vendorsResult = await getVendorsFromFirestore();
+      if (vendorsResult.success && vendorsResult.data) {
+        setVendors(vendorsResult.data);
+      } else {
+         toast({
+          variant: "destructive",
+          title: "Failed to load vendors",
+          description: vendorsResult.error || "Could not fetch vendors.",
+        });
+      }
+  };
+
   useEffect(() => {
     if (!authLoading && isCurrentUserSuperAdmin) {
       const fetchInitialData = async () => {
         setDataLoading(true);
-        
-        const usersResult = await getAllUsers(); // Firestore action
-        if (usersResult.success && usersResult.data && currentUserProfile) {
-            const filteredUsers = usersResult.data.filter(user => user.uid !== currentUserProfile.uid);
-            setUsers(filteredUsers);
-        } else if (!usersResult.success) {
-          toast({
-            variant: "destructive",
-            title: "Failed to load users",
-            description: usersResult.message || "Could not fetch user profiles.",
-          });
-        }
-
-        const vendorsResult = await getVendorsFromFirestore();
-        if (vendorsResult.success && vendorsResult.data) {
-          setVendors(vendorsResult.data);
-        } else {
-           toast({
-            variant: "destructive",
-            title: "Failed to load vendors",
-            description: vendorsResult.error || "Could not fetch vendors.",
-          });
-        }
-
+        await fetchAllData();
         setDataLoading(false);
       };
       
@@ -80,11 +97,7 @@ export default function AdminsPage() {
         title: "Role Updated",
         description: "The user's role has been successfully updated.",
       });
-      const usersResult = await getAllUsers(); // Firestore action
-       if (usersResult.success && usersResult.data && currentUserProfile) {
-            const filteredUsers = usersResult.data.filter(user => user.uid !== currentUserProfile.uid);
-            setUsers(filteredUsers);
-        }
+      await fetchAllData();
     } else {
       toast({
         variant: "destructive",
@@ -92,6 +105,23 @@ export default function AdminsPage() {
         description: result.message || "Could not update the user's role.",
       });
     }
+  };
+  
+  const handleStatusChange = async (userId: string, newStatus: 'active' | 'blocked') => {
+      const result = await updateUserStatus(userId, newStatus);
+      if (result.success) {
+          toast({
+              title: "Status Updated",
+              description: `User has been ${newStatus === 'blocked' ? 'blocked' : 'unblocked'}.`
+          });
+          await fetchAllData();
+      } else {
+          toast({
+              variant: "destructive",
+              title: "Status Update Failed",
+              description: result.message || "Could not update user status."
+          });
+      }
   };
 
   const getRoleBadge = (user: UserProfile) => {
@@ -156,12 +186,18 @@ export default function AdminsPage() {
                 <TableRow>
                   <TableHead className="font-headline">User</TableHead>
                   <TableHead className="font-headline text-center">Current Role</TableHead>
-                  <TableHead className="text-right font-headline">Change Role / Assign Vendor</TableHead>
+                  <TableHead className="text-right font-headline">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {users.map((user) => (
-                  <TableRow key={user.uid} className="font-body hover:bg-muted/50">
+                  <TableRow 
+                    key={user.uid} 
+                    className={cn(
+                        "font-body hover:bg-muted/50",
+                        user.status === 'blocked' && 'bg-destructive/10 text-muted-foreground'
+                    )}
+                   >
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9">
@@ -170,7 +206,8 @@ export default function AdminsPage() {
                         </Avatar>
                         <div>
                           <span>{user.displayName}</span>
-                          <p className="text-xs text-muted-foreground">{user.email}</p>
+                          <p className="text-xs">{user.email}</p>
+                          {user.status === 'blocked' && <Badge variant="destructive" className="mt-1 text-xs">Blocked</Badge>}
                         </div>
                       </div>
                     </TableCell>
@@ -207,6 +244,34 @@ export default function AdminsPage() {
                               <SelectItem value="super-admin">Super Admin</SelectItem>
                             </SelectContent>
                           </Select>
+                           <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              {user.status === 'blocked' ? (
+                                <Button variant="outline" size="sm" className="bg-green-100 dark:bg-green-900 border-green-500 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800">
+                                  <CheckCircle className="mr-2 h-4 w-4" /> Unblock
+                                </Button>
+                              ) : (
+                                <Button variant="destructive" size="sm">
+                                  <Ban className="mr-2 h-4 w-4" /> Block
+                                </Button>
+                              )}
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  You are about to {user.status === 'blocked' ? 'unblock' : 'block'} the user: <span className="font-semibold">{user.displayName}</span>. 
+                                  {user.status !== 'blocked' && ' They will be unable to log in.'}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleStatusChange(user.uid, user.status === 'blocked' ? 'active' : 'blocked')}>
+                                  Confirm
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                        </div>
                     </TableCell>
                   </TableRow>
@@ -219,5 +284,3 @@ export default function AdminsPage() {
     </div>
   );
 }
-
-    

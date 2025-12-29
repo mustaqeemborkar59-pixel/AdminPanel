@@ -1,6 +1,11 @@
 {
+  "/admins/page": "app/admins/page.js",
+  "/analytics/page": "app/analytics/page.js",
+  "/delivery/page": "app/delivery/page.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/login/page": "app/login/page.js",
   "/orders/page": "app/orders/page.js",
   "/page": "app/page.js",
+  "/staff/page": "app/staff/page.js",
   "/vendors/page": "app/vendors/page.js"
 }

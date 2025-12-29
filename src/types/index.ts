@@ -15,6 +15,7 @@ export interface MenuItem {
 export interface OrderItem {
   itemId: string; // Corresponds to MenuItem id (now Product id)
   name: string;
+  sku?: string;
   qty: number;
   price: number; // Price at the time of adding to cart (could be discounted)
   imageUrl?: string; // For display in cart;
@@ -102,6 +103,7 @@ export interface UserProfile {
   address?: string;
   photoURL?: string;
   role: 'admin' | 'vendor' | 'user' | 'super-admin'; // Role is now mandatory
+  status: 'active' | 'blocked'; // Add status field
   vendorCode?: string | null; // Associated vendor code
 }
 
@@ -129,5 +131,3 @@ export interface CompanyDetails {
   city: string;
   email: string;
 }
-
-    
