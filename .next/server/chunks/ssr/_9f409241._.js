@@ -333,7 +333,7 @@ var Root = Label;
 var { g: global, __dirname } = __turbopack_context__;
 {
 /**
- * @license lucide-react v0.475.0 - ISC
+ * @license lucide-react v0.490.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
@@ -381,7 +381,7 @@ const __iconNode = [
         }
     ]
 ];
-const UserPlus = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"])("UserPlus", __iconNode);
+const UserPlus = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$createLucideIcon$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"])("user-plus", __iconNode);
 ;
  //# sourceMappingURL=user-plus.js.map
 }}),

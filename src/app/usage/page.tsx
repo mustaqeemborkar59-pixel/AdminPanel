@@ -41,11 +41,11 @@ export default function SubscriptionPage() {
         setDataLoading(true);
         const result = await getSubscriptionPlans();
         if (result.success && result.data) {
-          // Assuming 'Pro' is the current plan for this example.
           // In a real app, this would be based on the user's actual subscription.
+          // Setting 'trial' as the default current plan for new users.
           const plansWithCurrent = result.data.map(p => ({
             ...p,
-            isCurrent: p.id === 'pro' // Example logic
+            isCurrent: p.id === 'trial' // Set 'trial' as the current plan by default
           }));
           setPlans(plansWithCurrent);
         } else {
