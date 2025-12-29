@@ -1655,7 +1655,7 @@ const defaultPlans = [
                 included: false
             }
         ],
-        cta: 'Downgrade',
+        cta: 'Switch to Basic',
         variant: 'outline'
     },
     {

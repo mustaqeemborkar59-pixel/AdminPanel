@@ -52,7 +52,7 @@ const defaultPlans: SubscriptionPlan[] = [
         { text: 'Email Support', included: false },
         { text: 'Priority Support', included: false },
       ],
-      cta: 'Switch to Basic',
+      cta: 'Upgrade Plan',
       variant: 'outline',
     },
     {
@@ -70,7 +70,7 @@ const defaultPlans: SubscriptionPlan[] = [
         { text: 'Email Support', included: true },
         { text: 'Priority Support', included: false },
       ],
-      cta: 'Your Current Plan',
+      cta: 'Upgrade Plan',
       variant: 'default',
     },
     {
@@ -88,7 +88,7 @@ const defaultPlans: SubscriptionPlan[] = [
         { text: 'Email Support', included: true },
         { text: 'Priority Support', included: true },
       ],
-      cta: 'Contact Sales',
+      cta: 'Upgrade Plan',
       variant: 'outline',
     },
 ];
