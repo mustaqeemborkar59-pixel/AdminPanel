@@ -32,15 +32,9 @@ export function LoginForm() {
 
     try {
       await setPersistence(auth, browserLocalPersistence);
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      
-      if (userCredential.user) {
-        await updateUserProfile(userCredential.user.uid, { // Using new Firestore action
-          displayName: userCredential.user.displayName,
-          photoURL: userCredential.user.photoURL,
-        });
-      }
-      // The AppContentWrapper now handles all redirection logic.
+      await signInWithEmailAndPassword(auth, email, password);
+      // The AppContentWrapper now handles all redirection and profile checking logic.
+      // No need to call updateUserProfile here, as it was causing issues with the 'disabled' state.
     } catch (e: any) {
       const firebaseError = e as AuthError;
       if (firebaseError.code === 'auth/invalid-credential' || firebaseError.code === 'auth/user-not-found' || firebaseError.code === 'auth/wrong-password') {
@@ -54,6 +48,7 @@ export function LoginForm() {
       }
       else {
         setError('An error occurred during sign in. Please try again later.');
+        console.error("Login Error:", firebaseError);
       }
       setIsLoading(false);
     }
