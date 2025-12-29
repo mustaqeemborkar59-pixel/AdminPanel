@@ -362,10 +362,13 @@ export async function updateUserActivePlan(userId: string, planId: string): Prom
     try {
         const userRef = firestore.collection('users').doc(userId);
         
-        // If the user is moving away from the trial, mark it as used.
         const userSnap = await userRef.get();
         const userData = userSnap.data();
-        const updates: { [key: string]: any } = { activePlanId: planId };
+        
+        const updates: { [key: string]: any } = { 
+            activePlanId: planId,
+            subscriptionStartDate: new Date().toISOString(), // Reset subscription start date
+        };
 
         if (userData?.activePlanId === 'trial' && planId !== 'trial') {
             updates.trialUsed = true;
