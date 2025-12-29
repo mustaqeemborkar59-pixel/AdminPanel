@@ -76,6 +76,7 @@ export async function createUserProfile(details: UserProfileOnSignup): Promise<{
       status: 'active', // Set default status to active
       subscriptionStartDate: new Date().toISOString(), // Set subscription start date on creation
       trialUsed: false, // Initialize trialUsed as false for new users
+      activePlanId: 'trial', // Default active plan is trial
     };
 
     await userRef.set(userProfile, { merge: true });
@@ -352,5 +353,28 @@ export async function updateUserTrialStatus(userId: string, trialUsed: boolean):
     } catch (error: any) {
         console.error('Failed to update user trial status (Admin):', error);
         return { success: false, message: error.message || 'Failed to update trial status.' };
+    }
+}
+
+export async function updateUserActivePlan(userId: string, planId: string): Promise<{ success: boolean; message?: string }> {
+    const adminApp = initializeAdminApp();
+    const { firestore } = getAdminServices(adminApp);
+    try {
+        const userRef = firestore.collection('users').doc(userId);
+        
+        // If the user is moving away from the trial, mark it as used.
+        const userSnap = await userRef.get();
+        const userData = userSnap.data();
+        const updates: { [key: string]: any } = { activePlanId: planId };
+
+        if (userData?.activePlanId === 'trial' && planId !== 'trial') {
+            updates.trialUsed = true;
+        }
+
+        await userRef.update(updates);
+        return { success: true };
+    } catch (error: any) {
+        console.error('Failed to update user active plan (Admin):', error);
+        return { success: false, message: error.message || 'Failed to update active plan.' };
     }
 }

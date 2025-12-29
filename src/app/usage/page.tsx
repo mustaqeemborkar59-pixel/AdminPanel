@@ -9,9 +9,10 @@ import { Check, Loader2, Lock, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppContext } from '@/components/layout/app-content-wrapper';
 import { Badge } from '@/components/ui/badge';
-import { getSubscriptionPlans, updateUserTrialStatus } from '@/app/auth/actions';
+import { getSubscriptionPlans, updateUserTrialStatus, updateUserActivePlan } from '@/app/auth/actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
 
 // The local data is now removed, as we will fetch it from Firestore.
 // We define a type for the plan data we expect.
@@ -36,9 +37,12 @@ export default function SubscriptionPage() {
   const [dataLoading, setDataLoading] = useState(true);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number; } | null>(null);
+  const [isUpgrading, setIsUpgrading] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const isVendor = userProfile?.role === 'vendor';
   const trialUsed = userProfile?.trialUsed || false;
+  const activePlanId = userProfile?.activePlanId;
 
   useEffect(() => {
     async function fetchPlans() {
@@ -64,7 +68,8 @@ export default function SubscriptionPage() {
   }, [authLoading, isVendor, trialUsed]);
 
   useEffect(() => {
-    if (!trialUsed && userProfile?.subscriptionStartDate) {
+    // Only set up a timer if the active plan is 'trial' and it hasn't been marked as used yet.
+    if (activePlanId === 'trial' && !trialUsed && userProfile?.subscriptionStartDate) {
       const trialPlan = plans.find(p => p.id === 'trial');
       if (trialPlan && trialPlan.trialDays) {
         const subscriptionStartDate = new Date(userProfile.subscriptionStartDate);
@@ -73,9 +78,10 @@ export default function SubscriptionPage() {
         setEndDate(end);
       }
     } else {
-      setEndDate(null); // No trial or trial is used
+      setEndDate(null); // No trial or trial is used or not the active plan
+      setTimeLeft(null);
     }
-  }, [plans, userProfile?.subscriptionStartDate, trialUsed]);
+  }, [plans, userProfile?.subscriptionStartDate, trialUsed, activePlanId]);
 
 
   useEffect(() => {
@@ -99,7 +105,7 @@ export default function SubscriptionPage() {
       }
 
       const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60));
       const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
@@ -109,11 +115,31 @@ export default function SubscriptionPage() {
     return () => clearInterval(timer);
   }, [endDate, user, trialUsed]);
 
+  const handleUpgradePlan = async (planId: string) => {
+    if (!user) return;
+    setIsUpgrading(planId);
+    const result = await updateUserActivePlan(user.uid, planId);
+    if(result.success) {
+      toast({
+        title: "Plan Updated!",
+        description: "Your subscription plan has been successfully updated.",
+      });
+    } else {
+       toast({
+        variant: "destructive",
+        title: "Update Failed",
+        description: result.message || "Could not update your plan.",
+      });
+    }
+    setIsUpgrading(null);
+  };
+
+
   const plansWithCurrentStatus = plans.map(p => ({
     ...p,
-    // The trial plan is current only if the timer is running
-    isCurrent: p.id === 'trial' && timeLeft !== null,
-    // In a real app, you'd check a user's subscription status for other plans
+    // A plan is current if its ID matches the activePlanId in the user's profile
+    // For the trial, it's only current if the timer is also running
+    isCurrent: p.id === 'trial' ? (p.id === activePlanId && timeLeft !== null) : p.id === activePlanId,
   }));
 
   if (authLoading) {
@@ -194,7 +220,7 @@ export default function SubscriptionPage() {
       />
       <div className="flex-1 p-4 md:p-6 overflow-auto">
       
-        {timeLeft && (
+        {timeLeft && activePlanId === 'trial' && (
             <Card className="mb-8 bg-gradient-to-r from-yellow-400/20 to-amber-500/20 border-amber-500/50 shadow-lg">
                 <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="text-center md:text-left">
@@ -291,10 +317,12 @@ export default function SubscriptionPage() {
                 <Button
                   className="w-full text-base h-11 font-semibold"
                   variant={plan.isCurrent ? 'secondary' : (plan.variant as any)}
-                  disabled={plan.isCurrent}
+                  disabled={plan.isCurrent || isUpgrading === plan.id}
                   size="lg"
+                  onClick={() => handleUpgradePlan(plan.id)}
                 >
-                  {plan.isCurrent ? 'Your Current Plan' : plan.cta || "Upgrade plan"}
+                  {isUpgrading === plan.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                  {plan.isCurrent ? 'Your Current Plan' : isUpgrading === plan.id ? 'Activating...' : plan.cta || "Upgrade plan"}
                 </Button>
               </CardFooter>
             </Card>

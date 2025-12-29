@@ -107,6 +107,7 @@ export interface UserProfile {
   vendorCode?: string | null; // Associated vendor code
   subscriptionStartDate?: string; // ISO string for when subscription/trial starts
   trialUsed?: boolean; // To track if the user has used their trial
+  activePlanId?: string; // To track the current active plan ID
 }
 
 export interface Vendor {
