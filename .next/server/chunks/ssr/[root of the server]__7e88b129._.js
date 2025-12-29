@@ -45,8 +45,9 @@ __turbopack_async_result__();
 
 var { g: global, __dirname, a: __turbopack_async_module__ } = __turbopack_context__;
 __turbopack_async_module__(async (__turbopack_handle_async_dependencies__, __turbopack_async_result__) => { try {
-/* __next_internal_action_entry_do_not_use__ {"0058ccd4107f044ae62a70fc8e2eee88bfbe0baffe":"getVendorsFromFirestore","0086d1454012dae48d87f8b73ffe6497b833c94961":"signOut","00cf5330395e82bf8255922e76b18a7d7fd7cd3e01":"getCompanyDetailsFromRTDB","00dd23fa010684cc7dc200b3912066873c650a96f7":"getSubscriptionPlans","00fabfcbf6c7d5ce94aea620a37f0b27f8bc99710c":"getAllUsers","401f6e3642acf65262fa6d6423f207ff565e3c09fa":"saveCompanyDetailsToRTDB","403adb6b963b092fc1d79e2f15c10961a8a3444922":"saveSubscriptionPlan","4042fba4c964c1220f40c2e6c13f0a0d862e8d948b":"deleteVendorFromFirestore","40779c49dada2a560ce33d1bb110771da76088dfdb":"getUserProfile","40bf1e58e37d64aa62551098cfe74d13ce5ca568e6":"createUserProfile","600197aded821c9a500870fc90fb1fc9d483b962b8":"updateUserProfile","60264dd4e170d459c6d460ed6ff6579e23eea92dc5":"saveVendorToFirestore","606a4ec279f2e24ba2af4e3caf22487aef9541e622":"updateUserStatus","70ca33ff81d844b3ec58711e7aa07fe89bb380c947":"updateUserRole"} */ __turbopack_context__.s({
+/* __next_internal_action_entry_do_not_use__ {"0058ccd4107f044ae62a70fc8e2eee88bfbe0baffe":"getVendorsFromFirestore","0086d1454012dae48d87f8b73ffe6497b833c94961":"signOut","00cf5330395e82bf8255922e76b18a7d7fd7cd3e01":"getCompanyDetailsFromRTDB","00dd23fa010684cc7dc200b3912066873c650a96f7":"getSubscriptionPlans","00fabfcbf6c7d5ce94aea620a37f0b27f8bc99710c":"getAllUsers","401f6e3642acf65262fa6d6423f207ff565e3c09fa":"saveCompanyDetailsToRTDB","4042fba4c964c1220f40c2e6c13f0a0d862e8d948b":"deleteVendorFromFirestore","40779c49dada2a560ce33d1bb110771da76088dfdb":"getUserProfile","40bf1e58e37d64aa62551098cfe74d13ce5ca568e6":"createUserProfile","40cdd3186aceaa109d8100201e04baed5ae628d655":"deleteSubscriptionPlan","600197aded821c9a500870fc90fb1fc9d483b962b8":"updateUserProfile","60264dd4e170d459c6d460ed6ff6579e23eea92dc5":"saveVendorToFirestore","603adb6b963b092fc1d79e2f15c10961a8a3444922":"saveSubscriptionPlan","606a4ec279f2e24ba2af4e3caf22487aef9541e622":"updateUserStatus","70ca33ff81d844b3ec58711e7aa07fe89bb380c947":"updateUserRole"} */ __turbopack_context__.s({
     "createUserProfile": (()=>createUserProfile),
+    "deleteSubscriptionPlan": (()=>deleteSubscriptionPlan),
     "deleteVendorFromFirestore": (()=>deleteVendorFromFirestore),
     "getAllUsers": (()=>getAllUsers),
     "getCompanyDetailsFromRTDB": (()=>getCompanyDetailsFromRTDB),
@@ -133,7 +134,8 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ createUserProfile(detai
             displayName: details.displayName || 'New User',
             photoURL: details.photoURL || '',
             role: role,
-            status: 'active'
+            status: 'active',
+            subscriptionStartDate: new Date().toISOString()
         };
         await userRef.set(userProfile, {
             merge: true
@@ -424,23 +426,50 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ getSubscriptionPlans() 
         };
     }
 }
-async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ saveSubscriptionPlan(planData) {
+async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ saveSubscriptionPlan(planData, planId) {
     const adminApp = initializeAdminApp();
     const { firestore } = getAdminServices(adminApp);
     try {
-        const { id, ...dataToSave } = planData;
-        const planRef = firestore.collection('subscriptionPlans').doc(id);
-        await planRef.set(dataToSave, {
-            merge: true
-        });
+        let planRef;
+        if (planId) {
+            planRef = firestore.collection('subscriptionPlans').doc(planId);
+            await planRef.set(planData, {
+                merge: true
+            });
+        } else {
+            planRef = firestore.collection('subscriptionPlans').doc();
+            await planRef.set({
+                ...planData,
+                id: planRef.id
+            });
+        }
         return {
-            success: true
+            success: true,
+            id: planRef.id
         };
     } catch (error) {
         console.error('Failed to save subscription plan to Firestore (Admin):', error);
         return {
             success: false,
+            id: null,
             error: error.message || 'Failed to save subscription plan.'
+        };
+    }
+}
+async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ deleteSubscriptionPlan(planId) {
+    const adminApp = initializeAdminApp();
+    const { firestore } = getAdminServices(adminApp);
+    try {
+        const planRef = firestore.collection('subscriptionPlans').doc(planId);
+        await planRef.delete();
+        return {
+            success: true
+        };
+    } catch (error) {
+        console.error('Failed to delete subscription plan from Firestore (Admin):', error);
+        return {
+            success: false,
+            error: error.message || 'Failed to delete subscription plan.'
         };
     }
 }
@@ -459,7 +488,8 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ saveSubscriptionPlan(pl
     getVendorsFromFirestore,
     deleteVendorFromFirestore,
     getSubscriptionPlans,
-    saveSubscriptionPlan
+    saveSubscriptionPlan,
+    deleteSubscriptionPlan
 ]);
 (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(createUserProfile, "40bf1e58e37d64aa62551098cfe74d13ce5ca568e6", null);
 (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getUserProfile, "40779c49dada2a560ce33d1bb110771da76088dfdb", null);
@@ -474,7 +504,8 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ saveSubscriptionPlan(pl
 (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getVendorsFromFirestore, "0058ccd4107f044ae62a70fc8e2eee88bfbe0baffe", null);
 (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(deleteVendorFromFirestore, "4042fba4c964c1220f40c2e6c13f0a0d862e8d948b", null);
 (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getSubscriptionPlans, "00dd23fa010684cc7dc200b3912066873c650a96f7", null);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(saveSubscriptionPlan, "403adb6b963b092fc1d79e2f15c10961a8a3444922", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(saveSubscriptionPlan, "603adb6b963b092fc1d79e2f15c10961a8a3444922", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(deleteSubscriptionPlan, "40cdd3186aceaa109d8100201e04baed5ae628d655", null);
 __turbopack_async_result__();
 } catch(e) { __turbopack_async_result__(e); } }, false);}),
 "[project]/.next-internal/server/app/signup/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript) <locals>": ((__turbopack_context__) => {
@@ -483,6 +514,7 @@ __turbopack_async_result__();
 var { g: global, __dirname } = __turbopack_context__;
 {
 __turbopack_context__.s({});
+;
 ;
 ;
 ;
@@ -524,12 +556,13 @@ __turbopack_context__.s({
     "00dd23fa010684cc7dc200b3912066873c650a96f7": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getSubscriptionPlans"]),
     "00fabfcbf6c7d5ce94aea620a37f0b27f8bc99710c": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getAllUsers"]),
     "401f6e3642acf65262fa6d6423f207ff565e3c09fa": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["saveCompanyDetailsToRTDB"]),
-    "403adb6b963b092fc1d79e2f15c10961a8a3444922": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["saveSubscriptionPlan"]),
     "4042fba4c964c1220f40c2e6c13f0a0d862e8d948b": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["deleteVendorFromFirestore"]),
     "40779c49dada2a560ce33d1bb110771da76088dfdb": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getUserProfile"]),
     "40bf1e58e37d64aa62551098cfe74d13ce5ca568e6": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["createUserProfile"]),
+    "40cdd3186aceaa109d8100201e04baed5ae628d655": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["deleteSubscriptionPlan"]),
     "600197aded821c9a500870fc90fb1fc9d483b962b8": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["updateUserProfile"]),
     "60264dd4e170d459c6d460ed6ff6579e23eea92dc5": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["saveVendorToFirestore"]),
+    "603adb6b963b092fc1d79e2f15c10961a8a3444922": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["saveSubscriptionPlan"]),
     "606a4ec279f2e24ba2af4e3caf22487aef9541e622": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["updateUserStatus"]),
     "70ca33ff81d844b3ec58711e7aa07fe89bb380c947": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["updateUserRole"])
 });
@@ -553,12 +586,13 @@ __turbopack_context__.s({
     "00dd23fa010684cc7dc200b3912066873c650a96f7": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$signup$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["00dd23fa010684cc7dc200b3912066873c650a96f7"]),
     "00fabfcbf6c7d5ce94aea620a37f0b27f8bc99710c": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$signup$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["00fabfcbf6c7d5ce94aea620a37f0b27f8bc99710c"]),
     "401f6e3642acf65262fa6d6423f207ff565e3c09fa": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$signup$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["401f6e3642acf65262fa6d6423f207ff565e3c09fa"]),
-    "403adb6b963b092fc1d79e2f15c10961a8a3444922": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$signup$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["403adb6b963b092fc1d79e2f15c10961a8a3444922"]),
     "4042fba4c964c1220f40c2e6c13f0a0d862e8d948b": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$signup$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["4042fba4c964c1220f40c2e6c13f0a0d862e8d948b"]),
     "40779c49dada2a560ce33d1bb110771da76088dfdb": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$signup$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["40779c49dada2a560ce33d1bb110771da76088dfdb"]),
     "40bf1e58e37d64aa62551098cfe74d13ce5ca568e6": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$signup$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["40bf1e58e37d64aa62551098cfe74d13ce5ca568e6"]),
+    "40cdd3186aceaa109d8100201e04baed5ae628d655": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$signup$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["40cdd3186aceaa109d8100201e04baed5ae628d655"]),
     "600197aded821c9a500870fc90fb1fc9d483b962b8": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$signup$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["600197aded821c9a500870fc90fb1fc9d483b962b8"]),
     "60264dd4e170d459c6d460ed6ff6579e23eea92dc5": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$signup$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["60264dd4e170d459c6d460ed6ff6579e23eea92dc5"]),
+    "603adb6b963b092fc1d79e2f15c10961a8a3444922": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$signup$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["603adb6b963b092fc1d79e2f15c10961a8a3444922"]),
     "606a4ec279f2e24ba2af4e3caf22487aef9541e622": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$signup$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["606a4ec279f2e24ba2af4e3caf22487aef9541e622"]),
     "70ca33ff81d844b3ec58711e7aa07fe89bb380c947": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$signup$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["70ca33ff81d844b3ec58711e7aa07fe89bb380c947"])
 });

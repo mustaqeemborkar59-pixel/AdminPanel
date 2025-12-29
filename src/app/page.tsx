@@ -14,7 +14,7 @@ import { getVendorsFromFirestore, getAllUsers } from '@/app/auth/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { format, eachDayOfInterval, startOfTomorrow, startOfDay, endOfDay } from 'date-fns';
+import { format, eachDayOfInterval, startOfDay, endOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import type { DateRange } from "react-day-picker";
 import { useAppContext } from '@/components/layout/app-content-wrapper';
@@ -179,8 +179,8 @@ function DashboardContent() {
 
       if(fromDate && toDate) {
         const timeZone = 'Asia/Kolkata';
-        const startDate = startOfDay(fromDate);
-        const endDate = endOfDay(toDate);
+        const startDate = startOfDay(toZonedTime(fromDate, timeZone));
+        const endDate = endOfDay(toZonedTime(toDate, timeZone));
 
         // Use the same filtering logic for chart data.
         const recentPaidSuccessfulOrders = vendorFilteredOrders.filter(order => {
@@ -468,8 +468,7 @@ function DashboardContent() {
   );
 }
 
-export default function DashboardPage()
- {
+export default function DashboardPage() {
   return (
     <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading Dashboard...</div>}>
       <DashboardContent />
