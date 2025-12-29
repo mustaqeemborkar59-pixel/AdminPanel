@@ -27,7 +27,7 @@ export interface SubscriptionPlan {
   cta: string;
   variant: 'outline' | 'default';
   isCurrent?: boolean; // This will be determined client-side
-  durationDays?: number;
+  trialDays?: number;
 }
 
 
@@ -70,10 +70,10 @@ export default function SubscriptionPage() {
   useEffect(() => {
     if (activePlanId && userProfile?.subscriptionStartDate) {
       const activePlan = plans.find(p => p.id === activePlanId);
-      if (activePlan && activePlan.durationDays && activePlan.durationDays > 0) {
+      if (activePlan && activePlan.trialDays && activePlan.trialDays > 0) {
         const subscriptionStartDate = new Date(userProfile.subscriptionStartDate);
         const end = new Date(subscriptionStartDate.getTime());
-        end.setDate(end.getDate() + activePlan.durationDays);
+        end.setDate(end.getDate() + activePlan.trialDays);
         setEndDate(end);
       } else {
         setEndDate(null);
@@ -276,9 +276,9 @@ export default function SubscriptionPage() {
               
               
               <div className="px-6 pb-2 text-center">
-                  {plan.durationDays && plan.durationDays > 0 && (
+                  {plan.trialDays && plan.trialDays > 0 && (
                      <Badge variant="outline" className="w-fit mx-auto font-semibold border-amber-400/30 bg-amber-400/20 text-amber-600 dark:text-amber-400">
-                      {plan.price === '₹0' ? `${plan.durationDays}-Day Free Trial` : `Duration: ${plan.durationDays} Days`}
+                      {plan.price === '₹0' ? `${plan.trialDays}-Day Free Trial` : `Duration: ${plan.trialDays} Days`}
                     </Badge>
                   )}
               </div>

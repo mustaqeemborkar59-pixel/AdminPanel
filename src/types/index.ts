@@ -147,5 +147,5 @@ export interface SubscriptionPlan {
   cta: string;
   variant: 'outline' | 'default';
   isCurrent?: boolean;
-  durationDays?: number;
+  trialDays?: number;
 }

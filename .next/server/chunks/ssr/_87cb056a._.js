@@ -227,7 +227,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$toast
 ;
 ;
 function SubscriptionPage() {
-    const { user, userProfile, authLoading } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$layout$2f$app$2d$content$2d$wrapper$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useAppContext"])();
+    const { user, userProfile, authLoading, refreshUserProfile } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$layout$2f$app$2d$content$2d$wrapper$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useAppContext"])();
     const [plans, setPlans] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
     const [dataLoading, setDataLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(true);
     const [endDate, setEndDate] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
@@ -262,23 +262,22 @@ function SubscriptionPage() {
         trialUsed
     ]);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
-        // Only set up a timer if the active plan is 'trial' and it hasn't been marked as used yet.
-        if (activePlanId === 'trial' && !trialUsed && userProfile?.subscriptionStartDate) {
-            const trialPlan = plans.find((p)=>p.id === 'trial');
-            if (trialPlan && trialPlan.trialDays) {
+        if (activePlanId && userProfile?.subscriptionStartDate) {
+            const activePlan = plans.find((p)=>p.id === activePlanId);
+            if (activePlan && activePlan.trialDays && activePlan.trialDays > 0) {
                 const subscriptionStartDate = new Date(userProfile.subscriptionStartDate);
                 const end = new Date(subscriptionStartDate.getTime());
-                end.setDate(end.getDate() + trialPlan.trialDays);
+                end.setDate(end.getDate() + activePlan.trialDays);
                 setEndDate(end);
+            } else {
+                setEndDate(null);
             }
         } else {
-            setEndDate(null); // No trial or trial is used or not the active plan
-            setTimeLeft(null);
+            setEndDate(null);
         }
     }, [
         plans,
         userProfile?.subscriptionStartDate,
-        trialUsed,
         activePlanId
     ]);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
@@ -294,8 +293,9 @@ function SubscriptionPage() {
                 clearInterval(timer);
                 setTimeLeft(null);
                 // If trial has ended and status is not yet updated in DB, update it.
-                if (!trialUsed) {
+                if (activePlanId === 'trial' && !trialUsed) {
                     await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["updateUserTrialStatus"])(user.uid, true);
+                    await refreshUserProfile(); // Refresh profile to get the latest `trialUsed` status
                 }
                 return;
             }
@@ -314,7 +314,9 @@ function SubscriptionPage() {
     }, [
         endDate,
         user,
-        trialUsed
+        trialUsed,
+        activePlanId,
+        refreshUserProfile
     ]);
     const handleUpgradePlan = async (planId)=>{
         if (!user) return;
@@ -325,6 +327,7 @@ function SubscriptionPage() {
                 title: "Plan Updated!",
                 description: "Your subscription plan has been successfully updated."
             });
+            await refreshUserProfile(); // Manually trigger profile refresh
         } else {
             toast({
                 variant: "destructive",
@@ -336,9 +339,7 @@ function SubscriptionPage() {
     };
     const plansWithCurrentStatus = plans.map((p)=>({
             ...p,
-            // A plan is current if its ID matches the activePlanId in the user's profile
-            // For the trial, it's only current if the timer is also running
-            isCurrent: p.id === 'trial' ? p.id === activePlanId && timeLeft !== null : p.id === activePlanId
+            isCurrent: p.id === activePlanId
         }));
     if (authLoading) {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -573,7 +574,7 @@ function SubscriptionPage() {
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "flex-1 p-4 md:p-6 overflow-auto",
                 children: [
-                    timeLeft && activePlanId === 'trial' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
+                    timeLeft && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
                         className: "mb-8 bg-gradient-to-r from-yellow-400/20 to-amber-500/20 border-amber-500/50 shadow-lg",
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
                             className: "p-6 flex flex-col md:flex-row items-center justify-between gap-4",
@@ -591,7 +592,7 @@ function SubscriptionPage() {
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                             className: "text-sm text-amber-700 dark:text-amber-400",
-                                            children: "Your current trial plan is ending soon."
+                                            children: "Your current plan is ending soon."
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/usage/page.tsx",
                                             lineNumber: 228,

@@ -41,7 +41,7 @@ const newPlanDefault: Omit<SubscriptionPlan, 'id'> = {
   features: [{ text: 'New Feature', included: true }],
   cta: 'Upgrade plan',
   variant: 'outline',
-  durationDays: 0,
+  trialDays: 0,
 };
 
 const defaultTrialPlan: SubscriptionPlan = {
@@ -57,7 +57,7 @@ const defaultTrialPlan: SubscriptionPlan = {
   ],
   cta: 'Start Trial',
   variant: 'default',
-  durationDays: 14
+  trialDays: 14
 };
 
 export function SubscriptionPlanSettings() {
@@ -243,8 +243,8 @@ export function SubscriptionPlanSettings() {
                                 <Input id={`regularPrice-${plan.id}`} value={plan.regularPrice || ''} onChange={(e) => handlePlanChange(plan.id, 'regularPrice', e.target.value)} disabled={isSaving === plan.id} placeholder="e.g., ₹999"/>
                             </div>
                             <div className="space-y-1">
-                                <Label htmlFor={`durationDays-${plan.id}`}>Duration (Days)</Label>
-                                <Input id={`durationDays-${plan.id}`} type="number" value={plan.durationDays || 0} onChange={(e) => handlePlanChange(plan.id, 'durationDays', parseInt(e.target.value) || 0)} disabled={isSaving === plan.id} />
+                                <Label htmlFor={`trialDays-${plan.id}`}>Duration (Days)</Label>
+                                <Input id={`trialDays-${plan.id}`} type="number" value={plan.trialDays || 0} onChange={(e) => handlePlanChange(plan.id, 'trialDays', parseInt(e.target.value) || 0)} disabled={isSaving === plan.id} />
                             </div>
                              <div className="space-y-1">
                                 <Label htmlFor={`cta-${plan.id}`}>Button Text (CTA)</Label>

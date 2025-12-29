@@ -395,7 +395,7 @@
           "type": "string",
           "description": "A short description of the plan."
         },
-        "durationDays": {
+        "trialDays": {
             "type": "number",
             "description": "Duration of the plan in days. Used for timers."
         },
