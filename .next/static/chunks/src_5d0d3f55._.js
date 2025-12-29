@@ -1880,6 +1880,7 @@ var _s = __turbopack_context__.k.signature();
 const newPlanDefault = {
     name: 'New Plan',
     price: '₹',
+    regularPrice: '',
     pricePeriod: '/month',
     description: 'A new subscription plan.',
     features: [
@@ -1896,6 +1897,7 @@ const defaultTrialPlan = {
     id: 'trial',
     name: 'Free Trial',
     price: '₹0',
+    regularPrice: '',
     pricePeriod: '',
     description: 'Get started with our basic features.',
     features: [
@@ -2012,7 +2014,7 @@ function SubscriptionPlanSettings() {
                 {
                     ...newPlanDefault,
                     id: tempId,
-                    cta: 'Upgrade Plan'
+                    cta: 'Upgrade plan'
                 }
             ]);
     };
@@ -2080,14 +2082,14 @@ function SubscriptionPlanSettings() {
                                     className: "mr-2 h-5 w-5 text-primary"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                    lineNumber: 193,
+                                    lineNumber: 195,
                                     columnNumber: 13
                                 }, this),
                                 " Subscription Plans"
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                            lineNumber: 192,
+                            lineNumber: 194,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardDescription"], {
@@ -2095,13 +2097,13 @@ function SubscriptionPlanSettings() {
                             children: "Manage the details for each subscription plan offered to vendors."
                         }, void 0, false, {
                             fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                            lineNumber: 195,
+                            lineNumber: 197,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                    lineNumber: 191,
+                    lineNumber: 193,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -2111,33 +2113,33 @@ function SubscriptionPlanSettings() {
                             className: "h-12 w-full"
                         }, void 0, false, {
                             fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                            lineNumber: 200,
-                            columnNumber: 13
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$skeleton$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Skeleton"], {
-                            className: "h-12 w-full"
-                        }, void 0, false, {
-                            fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                            lineNumber: 201,
-                            columnNumber: 13
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$skeleton$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Skeleton"], {
-                            className: "h-12 w-full"
-                        }, void 0, false, {
-                            fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
                             lineNumber: 202,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$skeleton$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Skeleton"], {
+                            className: "h-12 w-full"
+                        }, void 0, false, {
+                            fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
+                            lineNumber: 203,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$skeleton$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Skeleton"], {
+                            className: "h-12 w-full"
+                        }, void 0, false, {
+                            fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
+                            lineNumber: 204,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                    lineNumber: 199,
+                    lineNumber: 201,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-            lineNumber: 190,
+            lineNumber: 192,
             columnNumber: 7
         }, this);
     }
@@ -2153,14 +2155,14 @@ function SubscriptionPlanSettings() {
                                 className: "mr-2 h-5 w-5 text-primary"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                lineNumber: 212,
+                                lineNumber: 214,
                                 columnNumber: 11
                             }, this),
                             " Subscription Plans"
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                        lineNumber: 211,
+                        lineNumber: 213,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardDescription"], {
@@ -2168,13 +2170,13 @@ function SubscriptionPlanSettings() {
                         children: "Manage the details for each subscription plan offered to vendors."
                     }, void 0, false, {
                         fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                        lineNumber: 214,
+                        lineNumber: 216,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                lineNumber: 210,
+                lineNumber: 212,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -2198,7 +2200,7 @@ function SubscriptionPlanSettings() {
                                         children: plan.name
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                        lineNumber: 226,
+                                        lineNumber: 228,
                                         columnNumber: 21
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$accordion$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AccordionContent"], {
@@ -2215,7 +2217,7 @@ function SubscriptionPlanSettings() {
                                                                 children: "Plan Name"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                lineNumber: 232,
+                                                                lineNumber: 234,
                                                                 columnNumber: 33
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -2225,13 +2227,13 @@ function SubscriptionPlanSettings() {
                                                                 disabled: isSaving === plan.id
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                lineNumber: 233,
+                                                                lineNumber: 235,
                                                                 columnNumber: 33
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                        lineNumber: 231,
+                                                        lineNumber: 233,
                                                         columnNumber: 29
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2242,7 +2244,7 @@ function SubscriptionPlanSettings() {
                                                                 children: "Price"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                lineNumber: 236,
+                                                                lineNumber: 238,
                                                                 columnNumber: 33
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -2252,13 +2254,41 @@ function SubscriptionPlanSettings() {
                                                                 disabled: isSaving === plan.id
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                lineNumber: 237,
+                                                                lineNumber: 239,
                                                                 columnNumber: 33
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                        lineNumber: 235,
+                                                        lineNumber: 237,
+                                                        columnNumber: 29
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                        className: "space-y-1",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
+                                                                htmlFor: `regularPrice-${plan.id}`,
+                                                                children: "Regular Price (Optional)"
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
+                                                                lineNumber: 242,
+                                                                columnNumber: 33
+                                                            }, this),
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
+                                                                id: `regularPrice-${plan.id}`,
+                                                                value: plan.regularPrice || '',
+                                                                onChange: (e)=>handlePlanChange(plan.id, 'regularPrice', e.target.value),
+                                                                disabled: isSaving === plan.id,
+                                                                placeholder: "e.g., ₹999"
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
+                                                                lineNumber: 243,
+                                                                columnNumber: 33
+                                                            }, this)
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
+                                                        lineNumber: 241,
                                                         columnNumber: 29
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2269,7 +2299,7 @@ function SubscriptionPlanSettings() {
                                                                 children: "Trial Duration (Days)"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                lineNumber: 240,
+                                                                lineNumber: 246,
                                                                 columnNumber: 33
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -2280,13 +2310,13 @@ function SubscriptionPlanSettings() {
                                                                 disabled: isSaving === plan.id
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                lineNumber: 241,
+                                                                lineNumber: 247,
                                                                 columnNumber: 33
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                        lineNumber: 239,
+                                                        lineNumber: 245,
                                                         columnNumber: 29
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2297,7 +2327,7 @@ function SubscriptionPlanSettings() {
                                                                 children: "Button Text (CTA)"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                lineNumber: 244,
+                                                                lineNumber: 250,
                                                                 columnNumber: 33
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -2307,13 +2337,13 @@ function SubscriptionPlanSettings() {
                                                                 disabled: isSaving === plan.id
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                lineNumber: 245,
+                                                                lineNumber: 251,
                                                                 columnNumber: 33
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                        lineNumber: 243,
+                                                        lineNumber: 249,
                                                         columnNumber: 30
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2324,7 +2354,7 @@ function SubscriptionPlanSettings() {
                                                                 children: "Description"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                lineNumber: 248,
+                                                                lineNumber: 254,
                                                                 columnNumber: 33
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -2334,19 +2364,19 @@ function SubscriptionPlanSettings() {
                                                                 disabled: isSaving === plan.id
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                lineNumber: 249,
+                                                                lineNumber: 255,
                                                                 columnNumber: 33
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                        lineNumber: 247,
+                                                        lineNumber: 253,
                                                         columnNumber: 30
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                lineNumber: 230,
+                                                lineNumber: 232,
                                                 columnNumber: 25
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2356,7 +2386,7 @@ function SubscriptionPlanSettings() {
                                                         children: "Features"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                        lineNumber: 254,
+                                                        lineNumber: 260,
                                                         columnNumber: 29
                                                     }, this),
                                                     plan.features.map((feature, index)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2369,7 +2399,7 @@ function SubscriptionPlanSettings() {
                                                                     disabled: isSaving === plan.id
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                    lineNumber: 257,
+                                                                    lineNumber: 263,
                                                                     columnNumber: 37
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -2379,7 +2409,7 @@ function SubscriptionPlanSettings() {
                                                                     disabled: isSaving === plan.id
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                    lineNumber: 263,
+                                                                    lineNumber: 269,
                                                                     columnNumber: 37
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -2393,18 +2423,18 @@ function SubscriptionPlanSettings() {
                                                                         className: "h-4 w-4"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                        lineNumber: 270,
+                                                                        lineNumber: 276,
                                                                         columnNumber: 41
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                    lineNumber: 269,
+                                                                    lineNumber: 275,
                                                                     columnNumber: 37
                                                                 }, this)
                                                             ]
                                                         }, index, true, {
                                                             fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                            lineNumber: 256,
+                                                            lineNumber: 262,
                                                             columnNumber: 33
                                                         }, this)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -2418,20 +2448,20 @@ function SubscriptionPlanSettings() {
                                                                 className: "mr-2 h-4 w-4"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                lineNumber: 275,
+                                                                lineNumber: 281,
                                                                 columnNumber: 33
                                                             }, this),
                                                             " Add Feature"
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                        lineNumber: 274,
+                                                        lineNumber: 280,
                                                         columnNumber: 30
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                lineNumber: 253,
+                                                lineNumber: 259,
                                                 columnNumber: 25
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2449,19 +2479,19 @@ function SubscriptionPlanSettings() {
                                                                             className: "mr-2 h-4 w-4"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                            lineNumber: 283,
+                                                                            lineNumber: 289,
                                                                             columnNumber: 41
                                                                         }, this),
                                                                         " Remove Plan"
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                    lineNumber: 282,
+                                                                    lineNumber: 288,
                                                                     columnNumber: 37
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                lineNumber: 281,
+                                                                lineNumber: 287,
                                                                 columnNumber: 33
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$alert$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AlertDialogContent"], {
@@ -2472,7 +2502,7 @@ function SubscriptionPlanSettings() {
                                                                                 children: "Are you absolutely sure?"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                                lineNumber: 288,
+                                                                                lineNumber: 294,
                                                                                 columnNumber: 37
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$alert$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AlertDialogDescription"], {
@@ -2482,36 +2512,12 @@ function SubscriptionPlanSettings() {
                                                                                         children: plan.name
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                                        lineNumber: 290,
+                                                                                        lineNumber: 296,
                                                                                         columnNumber: 100
                                                                                     }, this),
                                                                                     " plan."
                                                                                 ]
                                                                             }, void 0, true, {
-                                                                                fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                                lineNumber: 289,
-                                                                                columnNumber: 37
-                                                                            }, this)
-                                                                        ]
-                                                                    }, void 0, true, {
-                                                                        fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                        lineNumber: 287,
-                                                                        columnNumber: 33
-                                                                    }, this),
-                                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$alert$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AlertDialogFooter"], {
-                                                                        children: [
-                                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$alert$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AlertDialogCancel"], {
-                                                                                children: "Cancel"
-                                                                            }, void 0, false, {
-                                                                                fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                                lineNumber: 294,
-                                                                                columnNumber: 37
-                                                                            }, this),
-                                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$alert$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AlertDialogAction"], {
-                                                                                onClick: ()=>handleRemovePlan(plan.id),
-                                                                                className: "bg-destructive hover:bg-destructive/90",
-                                                                                children: "Yes, delete it"
-                                                                            }, void 0, false, {
                                                                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
                                                                                 lineNumber: 295,
                                                                                 columnNumber: 37
@@ -2521,17 +2527,41 @@ function SubscriptionPlanSettings() {
                                                                         fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
                                                                         lineNumber: 293,
                                                                         columnNumber: 33
+                                                                    }, this),
+                                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$alert$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AlertDialogFooter"], {
+                                                                        children: [
+                                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$alert$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AlertDialogCancel"], {
+                                                                                children: "Cancel"
+                                                                            }, void 0, false, {
+                                                                                fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
+                                                                                lineNumber: 300,
+                                                                                columnNumber: 37
+                                                                            }, this),
+                                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$alert$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AlertDialogAction"], {
+                                                                                onClick: ()=>handleRemovePlan(plan.id),
+                                                                                className: "bg-destructive hover:bg-destructive/90",
+                                                                                children: "Yes, delete it"
+                                                                            }, void 0, false, {
+                                                                                fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
+                                                                                lineNumber: 301,
+                                                                                columnNumber: 37
+                                                                            }, this)
+                                                                        ]
+                                                                    }, void 0, true, {
+                                                                        fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
+                                                                        lineNumber: 299,
+                                                                        columnNumber: 33
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                lineNumber: 286,
+                                                                lineNumber: 292,
                                                                 columnNumber: 33
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                        lineNumber: 280,
+                                                        lineNumber: 286,
                                                         columnNumber: 30
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -2542,37 +2572,37 @@ function SubscriptionPlanSettings() {
                                                                 className: "mr-2 h-4 w-4 animate-spin"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                                lineNumber: 303,
+                                                                lineNumber: 309,
                                                                 columnNumber: 58
                                                             }, this),
                                                             isSaving === plan.id ? 'Saving...' : 'Save Plan'
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                        lineNumber: 302,
+                                                        lineNumber: 308,
                                                         columnNumber: 29
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                                lineNumber: 279,
+                                                lineNumber: 285,
                                                 columnNumber: 25
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                        lineNumber: 229,
+                                        lineNumber: 231,
                                         columnNumber: 21
                                     }, this)
                                 ]
                             }, plan.id, true, {
                                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                lineNumber: 225,
+                                lineNumber: 227,
                                 columnNumber: 17
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                        lineNumber: 219,
+                        lineNumber: 221,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2586,31 +2616,31 @@ function SubscriptionPlanSettings() {
                                     className: "mr-2 h-4 w-4"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                                    lineNumber: 315,
+                                    lineNumber: 321,
                                     columnNumber: 17
                                 }, this),
                                 "Add New Plan"
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                            lineNumber: 314,
+                            lineNumber: 320,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                        lineNumber: 313,
+                        lineNumber: 319,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-                lineNumber: 218,
+                lineNumber: 220,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/settings/subscription-plan-settings.tsx",
-        lineNumber: 209,
+        lineNumber: 211,
         columnNumber: 5
     }, this);
 }

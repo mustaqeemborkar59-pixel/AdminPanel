@@ -170,7 +170,7 @@ export default function SubscriptionPage() {
                 <div className="text-center flex items-baseline justify-center gap-2">
                     <span className="text-4xl font-bold">{plan.price}</span>
                     {plan.regularPrice && (
-                      <span className="text-xl font-medium text-muted-foreground line-through">
+                      <span className="text-xl font-medium text-muted-foreground">
                         {plan.regularPrice}
                       </span>
                     )}
