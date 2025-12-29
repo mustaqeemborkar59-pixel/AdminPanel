@@ -156,8 +156,13 @@ function DashboardContent() {
 
   useEffect(() => {
     if (vendorFilteredOrders.length > 0) {
-      // Calculate total sales only from orders with a payment date.
-      const validOrdersForRevenue = vendorFilteredOrders.filter(order => order.paymentDate);
+      // Define successful statuses for revenue calculation.
+      const successfulStatuses: OrderStatus[] = ['completed', 'processing', 'queue', 'dispatch', 'hold'];
+
+      // Calculate total sales only from paid and successful orders.
+      const validOrdersForRevenue = vendorFilteredOrders.filter(order => 
+        order.paymentDate && successfulStatuses.includes(order.status)
+      );
 
       const currentTotalSales = validOrdersForRevenue.reduce((sum, order) => sum + order.totalAmount, 0);
       const currentTotalOrders = vendorFilteredOrders.length;
@@ -177,8 +182,9 @@ function DashboardContent() {
         const startDate = startOfDay(fromDate);
         const endDate = endOfDay(toDate);
 
-        const recentPaidOrders = vendorFilteredOrders.filter(order => {
-            if (!order.paymentDate) return false;
+        // Use the same filtering logic for chart data.
+        const recentPaidSuccessfulOrders = vendorFilteredOrders.filter(order => {
+            if (!order.paymentDate || !successfulStatuses.includes(order.status)) return false;
             try {
               // Convert payment date string to a date object in the correct timezone
               const paymentDateInIST = toZonedTime(order.paymentDate, timeZone);
@@ -199,7 +205,7 @@ function DashboardContent() {
           orders: 0
         }));
 
-        recentPaidOrders.forEach(order => {
+        recentPaidSuccessfulOrders.forEach(order => {
             if (!order.paymentDate) return;
             try {
               // Use startOfDay on the timezone-aware date to get the correct day for grouping
@@ -495,5 +501,3 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
-
-    
