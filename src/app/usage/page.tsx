@@ -166,7 +166,7 @@ export default function SubscriptionPage() {
               <CardContent className="flex-grow space-y-6">
                 <div className="text-center">
                     <span className="text-4xl font-bold">{plan.price}</span>
-                    {plan.pricePeriod && <span className="text-muted-foreground">{plan.pricePeriod}</span>}
+                    {plan.pricePeriod && plan.price !== '₹0' && (!plan.trialDays || plan.trialDays === 0) && <span className="text-muted-foreground">{plan.pricePeriod}</span>}
                 </div>
                 <ul className="space-y-3 text-sm">
                     {plan.features.map((feature, index) => (

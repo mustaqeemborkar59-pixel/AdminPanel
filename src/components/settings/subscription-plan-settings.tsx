@@ -68,12 +68,13 @@ export function SubscriptionPlanSettings() {
     setIsLoading(true);
     const result = await getSubscriptionPlans();
     if (result.success && result.data) {
-      // If no plans exist, create a default trial plan.
-      if (result.data.length === 0) {
-        setPlans([defaultTrialPlan]);
-      } else {
-        setPlans(result.data);
-      }
+        let fetchedPlans = result.data;
+        // Ensure a trial plan always exists.
+        const hasTrialPlan = fetchedPlans.some(p => p.id === 'trial');
+        if (!hasTrialPlan) {
+            fetchedPlans = [defaultTrialPlan, ...fetchedPlans];
+        }
+        setPlans(fetchedPlans);
     } else {
       toast({
         variant: "destructive",
