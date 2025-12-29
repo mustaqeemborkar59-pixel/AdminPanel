@@ -94,10 +94,10 @@ function LoginForm() {
         // The AppContentWrapper now handles all redirection logic.
         } catch (e) {
             const firebaseError = e;
-            if (firebaseError.code === 'auth/invalid-credential') {
+            if (firebaseError.code === 'auth/invalid-credential' || firebaseError.code === 'auth/user-not-found' || firebaseError.code === 'auth/wrong-password') {
                 setError('Invalid email or password. Please try again.');
             } else if (firebaseError.code === 'auth/user-disabled') {
-                setError('This user account has been disabled.');
+                setError('This user account has been disabled by an administrator.');
             } else if (firebaseError.code === 'auth/invalid-email') {
                 setError('The email address is not valid.');
             } else if (firebaseError.code === 'auth/operation-not-allowed') {
