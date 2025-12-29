@@ -1,6 +1,6 @@
 
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Loader2, Lock } from 'lucide-react';
 import type { UserProfile } from '@/types';
@@ -18,11 +18,14 @@ export default function StaffPage() {
 
   const isSuperAdmin = userProfile?.role === 'super-admin';
   
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
+    if (!isSuperAdmin) {
+      setDataLoading(false);
+      return;
+    }
     setDataLoading(true);
     const result = await getAllUsers();
     if (result.success && result.data) {
-      // Filter out the current super admin from the list
       const filteredUsers = result.data.filter(u => u.uid !== userProfile?.uid);
       setUsers(filteredUsers);
     } else {
@@ -33,15 +36,13 @@ export default function StaffPage() {
       });
     }
     setDataLoading(false);
-  };
+  }, [isSuperAdmin, userProfile?.uid, toast]);
 
   useEffect(() => {
-    if (!authLoading && isSuperAdmin) {
+    if (!authLoading) {
       fetchUsers();
-    } else if (!authLoading && !isSuperAdmin) {
-      setDataLoading(false);
     }
-  }, [authLoading, isSuperAdmin, userProfile]);
+  }, [authLoading, fetchUsers]);
 
   const handleStatusChange = async (userId: string, newStatus: 'active' | 'blocked') => {
       const result = await updateUserStatus(userId, newStatus);

@@ -37,9 +37,14 @@ export default function AdminsPage() {
   const isCurrentUserSuperAdmin = currentUserProfile?.role === 'super-admin';
 
   const fetchAllData = async () => {
-      if (!currentUserProfile) return;
+      if (!currentUserProfile || !isCurrentUserSuperAdmin) {
+        setDataLoading(false);
+        return;
+      };
+
+      setDataLoading(true);
       
-      const usersResult = await getAllUsers(); // Firestore action
+      const usersResult = await getAllUsers();
       if (usersResult.success && usersResult.data) {
           const filteredUsers = usersResult.data.filter(user => user.uid !== currentUserProfile.uid);
           setUsers(filteredUsers);
@@ -61,21 +66,18 @@ export default function AdminsPage() {
           description: vendorsResult.error || "Could not fetch vendors.",
         });
       }
+      setDataLoading(false);
   };
 
   useEffect(() => {
+    // We only fetch data if the user is a super admin and auth is not loading.
     if (!authLoading && isCurrentUserSuperAdmin) {
-      const fetchInitialData = async () => {
-        setDataLoading(true);
-        await fetchAllData();
-        setDataLoading(false);
-      };
-      
-      fetchInitialData();
-    } else if (!authLoading && !isCurrentUserSuperAdmin) {
-        setDataLoading(false);
+      fetchAllData();
+    } else if (!authLoading) {
+      // If not super admin, just stop the loading state.
+      setDataLoading(false);
     }
-  }, [authLoading, isCurrentUserSuperAdmin, currentUserProfile, toast]);
+  }, [authLoading, isCurrentUserSuperAdmin, currentUserProfile?.uid]);
 
 
   const handleRoleChange = async (userId: string, newRole: 'admin' | 'vendor' | 'user' | 'super-admin', vendorCode?: string) => {
@@ -85,7 +87,7 @@ export default function AdminsPage() {
         title: "Role Updated",
         description: "The user's role has been successfully updated.",
       });
-      await fetchAllData();
+      await fetchAllData(); // Refresh data after a successful role change
     } else {
       toast({
         variant: "destructive",
