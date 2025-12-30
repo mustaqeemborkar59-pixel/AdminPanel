@@ -173,6 +173,16 @@ export default function OrdersPage() {
 
 
   const handleUpdateOrderStatus = async (orderId: string, status: OrderStatus) => {
+    // Security check: Prevent vendors without an active premium plan from updating.
+    if (isVendor && !isPremiumActive) {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "You must have an active premium plan to update order status.",
+      });
+      return; // Stop the function here.
+    }
+
     const originalOrders = [...orders];
     setOrders(prevOrders => prevOrders.map(order => order.id === orderId ? { ...order, status } : order));
 
@@ -834,3 +844,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
