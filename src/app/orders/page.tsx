@@ -758,7 +758,7 @@ export default function OrdersPage() {
         </div>
       </div>
 
-       {isVendor && !isPremiumActive && (
+       {!isLoading && isVendor && !isPremiumActive && (
           <div className="px-4 md:px-6 mt-4">
             <Alert variant="default" className="border-primary/50 bg-primary/10">
               <Gem className="h-4 w-4 !text-primary" />
