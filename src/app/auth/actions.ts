@@ -77,6 +77,7 @@ export async function createUserProfile(details: UserProfileOnSignup): Promise<{
       subscriptionStartDate: new Date().toISOString(), // Set subscription start date on creation
       trialUsed: false, // Initialize trialUsed as false for new users
       activePlanId: 'trial', // Default active plan is trial
+      canUpdateOrderStatus: false, // Default permission is false
     };
 
     await userRef.set(userProfile, { merge: true });
@@ -174,6 +175,20 @@ export async function updateUserRole(userId: string, role: 'admin' | 'vendor' | 
         return { success: false, message: error.message || 'Failed to update user role.' };
     }
 }
+
+export async function updateUserPermission(userId: string, canUpdate: boolean): Promise<{ success: boolean; message?: string }> {
+    const adminApp = initializeAdminApp();
+    const { firestore } = getAdminServices(adminApp);
+    try {
+        const userRef = firestore.collection('users').doc(userId);
+        await userRef.update({ canUpdateOrderStatus: canUpdate });
+        return { success: true };
+    } catch (error: any) {
+        console.error('Failed to update user permission (Admin):', error);
+        return { success: false, message: error.message || 'Failed to update permission.' };
+    }
+}
+
 
 export async function updateUserStatus(userId: string, status: 'active' | 'blocked'): Promise<{ success: boolean, message?: string }> {
     const adminApp = initializeAdminApp();

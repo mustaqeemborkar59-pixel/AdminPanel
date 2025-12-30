@@ -91,6 +91,9 @@ export default function OrdersPage() {
   const userRole = userProfile?.role;
   const isVendor = userRole === 'vendor';
 
+  // The new permission check for updating status
+  const canUpdateStatus = userProfile?.role === 'super-admin' || userProfile?.role === 'admin' || (userProfile?.canUpdateOrderStatus ?? false);
+
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -133,7 +136,7 @@ export default function OrdersPage() {
   }, [toast, isVendor]);
 
   useEffect(() => {
-    if (isVendor && userProfile && subscriptionPlans.length > 0) {
+    if (userProfile && subscriptionPlans.length > 0) {
         const activePlanId = userProfile.activePlanId;
         const subStartDate = userProfile.subscriptionStartDate;
 
@@ -158,7 +161,7 @@ export default function OrdersPage() {
         else {
             setIsPremiumActive(false);
         }
-    } else if (!isVendor) {
+    } else if (userProfile && (userProfile.role === 'admin' || userProfile.role === 'super-admin')) {
         // For non-vendors (admin, super-admin), premium is always active
         setIsPremiumActive(true);
     }
@@ -172,12 +175,12 @@ export default function OrdersPage() {
 
 
   const handleUpdateOrderStatus = async (orderId: string, status: OrderStatus) => {
-    // Security check: Prevent vendors without an active premium plan from updating.
-    if (isVendor && !isPremiumActive) {
+    // Security check: Now based on the canUpdateStatus flag.
+    if (!canUpdateStatus) {
       toast({
         variant: "destructive",
-        title: "Access Denied",
-        description: "You must have an active premium plan to update order status.",
+        title: "Permission Denied",
+        description: "You do not have permission to update order status.",
       });
       return; // Stop the function here.
     }
@@ -802,6 +805,7 @@ export default function OrdersPage() {
                   formatDate={formatDateInIST}
                   userRole={userRole}
                   isPremiumActive={isPremiumActive}
+                  canUpdateStatus={canUpdateStatus}
                 />
               ))}
             </Accordion>

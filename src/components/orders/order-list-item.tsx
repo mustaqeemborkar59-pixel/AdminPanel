@@ -37,6 +37,7 @@ interface OrderListItemProps {
   formatDate: (date: string | Date) => string;
   userRole: UserProfile['role'] | undefined;
   isPremiumActive: boolean; // New prop to control blurring
+  canUpdateStatus: boolean; // New prop for status update permission
 }
 
 const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; label: string }> = {
@@ -51,7 +52,7 @@ const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; 
 };
 
 
-export function OrderListItem({ order, onUpdateStatus, value, isSelected, onToggleSelect, formatDate, userRole, isPremiumActive }: OrderListItemProps) {
+export function OrderListItem({ order, onUpdateStatus, value, isSelected, onToggleSelect, formatDate, userRole, isPremiumActive, canUpdateStatus }: OrderListItemProps) {
   const { toast } = useToast();
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   
@@ -169,13 +170,13 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                          <Select 
                             value={order.status} 
                             onValueChange={(value) => onUpdateStatus(order.id, value as OrderStatus)}
-                            disabled={!isPremiumActive}
+                            disabled={!canUpdateStatus}
                          >
                             <SelectTrigger className={cn(
                                 "w-full sm:w-[140px] font-body text-xs h-9 capitalize text-white font-semibold",
                                 currentStatusInfo.color,
                                 'border-transparent',
-                                !isPremiumActive && 'cursor-not-allowed opacity-70'
+                                !canUpdateStatus && 'cursor-not-allowed opacity-70'
                             )}>
                                 <div className="flex items-center gap-1.5">
                                     <StatusIcon className="h-3 w-3" />

@@ -108,6 +108,7 @@ export interface UserProfile {
   subscriptionStartDate?: string; // ISO string for when subscription/trial starts
   trialUsed?: boolean; // To track if the user has used their trial
   activePlanId?: string; // To track the current active plan ID
+  canUpdateOrderStatus?: boolean; // New permission field
 }
 
 export interface Vendor {
