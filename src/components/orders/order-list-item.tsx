@@ -169,13 +169,13 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                          <Select 
                             value={order.status} 
                             onValueChange={(value) => onUpdateStatus(order.id, value as OrderStatus)}
-                            disabled={isVendor || !isPremiumActive}
+                            disabled={!isPremiumActive}
                          >
                             <SelectTrigger className={cn(
                                 "w-full sm:w-[140px] font-body text-xs h-9 capitalize text-white font-semibold",
                                 currentStatusInfo.color,
                                 'border-transparent',
-                                (isVendor || !isPremiumActive) && 'cursor-not-allowed opacity-70'
+                                !isPremiumActive && 'cursor-not-allowed opacity-70'
                             )}>
                                 <div className="flex items-center gap-1.5">
                                     <StatusIcon className="h-3 w-3" />
@@ -201,7 +201,7 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                 </div>
             </CardHeader>
              <AccordionContent>
-                <CardContent className={cn("p-4 pt-0 space-y-4 transition-all", !isPremiumActive && 'blur-sm select-none pointer-events-none')}>
+                <CardContent className={cn("p-4 pt-0 space-y-4 transition-all", !isPremiumActive && 'blur-sm select-none')}>
                     <div className="space-y-2">
                         {order.items.map(item => (
                             <div key={item.itemId} className="flex items-center gap-3 text-sm p-2 rounded-md bg-muted/50">
