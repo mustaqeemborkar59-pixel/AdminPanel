@@ -247,7 +247,7 @@ export default function SubscriptionPage() {
             </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+        <div className="flex flex-wrap justify-center gap-8 max-w-7xl mx-auto">
           {plansWithCurrentStatus.sort((a, b) => {
               if (a.id === 'trial') return -1;
               if (b.id === 'trial') return 1;
@@ -256,7 +256,7 @@ export default function SubscriptionPage() {
             <Card
               key={plan.id}
               className={cn(
-                "shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col transform hover:-translate-y-1",
+                "shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col transform hover:-translate-y-1 w-full max-w-sm",
                 plan.isCurrent && timeLeft && "border-primary border-2 ring-2 ring-primary/20",
                 plan.variant === 'default' && !plan.isCurrent && "bg-primary/5 dark:bg-primary/10"
               )}
@@ -327,5 +327,3 @@ export default function SubscriptionPage() {
     </div>
   );
 }
-
-    
