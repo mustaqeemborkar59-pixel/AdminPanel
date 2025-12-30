@@ -339,14 +339,14 @@ function SubscriptionPage() {
                         clearInterval(timer);
                         setTimeLeft(null);
                         // If trial has ended and status is not yet updated in DB, update it.
-                        if (activePlanId === 'trial' && !trialUsed) {
+                        if (!trialUsed) {
                             await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["updateUserTrialStatus"])(user.uid, true);
                             await refreshUserProfile(); // Refresh profile to get the latest `trialUsed` status
                         }
                         return;
                     }
                     const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                    const hours = Math.floor(distance % (1000 * 60 * 60 * 24) / (1000 * 60));
+                    const hours = Math.floor(distance % (1000 * 60 * 60 * 24) / (1000 * 60 * 60));
                     const minutes = Math.floor(distance % (1000 * 60 * 60) / (1000 * 60));
                     const seconds = Math.floor(distance % (1000 * 60) / 1000);
                     setTimeLeft({
@@ -624,172 +624,152 @@ function SubscriptionPage() {
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "flex-1 p-4 md:p-6 overflow-auto",
                 children: [
-                    timeLeft && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
-                        className: "mb-8 bg-gradient-to-r from-yellow-400/20 to-amber-500/20 border-amber-500/50 shadow-lg",
-                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
-                            className: "p-6 flex flex-col md:flex-row items-center justify-between gap-4",
-                            children: [
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "text-center md:text-left",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                            className: "text-xl font-bold text-amber-800 dark:text-amber-300",
-                                            children: "Premium Ends In"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/app/usage/page.tsx",
-                                            lineNumber: 227,
-                                            columnNumber: 25
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                            className: "text-sm text-amber-700 dark:text-amber-400",
-                                            children: "Your current plan is ending soon."
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/app/usage/page.tsx",
-                                            lineNumber: 228,
-                                            columnNumber: 25
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/src/app/usage/page.tsx",
-                                    lineNumber: 226,
-                                    columnNumber: 21
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "flex items-center gap-4 text-center",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-4xl font-bold text-amber-900 dark:text-amber-200",
-                                                    children: timeLeft.days
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/app/usage/page.tsx",
-                                                    lineNumber: 232,
-                                                    columnNumber: 29
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-xs uppercase text-amber-800/80 dark:text-amber-300/80",
-                                                    children: "Days"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/app/usage/page.tsx",
-                                                    lineNumber: 233,
-                                                    columnNumber: 29
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/src/app/usage/page.tsx",
-                                            lineNumber: 231,
-                                            columnNumber: 25
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "text-2xl font-semibold opacity-50",
-                                            children: ":"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/app/usage/page.tsx",
-                                            lineNumber: 235,
-                                            columnNumber: 26
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-4xl font-bold text-amber-900 dark:text-amber-200",
-                                                    children: String(timeLeft.hours).padStart(2, '0')
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/app/usage/page.tsx",
-                                                    lineNumber: 237,
-                                                    columnNumber: 29
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-xs uppercase text-amber-800/80 dark:text-amber-300/80",
-                                                    children: "Hours"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/app/usage/page.tsx",
-                                                    lineNumber: 238,
-                                                    columnNumber: 29
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/src/app/usage/page.tsx",
-                                            lineNumber: 236,
-                                            columnNumber: 25
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "text-2xl font-semibold opacity-50",
-                                            children: ":"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/app/usage/page.tsx",
-                                            lineNumber: 240,
-                                            columnNumber: 26
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-4xl font-bold text-amber-900 dark:text-amber-200",
-                                                    children: String(timeLeft.minutes).padStart(2, '0')
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/app/usage/page.tsx",
-                                                    lineNumber: 242,
-                                                    columnNumber: 29
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-xs uppercase text-amber-800/80 dark:text-amber-300/80",
-                                                    children: "Minutes"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/app/usage/page.tsx",
-                                                    lineNumber: 243,
-                                                    columnNumber: 29
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/src/app/usage/page.tsx",
-                                            lineNumber: 241,
-                                            columnNumber: 25
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "text-2xl font-semibold opacity-50",
-                                            children: ":"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/app/usage/page.tsx",
-                                            lineNumber: 245,
-                                            columnNumber: 26
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            children: [
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-4xl font-bold text-amber-900 dark:text-amber-200",
-                                                    children: String(timeLeft.seconds).padStart(2, '0')
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/app/usage/page.tsx",
-                                                    lineNumber: 247,
-                                                    columnNumber: 29
-                                                }, this),
-                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                    className: "text-xs uppercase text-amber-800/80 dark:text-amber-300/80",
-                                                    children: "Seconds"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/app/usage/page.tsx",
-                                                    lineNumber: 248,
-                                                    columnNumber: 29
-                                                }, this)
-                                            ]
-                                        }, void 0, true, {
-                                            fileName: "[project]/src/app/usage/page.tsx",
-                                            lineNumber: 246,
-                                            columnNumber: 25
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/src/app/usage/page.tsx",
-                                    lineNumber: 230,
-                                    columnNumber: 21
-                                }, this)
-                            ]
-                        }, void 0, true, {
-                            fileName: "[project]/src/app/usage/page.tsx",
-                            lineNumber: 225,
-                            columnNumber: 17
-                        }, this)
-                    }, void 0, false, {
+                    timeLeft && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "mb-8 bg-black rounded-lg p-6 shadow-lg flex flex-col items-center gap-4",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                                className: "text-2xl font-bold text-white font-orbitron tracking-wider",
+                                children: "Premium Ends In"
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/usage/page.tsx",
+                                lineNumber: 225,
+                                columnNumber: 18
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "flex items-center justify-center gap-2 md:gap-4 text-center font-orbitron",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "flex flex-col items-center p-2 rounded-lg min-w-[70px] md:min-w-[90px]",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                className: "text-5xl md:text-6xl font-bold text-white tracking-widest",
+                                                children: String(timeLeft.days).padStart(2, '0')
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/app/usage/page.tsx",
+                                                lineNumber: 228,
+                                                columnNumber: 25
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                className: "text-xs uppercase text-neutral-300 tracking-wider",
+                                                children: "Days"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/app/usage/page.tsx",
+                                                lineNumber: 229,
+                                                columnNumber: 25
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/src/app/usage/page.tsx",
+                                        lineNumber: 227,
+                                        columnNumber: 21
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "text-4xl font-semibold text-neutral-400 pb-5",
+                                        children: ":"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/usage/page.tsx",
+                                        lineNumber: 231,
+                                        columnNumber: 22
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "flex flex-col items-center p-2 rounded-lg min-w-[70px] md:min-w-[90px]",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                className: "text-5xl md:text-6xl font-bold text-white tracking-widest",
+                                                children: String(timeLeft.hours).padStart(2, '0')
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/app/usage/page.tsx",
+                                                lineNumber: 233,
+                                                columnNumber: 25
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                className: "text-xs uppercase text-neutral-300 tracking-wider",
+                                                children: "Hours"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/app/usage/page.tsx",
+                                                lineNumber: 234,
+                                                columnNumber: 25
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/src/app/usage/page.tsx",
+                                        lineNumber: 232,
+                                        columnNumber: 21
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "text-4xl font-semibold text-neutral-400 pb-5",
+                                        children: ":"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/usage/page.tsx",
+                                        lineNumber: 236,
+                                        columnNumber: 22
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "flex flex-col items-center p-2 rounded-lg min-w-[70px] md:min-w-[90px]",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                className: "text-5xl md:text-6xl font-bold text-white tracking-widest",
+                                                children: String(timeLeft.minutes).padStart(2, '0')
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/app/usage/page.tsx",
+                                                lineNumber: 238,
+                                                columnNumber: 25
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                className: "text-xs uppercase text-neutral-300 tracking-wider",
+                                                children: "Minutes"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/app/usage/page.tsx",
+                                                lineNumber: 239,
+                                                columnNumber: 25
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/src/app/usage/page.tsx",
+                                        lineNumber: 237,
+                                        columnNumber: 21
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "text-4xl font-semibold text-neutral-400 pb-5",
+                                        children: ":"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/usage/page.tsx",
+                                        lineNumber: 241,
+                                        columnNumber: 22
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "flex flex-col items-center p-2 rounded-lg min-w-[70px] md:min-w-[90px]",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                className: "text-5xl md:text-6xl font-bold text-white tracking-widest",
+                                                children: String(timeLeft.seconds).padStart(2, '0')
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/app/usage/page.tsx",
+                                                lineNumber: 243,
+                                                columnNumber: 25
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                className: "text-xs uppercase text-neutral-300 tracking-wider",
+                                                children: "Seconds"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/app/usage/page.tsx",
+                                                lineNumber: 244,
+                                                columnNumber: 25
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/src/app/usage/page.tsx",
+                                        lineNumber: 242,
+                                        columnNumber: 21
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/src/app/usage/page.tsx",
+                                lineNumber: 226,
+                                columnNumber: 17
+                            }, this)
+                        ]
+                    }, void 0, true, {
                         fileName: "[project]/src/app/usage/page.tsx",
                         lineNumber: 224,
                         columnNumber: 13
@@ -803,14 +783,14 @@ function SubscriptionPage() {
                                 numeric: true
                             });
                         }).map((plan)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
-                                className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col transform hover:-translate-y-1", plan.isCurrent && "border-primary border-2 ring-2 ring-primary/20", plan.variant === 'default' && !plan.isCurrent && "bg-primary/5 dark:bg-primary/10"),
+                                className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col transform hover:-translate-y-1", plan.isCurrent && timeLeft && "border-primary border-2 ring-2 ring-primary/20", plan.variant === 'default' && !plan.isCurrent && "bg-primary/5 dark:bg-primary/10"),
                                 children: [
-                                    plan.isCurrent && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$badge$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Badge"], {
+                                    plan.isCurrent && timeLeft && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$badge$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Badge"], {
                                         className: "absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 text-sm",
                                         children: "Current Plan"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/usage/page.tsx",
-                                        lineNumber: 270,
+                                        lineNumber: 265,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardHeader"], {
@@ -821,7 +801,7 @@ function SubscriptionPage() {
                                                 children: plan.name
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/usage/page.tsx",
-                                                lineNumber: 273,
+                                                lineNumber: 268,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardDescription"], {
@@ -829,13 +809,13 @@ function SubscriptionPage() {
                                                 children: plan.description
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/usage/page.tsx",
-                                                lineNumber: 274,
+                                                lineNumber: 269,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/usage/page.tsx",
-                                        lineNumber: 272,
+                                        lineNumber: 267,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -846,12 +826,12 @@ function SubscriptionPage() {
                                             children: plan.price === '₹0' ? `${plan.trialDays}-Day Free Trial` : `Duration: ${plan.trialDays} Days`
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/usage/page.tsx",
-                                            lineNumber: 280,
+                                            lineNumber: 275,
                                             columnNumber: 22
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/usage/page.tsx",
-                                        lineNumber: 278,
+                                        lineNumber: 273,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -867,7 +847,7 @@ function SubscriptionPage() {
                                                             children: plan.price
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/usage/page.tsx",
-                                                            lineNumber: 289,
+                                                            lineNumber: 284,
                                                             columnNumber: 25
                                                         }, this),
                                                         plan.regularPrice && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -875,18 +855,18 @@ function SubscriptionPage() {
                                                             children: plan.regularPrice
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/usage/page.tsx",
-                                                            lineNumber: 291,
+                                                            lineNumber: 286,
                                                             columnNumber: 27
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/usage/page.tsx",
-                                                    lineNumber: 288,
+                                                    lineNumber: 283,
                                                     columnNumber: 21
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/usage/page.tsx",
-                                                lineNumber: 287,
+                                                lineNumber: 282,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -894,7 +874,7 @@ function SubscriptionPage() {
                                                 children: [
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$separator$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Separator"], {}, void 0, false, {
                                                         fileName: "[project]/src/app/usage/page.tsx",
-                                                        lineNumber: 299,
+                                                        lineNumber: 294,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -906,13 +886,13 @@ function SubscriptionPage() {
                                                                         className: "h-5 w-5 text-green-500 mt-0.5 shrink-0"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/usage/page.tsx",
-                                                                        lineNumber: 304,
+                                                                        lineNumber: 299,
                                                                         columnNumber: 37
                                                                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$x$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__X$3e$__["X"], {
                                                                         className: "h-5 w-5 text-red-500 mt-0.5 shrink-0"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/usage/page.tsx",
-                                                                        lineNumber: 306,
+                                                                        lineNumber: 301,
                                                                         columnNumber: 37
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -920,38 +900,38 @@ function SubscriptionPage() {
                                                                         children: feature.text
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/usage/page.tsx",
-                                                                        lineNumber: 308,
+                                                                        lineNumber: 303,
                                                                         columnNumber: 33
                                                                     }, this)
                                                                 ]
                                                             }, index, true, {
                                                                 fileName: "[project]/src/app/usage/page.tsx",
-                                                                lineNumber: 302,
+                                                                lineNumber: 297,
                                                                 columnNumber: 29
                                                             }, this))
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/usage/page.tsx",
-                                                        lineNumber: 300,
+                                                        lineNumber: 295,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/usage/page.tsx",
-                                                lineNumber: 298,
+                                                lineNumber: 293,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/usage/page.tsx",
-                                        lineNumber: 286,
+                                        lineNumber: 281,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardFooter"], {
                                         className: "p-6",
                                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
                                             className: "w-full text-base h-11 font-semibold",
-                                            variant: plan.isCurrent ? 'secondary' : plan.variant,
-                                            disabled: plan.isCurrent || isUpgrading === plan.id,
+                                            variant: plan.isCurrent && timeLeft ? 'secondary' : plan.variant,
+                                            disabled: plan.isCurrent && !!timeLeft || isUpgrading === plan.id,
                                             size: "lg",
                                             onClick: ()=>handleUpgradePlan(plan.id),
                                             children: [
@@ -959,30 +939,30 @@ function SubscriptionPage() {
                                                     className: "mr-2 h-4 w-4 animate-spin"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/usage/page.tsx",
-                                                    lineNumber: 324,
+                                                    lineNumber: 319,
                                                     columnNumber: 46
                                                 }, this) : null,
-                                                plan.isCurrent ? 'Your Current Plan' : isUpgrading === plan.id ? 'Activating...' : plan.cta || "Upgrade plan"
+                                                plan.isCurrent && timeLeft ? 'Your Current Plan' : isUpgrading === plan.id ? 'Activating...' : plan.cta || "Upgrade plan"
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/usage/page.tsx",
-                                            lineNumber: 317,
+                                            lineNumber: 312,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/usage/page.tsx",
-                                        lineNumber: 316,
+                                        lineNumber: 311,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, plan.id, true, {
                                 fileName: "[project]/src/app/usage/page.tsx",
-                                lineNumber: 261,
+                                lineNumber: 256,
                                 columnNumber: 13
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/src/app/usage/page.tsx",
-                        lineNumber: 255,
+                        lineNumber: 250,
                         columnNumber: 9
                     }, this)
                 ]

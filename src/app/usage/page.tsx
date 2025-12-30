@@ -221,35 +221,30 @@ export default function SubscriptionPage() {
       <div className="flex-1 p-4 md:p-6 overflow-auto">
       
         {timeLeft && (
-            <Card className="mb-8 bg-gradient-to-r from-yellow-400/20 to-amber-500/20 border-amber-500/50 shadow-lg">
-                <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="text-center md:text-left">
-                        <h3 className="text-xl font-bold text-amber-800 dark:text-amber-300">Premium Ends In</h3>
-                        <p className="text-sm text-amber-700 dark:text-amber-400">Your current plan is ending soon.</p>
+            <div className="mb-8 bg-black rounded-lg p-6 shadow-lg flex flex-col items-center gap-4">
+                 <h3 className="text-2xl font-bold text-white font-orbitron tracking-wider">Premium Ends In</h3>
+                <div className="flex items-center justify-center gap-2 md:gap-4 text-center font-orbitron">
+                    <div className="flex flex-col items-center p-2 rounded-lg min-w-[70px] md:min-w-[90px]">
+                        <p className="text-5xl md:text-6xl font-bold text-white tracking-widest">{String(timeLeft.days).padStart(2, '0')}</p>
+                        <p className="text-xs uppercase text-neutral-300 tracking-wider">Days</p>
                     </div>
-                    <div className="flex items-center gap-4 text-center">
-                        <div>
-                            <p className="text-4xl font-bold text-amber-900 dark:text-amber-200">{timeLeft.days}</p>
-                            <p className="text-xs uppercase text-amber-800/80 dark:text-amber-300/80">Days</p>
-                        </div>
-                         <div className="text-2xl font-semibold opacity-50">:</div>
-                        <div>
-                            <p className="text-4xl font-bold text-amber-900 dark:text-amber-200">{String(timeLeft.hours).padStart(2, '0')}</p>
-                            <p className="text-xs uppercase text-amber-800/80 dark:text-amber-300/80">Hours</p>
-                        </div>
-                         <div className="text-2xl font-semibold opacity-50">:</div>
-                        <div>
-                            <p className="text-4xl font-bold text-amber-900 dark:text-amber-200">{String(timeLeft.minutes).padStart(2, '0')}</p>
-                            <p className="text-xs uppercase text-amber-800/80 dark:text-amber-300/80">Minutes</p>
-                        </div>
-                         <div className="text-2xl font-semibold opacity-50">:</div>
-                        <div>
-                            <p className="text-4xl font-bold text-amber-900 dark:text-amber-200">{String(timeLeft.seconds).padStart(2, '0')}</p>
-                            <p className="text-xs uppercase text-amber-800/80 dark:text-amber-300/80">Seconds</p>
-                        </div>
+                     <div className="text-4xl font-semibold text-neutral-400 pb-5">:</div>
+                    <div className="flex flex-col items-center p-2 rounded-lg min-w-[70px] md:min-w-[90px]">
+                        <p className="text-5xl md:text-6xl font-bold text-white tracking-widest">{String(timeLeft.hours).padStart(2, '0')}</p>
+                        <p className="text-xs uppercase text-neutral-300 tracking-wider">Hours</p>
                     </div>
-                </CardContent>
-            </Card>
+                     <div className="text-4xl font-semibold text-neutral-400 pb-5">:</div>
+                    <div className="flex flex-col items-center p-2 rounded-lg min-w-[70px] md:min-w-[90px]">
+                        <p className="text-5xl md:text-6xl font-bold text-white tracking-widest">{String(timeLeft.minutes).padStart(2, '0')}</p>
+                        <p className="text-xs uppercase text-neutral-300 tracking-wider">Minutes</p>
+                    </div>
+                     <div className="text-4xl font-semibold text-neutral-400 pb-5">:</div>
+                    <div className="flex flex-col items-center p-2 rounded-lg min-w-[70px] md:min-w-[90px]">
+                        <p className="text-5xl md:text-6xl font-bold text-white tracking-widest">{String(timeLeft.seconds).padStart(2, '0')}</p>
+                        <p className="text-xs uppercase text-neutral-300 tracking-wider">Seconds</p>
+                    </div>
+                </div>
+            </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
@@ -262,11 +257,11 @@ export default function SubscriptionPage() {
               key={plan.id}
               className={cn(
                 "shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col transform hover:-translate-y-1",
-                plan.isCurrent && "border-primary border-2 ring-2 ring-primary/20",
+                plan.isCurrent && timeLeft && "border-primary border-2 ring-2 ring-primary/20",
                 plan.variant === 'default' && !plan.isCurrent && "bg-primary/5 dark:bg-primary/10"
               )}
             >
-              {plan.isCurrent && (
+              {plan.isCurrent && timeLeft && (
                 <Badge className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 text-sm">Current Plan</Badge>
               )}
               <CardHeader className="text-center pt-8">
@@ -316,13 +311,13 @@ export default function SubscriptionPage() {
               <CardFooter className="p-6">
                 <Button
                   className="w-full text-base h-11 font-semibold"
-                  variant={plan.isCurrent ? 'secondary' : (plan.variant as any)}
-                  disabled={plan.isCurrent || isUpgrading === plan.id}
+                  variant={plan.isCurrent && timeLeft ? 'secondary' : (plan.variant as any)}
+                  disabled={(plan.isCurrent && !!timeLeft) || isUpgrading === plan.id}
                   size="lg"
                   onClick={() => handleUpgradePlan(plan.id)}
                 >
                   {isUpgrading === plan.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                  {plan.isCurrent ? 'Your Current Plan' : isUpgrading === plan.id ? 'Activating...' : plan.cta || "Upgrade plan"}
+                  {plan.isCurrent && timeLeft ? 'Your Current Plan' : isUpgrading === plan.id ? 'Activating...' : plan.cta || "Upgrade plan"}
                 </Button>
               </CardFooter>
             </Card>
