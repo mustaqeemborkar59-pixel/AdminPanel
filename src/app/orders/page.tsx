@@ -133,7 +133,7 @@ export default function OrdersPage() {
   }, [toast, isVendor]);
 
   useEffect(() => {
-    if (isVendor && userProfile) {
+    if (isVendor && userProfile && subscriptionPlans.length > 0) {
         const activePlanId = userProfile.activePlanId;
         const subStartDate = userProfile.subscriptionStartDate;
 
@@ -141,22 +141,21 @@ export default function OrdersPage() {
             setIsPremiumActive(false);
             return;
         }
+        
+        const activePlan = subscriptionPlans.find(p => p.id === activePlanId);
 
-        if (activePlanId !== 'trial') {
-            setIsPremiumActive(true); // Any non-trial plan is considered premium
-            return;
-        }
-
-        // Handle trial plan expiration check
-        const plan = subscriptionPlans.find(p => p.id === activePlanId);
-        if (plan && plan.trialDays && plan.trialDays > 0) {
+        if (activePlan && activePlan.trialDays && activePlan.trialDays > 0) {
             const startDate = new Date(subStartDate);
             const endDate = new Date(startDate);
-            endDate.setDate(startDate.getDate() + plan.trialDays);
+            endDate.setDate(startDate.getDate() + activePlan.trialDays);
             
-            // If current date is before the end date, trial is active
+            // Premium is active if the current date is before the calculated end date.
             setIsPremiumActive(new Date() < endDate);
-        } else {
+        } else if(activePlan && (!activePlan.trialDays || activePlan.trialDays <= 0)) {
+            // If a plan exists but has no duration (or duration is 0), it's considered premium indefinitely.
+            setIsPremiumActive(true);
+        }
+        else {
             setIsPremiumActive(false);
         }
     } else if (!isVendor) {
