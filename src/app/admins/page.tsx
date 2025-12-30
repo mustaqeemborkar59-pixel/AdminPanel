@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/page-header';
 import { getAllUsers, updateUserRole, getVendorsFromFirestore, updateUserPermission } from '@/app/auth/actions'; // Using Firestore actions
 import type { UserProfile, Vendor } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ShieldCheck, Store, User, Lock, Crown, Unplug } from 'lucide-react';
+import { Loader2, ShieldCheck, Store, User, Lock, Crown } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -73,24 +73,22 @@ export default function AdminsPage() {
   };
 
   useEffect(() => {
-    // We only fetch data if the user is a super admin and auth is not loading.
     if (!authLoading && isCurrentUserSuperAdmin) {
       fetchAllData();
     } else if (!authLoading) {
-      // If not super admin, just stop the loading state.
       setDataLoading(false);
     }
   }, [authLoading, isCurrentUserSuperAdmin, currentUserProfile?.uid]);
 
 
   const handleRoleChange = async (userId: string, newRole: 'admin' | 'vendor' | 'user' | 'super-admin', vendorCode?: string) => {
-    const result = await updateUserRole(userId, newRole, vendorCode); // Firestore action
+    const result = await updateUserRole(userId, newRole, vendorCode);
     if (result.success) {
       toast({
         title: "Role Updated",
         description: "The user's role has been successfully updated.",
       });
-      await fetchAllData(); // Refresh data after a successful role change
+      await fetchAllData();
     } else {
       toast({
         variant: "destructive",
@@ -180,7 +178,8 @@ export default function AdminsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="font-headline">User</TableHead>
-                    <TableHead className="font-headline text-center">Current Role</TableHead>
+                    <TableHead className="font-headline text-center">Role</TableHead>
+                    <TableHead className="font-headline text-center">Permissions</TableHead>
                     <TableHead className="text-right font-headline">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -207,9 +206,8 @@ export default function AdminsPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-center">{getRoleBadge(user)}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end items-center gap-2">
-                           <div className="flex items-center space-x-2 mr-4">
+                      <TableCell>
+                         <div className="flex justify-center items-center space-x-2">
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <Switch
@@ -224,7 +222,9 @@ export default function AdminsPage() {
                               </Tooltip>
                               <Label htmlFor={`permission-${user.uid}`} className="text-sm text-muted-foreground">Update Status</Label>
                           </div>
-
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end items-center gap-2">
                           {user.role === 'vendor' && (
                               <Select
                                   value={user.vendorCode || ''}
@@ -245,7 +245,7 @@ export default function AdminsPage() {
                               value={user.role || 'user'}
                               onValueChange={(value) => handleRoleChange(user.uid, value as 'admin' | 'vendor' | 'user' | 'super-admin', user.vendorCode)}
                             >
-                              <SelectTrigger className="w-[140px] ml-auto h-9">
+                              <SelectTrigger className="w-[140px] h-9">
                                 <SelectValue placeholder="Select role" />
                               </SelectTrigger>
                               <SelectContent>
