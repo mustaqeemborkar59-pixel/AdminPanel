@@ -775,7 +775,7 @@ function SubscriptionPage() {
                         columnNumber: 13
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto",
+                        className: "flex flex-wrap justify-center gap-8 max-w-7xl mx-auto",
                         children: plansWithCurrentStatus.sort((a, b)=>{
                             if (a.id === 'trial') return -1;
                             if (b.id === 'trial') return 1;
@@ -783,7 +783,7 @@ function SubscriptionPage() {
                                 numeric: true
                             });
                         }).map((plan)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
-                                className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col transform hover:-translate-y-1", plan.isCurrent && timeLeft && "border-primary border-2 ring-2 ring-primary/20", plan.variant === 'default' && !plan.isCurrent && "bg-primary/5 dark:bg-primary/10"),
+                                className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col transform hover:-translate-y-1 w-full max-w-sm", plan.isCurrent && timeLeft && "border-primary border-2 ring-2 ring-primary/20", plan.variant === 'default' && !plan.isCurrent && "bg-primary/5 dark:bg-primary/10"),
                                 children: [
                                     plan.isCurrent && timeLeft && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$badge$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Badge"], {
                                         className: "absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 text-sm",

@@ -1428,6 +1428,10 @@ input, button, textarea, select {
   border-color: #0000;
 }
 
+.border-primary\/50 {
+  border-color: hsl(var(--primary) / .5);
+}
+
 .border-l-transparent {
   border-left-color: #0000;
 }
@@ -2099,6 +2103,14 @@ input, button, textarea, select {
   color: #fffc;
 }
 
+.\!text-primary {
+  color: hsl(var(--primary)) !important;
+}
+
+.text-primary\/80 {
+  color: hsl(var(--primary) / .8);
+}
+
 .line-through {
   text-decoration-line: line-through;
 }
@@ -2205,6 +2217,11 @@ input, button, textarea, select {
 
 .ring-offset-background {
   --tw-ring-offset-color: hsl(var(--background));
+}
+
+.blur-sm {
+  --tw-blur: blur(4px);
+  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
 }
 
 .filter {

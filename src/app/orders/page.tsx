@@ -19,9 +19,9 @@ import {
   DropdownMenuPortal
 } from "@/components/ui/dropdown-menu";
 import { getOrdersFromWooCommerce, updateOrderStatusInWooCommerce } from './actions';
-import { getCompanyDetailsFromRTDB, getVendorsFromFirestore } from '@/app/auth/actions';
+import { getCompanyDetailsFromRTDB, getVendorsFromFirestore, getSubscriptionPlans } from '@/app/auth/actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Search, ListFilter, Download, FileDown, FileText, FileSpreadsheet, Calendar as CalendarIcon, Building } from 'lucide-react';
+import { Loader2, Search, ListFilter, Download, FileDown, FileText, FileSpreadsheet, Calendar as CalendarIcon, Building, Gem } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -36,6 +36,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { useAppContext } from '@/components/layout/app-content-wrapper';
+import { type SubscriptionPlan } from '@/app/usage/page';
+import Link from 'next/link';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 
 const orderStatuses: OrderStatus[] = ['pending', 'queue', 'processing', 'dispatch', 'completed', 'hold', 'failed', 'cancelled'];
@@ -81,6 +84,9 @@ export default function OrdersPage() {
   
   const [allVendors, setAllVendors] = useState<Vendor[]>([]);
   const [vendorMap, setVendorMap] = useState<Map<string, string>>(new Map());
+  
+  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([]);
+  const [isPremiumActive, setIsPremiumActive] = useState(false);
 
   const userRole = userProfile?.role;
   const isVendor = userRole === 'vendor';
@@ -114,10 +120,50 @@ export default function OrdersPage() {
         });
       }
 
+      if (isVendor) {
+        const plansResult = await getSubscriptionPlans();
+        if (plansResult.success && plansResult.data) {
+            setSubscriptionPlans(plansResult.data);
+        }
+      }
+
       setIsLoading(false);
     };
     fetchInitialData();
-  }, [toast]);
+  }, [toast, isVendor]);
+
+  useEffect(() => {
+    if (isVendor && userProfile) {
+        const activePlanId = userProfile.activePlanId;
+        const subStartDate = userProfile.subscriptionStartDate;
+
+        if (!activePlanId || !subStartDate) {
+            setIsPremiumActive(false);
+            return;
+        }
+
+        if (activePlanId !== 'trial') {
+            setIsPremiumActive(true); // Any non-trial plan is considered premium
+            return;
+        }
+
+        // Handle trial plan expiration check
+        const plan = subscriptionPlans.find(p => p.id === activePlanId);
+        if (plan && plan.trialDays && plan.trialDays > 0) {
+            const startDate = new Date(subStartDate);
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + plan.trialDays);
+            
+            // If current date is before the end date, trial is active
+            setIsPremiumActive(new Date() < endDate);
+        } else {
+            setIsPremiumActive(false);
+        }
+    } else if (!isVendor) {
+        // For non-vendors (admin, super-admin), premium is always active
+        setIsPremiumActive(true);
+    }
+  }, [userProfile, subscriptionPlans, isVendor]);
 
 
   useEffect(() => {
@@ -650,7 +696,7 @@ export default function OrdersPage() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full sm:w-auto" disabled={!isPremiumActive}>
                 <Download className="mr-2 h-4 w-4" />
                 Export
               </Button>
@@ -699,6 +745,23 @@ export default function OrdersPage() {
           </DropdownMenu>
         </div>
       </div>
+
+       {isVendor && !isPremiumActive && (
+          <div className="px-4 md:px-6">
+            <Alert variant="default" className="border-primary/50 bg-primary/10">
+              <Gem className="h-4 w-4 !text-primary" />
+              <AlertTitle className="text-primary font-bold">Activate Premium to View Details</AlertTitle>
+              <AlertDescription className="text-primary/80">
+                You are seeing a blurred preview of your orders. To unlock all details and enable exporting, please upgrade to a premium plan.
+                <Link href="/usage">
+                  <Button size="sm" className="mt-2 ml-auto block">Upgrade Now</Button>
+                </Link>
+              </AlertDescription>
+            </Alert>
+          </div>
+      )}
+
+
       <div className="flex-1 p-4 md:p-6 space-y-4 overflow-auto">
         {isLoading ? (
           <div className="flex justify-center items-center h-full">
@@ -712,6 +775,7 @@ export default function OrdersPage() {
                     checked={selectedOrderIds.size > 0 && selectedOrderIds.size === paginatedOrders.length && paginatedOrders.length > 0}
                     onCheckedChange={toggleSelectAll}
                     aria-label="Select all orders on this page"
+                    disabled={!isPremiumActive}
                 />
                 <Label htmlFor="select-all" className="text-sm font-medium text-muted-foreground">
                     Select All on Page ({selectedOrderIds.size} selected)
@@ -728,6 +792,7 @@ export default function OrdersPage() {
                   onToggleSelect={toggleSelectOrder}
                   formatDate={formatDateInIST}
                   userRole={userRole}
+                  isPremiumActive={isPremiumActive}
                 />
               ))}
             </Accordion>

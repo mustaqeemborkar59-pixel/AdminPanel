@@ -36,6 +36,7 @@ interface OrderListItemProps {
   onToggleSelect: (orderId: string) => void;
   formatDate: (date: string | Date) => string;
   userRole: UserProfile['role'] | undefined;
+  isPremiumActive: boolean; // New prop to control blurring
 }
 
 const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; label: string }> = {
@@ -50,7 +51,7 @@ const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; 
 };
 
 
-export function OrderListItem({ order, onUpdateStatus, value, isSelected, onToggleSelect, formatDate, userRole }: OrderListItemProps) {
+export function OrderListItem({ order, onUpdateStatus, value, isSelected, onToggleSelect, formatDate, userRole, isPremiumActive }: OrderListItemProps) {
   const { toast } = useToast();
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   
@@ -141,10 +142,11 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                         checked={isSelected}
                         onCheckedChange={() => onToggleSelect(order.id)}
                         aria-label={`Select order ${order.id}`}
+                        disabled={!isPremiumActive}
                     />
                     <div className="flex-grow">
                         <CardTitle className="font-headline text-lg">{order.id}</CardTitle>
-                        <CardDescription className="font-body text-sm mt-1">
+                        <CardDescription className={cn("font-body text-sm mt-1 transition-all", !isPremiumActive && 'blur-sm select-none')}>
                           {order.customerName || 'N/A'} -{' '}
                           <span className="text-xs">
                             {orderDateFormatted}
@@ -167,13 +169,13 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                          <Select 
                             value={order.status} 
                             onValueChange={(value) => onUpdateStatus(order.id, value as OrderStatus)}
-                            disabled={isVendor}
+                            disabled={isVendor || !isPremiumActive}
                          >
                             <SelectTrigger className={cn(
                                 "w-full sm:w-[140px] font-body text-xs h-9 capitalize text-white font-semibold",
                                 currentStatusInfo.color,
                                 'border-transparent',
-                                isVendor && 'cursor-not-allowed opacity-70'
+                                (isVendor || !isPremiumActive) && 'cursor-not-allowed opacity-70'
                             )}>
                                 <div className="flex items-center gap-1.5">
                                     <StatusIcon className="h-3 w-3" />
@@ -199,7 +201,7 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                 </div>
             </CardHeader>
              <AccordionContent>
-                <CardContent className="p-4 pt-0 space-y-4">
+                <CardContent className={cn("p-4 pt-0 space-y-4 transition-all", !isPremiumActive && 'blur-sm select-none pointer-events-none')}>
                     <div className="space-y-2">
                         {order.items.map(item => (
                             <div key={item.itemId} className="flex items-center gap-3 text-sm p-2 rounded-md bg-muted/50">
@@ -287,7 +289,7 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                                     <span className="font-medium text-foreground">Shipping To:</span>
                                     <p className="text-foreground/80 text-xs break-words">{displayAddress}</p>
                                 </div>
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsEditingAddress(true)}>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsEditingAddress(true)} disabled={!isPremiumActive}>
                                     <Edit className="h-4 w-4" />
                                 </Button>
                             </div>
