@@ -486,7 +486,7 @@ function DashboardContent() {
                       ))}
                   </Bar>
                   {/* The sales data is now handled by the tooltip formatter, but we need the data in the chart payload */}
-                   <Bar dataKey="sales" name="sales" className="hidden" />
+                   <Bar yAxisId="left" dataKey="sales" name="sales" className="hidden" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -529,5 +529,3 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
-
-    
