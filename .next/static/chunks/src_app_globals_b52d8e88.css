@@ -677,6 +677,14 @@ input, button, textarea, select {
   margin-top: auto;
 }
 
+.-mb-6 {
+  margin-bottom: -1.5rem;
+}
+
+.-mt-6 {
+  margin-top: -1.5rem;
+}
+
 .block {
   display: block;
 }
@@ -1868,6 +1876,10 @@ input, button, textarea, select {
 
 .pt-8 {
   padding-top: 2rem;
+}
+
+.pt-6 {
+  padding-top: 1.5rem;
 }
 
 .text-left {

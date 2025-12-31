@@ -298,132 +298,132 @@ export default function AdminsPage() {
       
       {/* Settings Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="flex flex-col h-full max-h-[90vh] sm:h-auto">
+          <DialogContent>
             <DialogHeader>
                 <DialogTitle>Settings for {selectedUser?.displayName}</DialogTitle>
                 <DialogDescription>
                     Manage permissions, roles, and status for this user.
                 </DialogDescription>
             </DialogHeader>
-            <ScrollArea className="flex-1 -mx-6">
-              <div className="py-4 px-6 space-y-6">
+            
+            <div className="space-y-6">
 
-                  {/* Display Name Section */}
-                  <div className="space-y-3">
-                      <Label htmlFor="displayName" className="font-semibold">Display Name</Label>
-                      <Input 
-                        id="displayName" 
-                        value={tempPermissions.displayName || ''} 
-                        onChange={(e) => setTempPermissions(prev => ({...prev, displayName: e.target.value}))} 
-                        placeholder="Enter user's display name"
-                      />
-                  </div>
+                {/* Display Name Section */}
+                <div className="space-y-3">
+                    <Label htmlFor="displayName" className="font-semibold">Display Name</Label>
+                    <Input 
+                      id="displayName" 
+                      value={tempPermissions.displayName || ''} 
+                      onChange={(e) => setTempPermissions(prev => ({...prev, displayName: e.target.value}))} 
+                      placeholder="Enter user's display name"
+                    />
+                </div>
 
-                  <Separator />
-                  
-                  {/* Permissions Section */}
-                  <div className="space-y-3">
-                      <Label className="font-semibold">Update Order Status</Label>
-                      <p className="text-sm text-muted-foreground">Allow this user to change the status of an order.</p>
-                       <div className="inline-flex items-center rounded-md bg-muted p-0.5">
-                          <Button
-                              variant={tempPermissions.canUpdateOrderStatus ? "default" : "ghost"}
-                              size="sm"
-                              className={cn("h-8 px-4", tempPermissions.canUpdateOrderStatus && "bg-green-500/80 hover:bg-green-500/90 text-white shadow")}
-                              onClick={() => setTempPermissions(prev => ({...prev, canUpdateOrderStatus: true}))}
-                          >
-                              <Check className="mr-2 h-4 w-4"/> Allow
-                          </Button>
-                          <Button
-                              variant={!tempPermissions.canUpdateOrderStatus ? "default" : "ghost"}
-                              size="sm"
-                              className={cn("h-8 px-4", !tempPermissions.canUpdateOrderStatus && "bg-red-500/80 hover:bg-red-500/90 text-white shadow")}
-                              onClick={() => setTempPermissions(prev => ({...prev, canUpdateOrderStatus: false}))}
-                          >
-                              <X className="mr-2 h-4 w-4"/> Deny
-                          </Button>
-                      </div>
-                  </div>
+                <Separator />
+                
+                {/* Permissions Section */}
+                <div className="space-y-3">
+                    <Label className="font-semibold">Update Order Status</Label>
+                    <p className="text-sm text-muted-foreground">Allow this user to change the status of an order.</p>
+                     <div className="inline-flex items-center rounded-md bg-muted p-0.5">
+                        <Button
+                            variant={tempPermissions.canUpdateOrderStatus ? "default" : "ghost"}
+                            size="sm"
+                            className={cn("h-8 px-4", tempPermissions.canUpdateOrderStatus && "bg-green-500/80 hover:bg-green-500/90 text-white shadow")}
+                            onClick={() => setTempPermissions(prev => ({...prev, canUpdateOrderStatus: true}))}
+                        >
+                            <Check className="mr-2 h-4 w-4"/> Allow
+                        </Button>
+                        <Button
+                            variant={!tempPermissions.canUpdateOrderStatus ? "default" : "ghost"}
+                            size="sm"
+                            className={cn("h-8 px-4", !tempPermissions.canUpdateOrderStatus && "bg-red-500/80 hover:bg-red-500/90 text-white shadow")}
+                            onClick={() => setTempPermissions(prev => ({...prev, canUpdateOrderStatus: false}))}
+                        >
+                            <X className="mr-2 h-4 w-4"/> Deny
+                        </Button>
+                    </div>
+                </div>
 
-                  <Separator />
+                <Separator />
 
-                  {/* Role Section */}
-                  <div className="space-y-3">
-                      <Label className="font-semibold">User Role</Label>
-                       <p className="text-sm text-muted-foreground">Assign a primary role which determines access level.</p>
-                      <div className="flex items-center gap-2">
-                          <Select
-                              value={tempPermissions.role || 'user'}
-                              onValueChange={(value) => setTempPermissions(prev => ({...prev, role: value as UserProfile['role']}))}
-                              >
-                              <SelectTrigger className="w-[180px]">
-                              <SelectValue placeholder="Select role" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                  <SelectItem value="user">User</SelectItem>
-                                  <SelectItem value="vendor">Vendor</SelectItem>
-                                  <SelectItem value="admin">Admin</SelectItem>
-                                  <SelectItem value="super-admin">Super Admin</SelectItem>
-                              </SelectContent>
-                          </Select>
+                {/* Role Section */}
+                <div className="space-y-3">
+                    <Label className="font-semibold">User Role</Label>
+                     <p className="text-sm text-muted-foreground">Assign a primary role which determines access level.</p>
+                    <div className="flex items-center gap-2">
+                        <Select
+                            value={tempPermissions.role || 'user'}
+                            onValueChange={(value) => setTempPermissions(prev => ({...prev, role: value as UserProfile['role']}))}
+                            >
+                            <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Select role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="user">User</SelectItem>
+                                <SelectItem value="vendor">Vendor</SelectItem>
+                                <SelectItem value="admin">Admin</SelectItem>
+                                <SelectItem value="super-admin">Super Admin</SelectItem>
+                            </SelectContent>
+                        </Select>
 
-                          {tempPermissions.role === 'vendor' && (
-                              <Select
-                                  value={tempPermissions.vendorCode || ''}
-                                  onValueChange={(vendorCode) => setTempPermissions(prev => ({...prev, vendorCode}))}
-                                  disabled={vendors.length === 0}
-                              >
-                                  <SelectTrigger className="w-[180px]">
-                                      <SelectValue placeholder="Assign Vendor" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                      {vendors.map(vendor => (
-                                          <SelectItem key={vendor.id} value={vendor.code}>{vendor.name}</SelectItem>
-                                      ))}
-                                  </SelectContent>
-                              </Select>
-                          )}
-                      </div>
-                  </div>
+                        {tempPermissions.role === 'vendor' && (
+                            <Select
+                                value={tempPermissions.vendorCode || ''}
+                                onValueChange={(vendorCode) => setTempPermissions(prev => ({...prev, vendorCode}))}
+                                disabled={vendors.length === 0}
+                            >
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Assign Vendor" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {vendors.map(vendor => (
+                                        <SelectItem key={vendor.id} value={vendor.code}>{vendor.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    </div>
+                </div>
 
-                   <Separator />
+                 <Separator />
 
-                  {/* Status Section */}
-                  <div className="space-y-3">
-                      <Label className="font-semibold">User Status</Label>
-                      <p className="text-sm text-muted-foreground">Block or unblock this user from accessing the application.</p>
-                      <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                          {selectedUser?.status === 'blocked' ? (
-                              <Button variant="outline" className="border-green-500 text-green-700 hover:bg-green-100 hover:text-green-800 dark:border-green-600 dark:text-green-400 dark:hover:bg-green-900/50">
-                                  <Check className="mr-2 h-4 w-4" /> Unblock User
-                              </Button>
-                          ) : (
-                              <Button variant="destructive">
-                                  <Ban className="mr-2 h-4 w-4" /> Block User
-                              </Button>
-                          )}
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                          <AlertDialogHeader>
-                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                  You are about to {selectedUser?.status === 'blocked' ? 'unblock' : 'block'} the user: <span className="font-semibold">{selectedUser?.displayName}</span>. 
-                                  {selectedUser?.status !== 'blocked' && ' They will be immediately logged out and unable to log in.'}
-                              </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                              <AlertDialogCancel disabled={isSaving}>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleStatusChange} disabled={isSaving}>
-                                   {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                                  Confirm
-                              </AlertDialogAction>
-                          </AlertDialogFooter>
-                          </AlertDialogContent>
-                      </AlertDialog>
-                  </div>
-              </div>
-            </ScrollArea>
+                {/* Status Section */}
+                <div className="space-y-3">
+                    <Label className="font-semibold">User Status</Label>
+                    <p className="text-sm text-muted-foreground">Block or unblock this user from accessing the application.</p>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                        {selectedUser?.status === 'blocked' ? (
+                            <Button variant="outline" className="border-green-500 text-green-700 hover:bg-green-100 hover:text-green-800 dark:border-green-600 dark:text-green-400 dark:hover:bg-green-900/50">
+                                <Check className="mr-2 h-4 w-4" /> Unblock User
+                            </Button>
+                        ) : (
+                            <Button variant="destructive">
+                                <Ban className="mr-2 h-4 w-4" /> Block User
+                            </Button>
+                        )}
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                You are about to {selectedUser?.status === 'blocked' ? 'unblock' : 'block'} the user: <span className="font-semibold">{selectedUser?.displayName}</span>. 
+                                {selectedUser?.status !== 'blocked' && ' They will be immediately logged out and unable to log in.'}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel disabled={isSaving}>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleStatusChange} disabled={isSaving}>
+                                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                                Confirm
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </div>
+            </div>
+            
             <DialogFooter>
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSaving}>Cancel</Button>
                 <Button onClick={handleSaveChanges} disabled={isSaving}>
