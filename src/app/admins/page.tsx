@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/page-header';
 import { getAllUsers, updateUserRole, getVendorsFromFirestore, updateUserPermission } from '@/app/auth/actions'; // Using Firestore actions
 import type { UserProfile, Vendor } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ShieldCheck, Store, User, Lock, Crown } from 'lucide-react';
+import { Loader2, ShieldCheck, Store, User, Lock, Crown, Check, X } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -24,8 +24,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { useAppContext } from '@/components/layout/app-content-wrapper';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -178,8 +177,7 @@ export default function AdminsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="font-headline">User</TableHead>
-                    <TableHead className="font-headline text-center">Role</TableHead>
-                    <TableHead className="font-headline text-center">Permissions</TableHead>
+                    <TableHead className="font-headline text-center">Update Order Status</TableHead>
                     <TableHead className="text-right font-headline">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -199,29 +197,32 @@ export default function AdminsPage() {
                             <AvatarFallback>{user.displayName?.[0] || 'U'}</AvatarFallback>
                           </Avatar>
                           <div>
-                            <span>{user.displayName}</span>
-                            <p className="text-xs">{user.email}</p>
+                            <p className="font-semibold">{user.displayName}</p>
+                            <p className="text-xs text-muted-foreground">{user.email}</p>
+                             <div className="mt-1.5">{getRoleBadge(user)}</div>
                             {user.status === 'blocked' && <Badge variant="destructive" className="mt-1 text-xs">Blocked</Badge>}
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-center">{getRoleBadge(user)}</TableCell>
-                      <TableCell>
-                         <div className="flex justify-center items-center space-x-2">
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Switch
-                                    id={`permission-${user.uid}`}
-                                    checked={user.canUpdateOrderStatus}
-                                    onCheckedChange={(checked) => handlePermissionChange(user.uid, checked)}
-                                  />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Allow user to update order status</p>
-                                </TooltipContent>
-                              </Tooltip>
-                              <Label htmlFor={`permission-${user.uid}`} className="text-sm text-muted-foreground">Update Status</Label>
-                          </div>
+                      <TableCell className="text-center">
+                        <div className="inline-flex items-center rounded-md bg-muted p-0.5">
+                            <Button
+                                variant={user.canUpdateOrderStatus ? "default" : "ghost"}
+                                size="sm"
+                                className={cn("h-7 px-3", user.canUpdateOrderStatus && "bg-green-500/80 hover:bg-green-500/90 text-white shadow")}
+                                onClick={() => handlePermissionChange(user.uid, true)}
+                            >
+                                <Check className="mr-2 h-4 w-4"/> Allow
+                            </Button>
+                             <Button
+                                variant={!user.canUpdateOrderStatus ? "default" : "ghost"}
+                                size="sm"
+                                className={cn("h-7 px-3", !user.canUpdateOrderStatus && "bg-red-500/80 hover:bg-red-500/90 text-white shadow")}
+                                onClick={() => handlePermissionChange(user.uid, false)}
+                            >
+                                <X className="mr-2 h-4 w-4"/> Deny
+                            </Button>
+                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end items-center gap-2">
