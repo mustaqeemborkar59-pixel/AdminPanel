@@ -177,7 +177,6 @@ export default function AdminsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="font-headline">User</TableHead>
-                    <TableHead className="font-headline text-center">Update Order Status</TableHead>
                     <TableHead className="text-right font-headline">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -204,58 +203,61 @@ export default function AdminsPage() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-center">
-                        <div className="inline-flex items-center rounded-md bg-muted p-0.5">
-                            <Button
-                                variant={user.canUpdateOrderStatus ? "default" : "ghost"}
-                                size="sm"
-                                className={cn("h-7 px-3", user.canUpdateOrderStatus && "bg-green-500/80 hover:bg-green-500/90 text-white shadow")}
-                                onClick={() => handlePermissionChange(user.uid, true)}
-                            >
-                                <Check className="mr-2 h-4 w-4"/> Allow
-                            </Button>
-                             <Button
-                                variant={!user.canUpdateOrderStatus ? "default" : "ghost"}
-                                size="sm"
-                                className={cn("h-7 px-3", !user.canUpdateOrderStatus && "bg-red-500/80 hover:bg-red-500/90 text-white shadow")}
-                                onClick={() => handlePermissionChange(user.uid, false)}
-                            >
-                                <X className="mr-2 h-4 w-4"/> Deny
-                            </Button>
-                        </div>
-                      </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end items-center gap-2">
-                          {user.role === 'vendor' && (
-                              <Select
-                                  value={user.vendorCode || ''}
-                                  onValueChange={(vendorCode) => handleRoleChange(user.uid, 'vendor', vendorCode)}
-                                  disabled={vendors.length === 0}
-                              >
-                                  <SelectTrigger className="w-[180px] h-9">
-                                      <SelectValue placeholder="Assign Vendor" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                      {vendors.map(vendor => (
-                                          <SelectItem key={vendor.id} value={vendor.code}>{vendor.name}</SelectItem>
-                                      ))}
-                                  </SelectContent>
-                              </Select>
-                          )}
-                          <Select
-                              value={user.role || 'user'}
-                              onValueChange={(value) => handleRoleChange(user.uid, value as 'admin' | 'vendor' | 'user' | 'super-admin', user.vendorCode)}
-                            >
-                              <SelectTrigger className="w-[140px] h-9">
-                                <SelectValue placeholder="Select role" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="user">User</SelectItem>
-                                <SelectItem value="vendor">Vendor</SelectItem>
-                                <SelectItem value="admin">Admin</SelectItem>
-                                <SelectItem value="super-admin">Super Admin</SelectItem>
-                              </SelectContent>
-                            </Select>
+                        <div className="flex flex-col items-end gap-2">
+                            {/* Permissions Toggle */}
+                            <div className="inline-flex items-center rounded-md bg-muted p-0.5">
+                                <Button
+                                    variant={user.canUpdateOrderStatus ? "default" : "ghost"}
+                                    size="sm"
+                                    className={cn("h-7 px-3", user.canUpdateOrderStatus && "bg-green-500/80 hover:bg-green-500/90 text-white shadow")}
+                                    onClick={() => handlePermissionChange(user.uid, true)}
+                                >
+                                    <Check className="mr-2 h-4 w-4"/> Allow
+                                </Button>
+                                <Button
+                                    variant={!user.canUpdateOrderStatus ? "default" : "ghost"}
+                                    size="sm"
+                                    className={cn("h-7 px-3", !user.canUpdateOrderStatus && "bg-red-500/80 hover:bg-red-500/90 text-white shadow")}
+                                    onClick={() => handlePermissionChange(user.uid, false)}
+                                >
+                                    <X className="mr-2 h-4 w-4"/> Deny
+                                </Button>
+                            </div>
+                            
+                            {/* Role & Vendor Dropdowns */}
+                            <div className="flex justify-end items-center gap-2">
+                                {user.role === 'vendor' && (
+                                    <Select
+                                        value={user.vendorCode || ''}
+                                        onValueChange={(vendorCode) => handleRoleChange(user.uid, 'vendor', vendorCode)}
+                                        disabled={vendors.length === 0}
+                                    >
+                                        <SelectTrigger className="w-[180px] h-9">
+                                            <SelectValue placeholder="Assign Vendor" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {vendors.map(vendor => (
+                                                <SelectItem key={vendor.id} value={vendor.code}>{vendor.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                                <Select
+                                    value={user.role || 'user'}
+                                    onValueChange={(value) => handleRoleChange(user.uid, value as 'admin' | 'vendor' | 'user' | 'super-admin', user.vendorCode)}
+                                    >
+                                    <SelectTrigger className="w-[140px] h-9">
+                                    <SelectValue placeholder="Select role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                    <SelectItem value="user">User</SelectItem>
+                                    <SelectItem value="vendor">Vendor</SelectItem>
+                                    <SelectItem value="admin">Admin</SelectItem>
+                                    <SelectItem value="super-admin">Super Admin</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                       </TableCell>
                     </TableRow>
