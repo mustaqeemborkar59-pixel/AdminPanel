@@ -110,26 +110,28 @@ export async function getUserProfile(uid: string): Promise<{ success: boolean; d
 
 export async function updateUserProfile(uid: string, details: { displayName?: string | null, photoURL?: string | null }): Promise<{ success: boolean; message?: string }> {
   const adminApp = initializeAdminApp();
-  const { firestore } = getAdminServices(adminApp);
+  const { firestore, auth } = getAdminServices(adminApp);
   try {
     const userRef = firestore.collection('users').doc(uid);
-    const docSnap = await userRef.get();
-    if(docSnap.exists) {
-      const updates: Partial<UserProfile> = {};
-      if(details.displayName && details.displayName !== docSnap.data()?.displayName) {
+    const updates: Partial<UserProfile> = {};
+    if (details.displayName) {
         updates.displayName = details.displayName;
-      }
-       if(details.photoURL && details.photoURL !== docSnap.data()?.photoURL) {
+    }
+    if (details.photoURL) {
         updates.photoURL = details.photoURL;
-      }
-      if(Object.keys(updates).length > 0) {
+    }
+
+    if (Object.keys(updates).length > 0) {
         await userRef.update(updates);
-      }
+        // Also update the auth user display name if it's being changed
+        if (updates.displayName) {
+            await auth.updateUser(uid, { displayName: updates.displayName });
+        }
     }
     return { success: true };
   } catch (error: any) {
     console.error('Firestore Profile Update Error (Admin):', error);
-    return { success: false, message: error.message || 'Failed to update user profile in database.' };
+    return { success: false, message: error.message || 'Failed to update user profile.' };
   }
 }
 

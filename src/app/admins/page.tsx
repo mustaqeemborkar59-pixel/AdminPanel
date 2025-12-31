@@ -2,7 +2,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
-import { getAllUsers, updateUserRole, getVendorsFromFirestore, updateUserPermission, updateUserStatus } from '@/app/auth/actions'; // Using Firestore actions
+import { getAllUsers, updateUserRole, getVendorsFromFirestore, updateUserPermission, updateUserStatus, updateUserProfile } from '@/app/auth/actions'; // Using Firestore actions
 import type { UserProfile, Vendor } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ShieldCheck, Store, User, Lock, Crown, Check, X, Settings, Ban } from 'lucide-react';
@@ -49,6 +49,7 @@ import { useAppContext } from '@/components/layout/app-content-wrapper';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 
 export default function AdminsPage() {
@@ -61,7 +62,7 @@ export default function AdminsPage() {
   // State for the settings dialog
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
-  const [tempPermissions, setTempPermissions] = useState<{role: UserProfile['role'], vendorCode?: string | null, canUpdateOrderStatus?: boolean, status?: UserProfile['status']}>({});
+  const [tempPermissions, setTempPermissions] = useState<{displayName: string, role: UserProfile['role'], vendorCode?: string | null, canUpdateOrderStatus?: boolean, status?: UserProfile['status']}>({});
 
   const { toast } = useToast();
 
@@ -112,6 +113,7 @@ export default function AdminsPage() {
   const openSettingsDialog = (user: UserProfile) => {
     setSelectedUser(user);
     setTempPermissions({
+        displayName: user.displayName,
         role: user.role,
         vendorCode: user.vendorCode,
         canUpdateOrderStatus: user.canUpdateOrderStatus,
@@ -124,11 +126,21 @@ export default function AdminsPage() {
     if (!selectedUser) return;
     setIsSaving(true);
     
+    const nameChanged = selectedUser.displayName !== tempPermissions.displayName;
     const roleChanged = selectedUser.role !== tempPermissions.role || (tempPermissions.role === 'vendor' && selectedUser.vendorCode !== tempPermissions.vendorCode);
     const permissionChanged = selectedUser.canUpdateOrderStatus !== tempPermissions.canUpdateOrderStatus;
     
+    let nameUpdateSuccess = true;
     let roleUpdateSuccess = true;
     let permUpdateSuccess = true;
+    
+    if (nameChanged) {
+        const result = await updateUserProfile(selectedUser.uid, { displayName: tempPermissions.displayName });
+         if (!result.success) {
+            nameUpdateSuccess = false;
+            toast({ variant: "destructive", title: "Name Update Failed", description: result.message });
+        }
+    }
 
     if (roleChanged) {
         const result = await updateUserRole(selectedUser.uid, tempPermissions.role, tempPermissions.vendorCode ?? undefined);
@@ -146,7 +158,7 @@ export default function AdminsPage() {
         }
     }
     
-    if(roleUpdateSuccess && permUpdateSuccess) {
+    if(nameUpdateSuccess && roleUpdateSuccess && permUpdateSuccess) {
         toast({ title: "Settings Saved", description: `${selectedUser.displayName}'s settings have been updated.` });
     }
 
@@ -293,6 +305,19 @@ export default function AdminsPage() {
                 </DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-6">
+
+                {/* Display Name Section */}
+                <div className="space-y-3">
+                    <Label htmlFor="displayName" className="font-semibold">Display Name</Label>
+                    <Input 
+                      id="displayName" 
+                      value={tempPermissions.displayName || ''} 
+                      onChange={(e) => setTempPermissions(prev => ({...prev, displayName: e.target.value}))} 
+                      placeholder="Enter user's display name"
+                    />
+                </div>
+
+                <Separator />
                 
                 {/* Permissions Section */}
                 <div className="space-y-3">
