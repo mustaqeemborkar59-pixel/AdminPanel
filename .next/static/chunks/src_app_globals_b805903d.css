@@ -605,6 +605,14 @@ input, button, textarea, select {
   margin-bottom: 2rem;
 }
 
+.-mb-6 {
+  margin-bottom: -1.5rem;
+}
+
+.-mt-6 {
+  margin-top: -1.5rem;
+}
+
 .mb-0\.5 {
   margin-bottom: .125rem;
 }
@@ -675,14 +683,6 @@ input, button, textarea, select {
 
 .mt-auto {
   margin-top: auto;
-}
-
-.-mb-6 {
-  margin-bottom: -1.5rem;
-}
-
-.-mt-6 {
-  margin-top: -1.5rem;
 }
 
 .block {
@@ -924,6 +924,10 @@ input, button, textarea, select {
 
 .w-4 {
   width: 1rem;
+}
+
+.w-40 {
+  width: 10rem;
 }
 
 .w-44 {
@@ -1842,6 +1846,10 @@ input, button, textarea, select {
   padding-left: 2rem;
 }
 
+.pl-9 {
+  padding-left: 2.25rem;
+}
+
 .pr-2 {
   padding-right: .5rem;
 }
@@ -1874,12 +1882,12 @@ input, button, textarea, select {
   padding-top: 1rem;
 }
 
-.pt-8 {
-  padding-top: 2rem;
-}
-
 .pt-6 {
   padding-top: 1.5rem;
+}
+
+.pt-8 {
+  padding-top: 2rem;
 }
 
 .text-left {
@@ -3290,10 +3298,6 @@ body {
 
   .sm\:flex {
     display: flex;
-  }
-
-  .sm\:h-auto {
-    height: auto;
   }
 
   .sm\:w-\[140px\] {

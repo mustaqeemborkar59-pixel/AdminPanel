@@ -2,7 +2,7 @@
 "use server";
 
 import { redirect } from 'next/navigation';
-import { getFirestore, Timestamp, FieldValue as AdminFieldValue, collection, getDocs, doc, setDoc, getDoc, query, orderBy, limit, deleteDoc } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp, FieldValue as AdminFieldValue } from 'firebase-admin/firestore';
 import { initializeApp, getApps, App, cert } from 'firebase-admin/app';
 import { getAuth as getAdminAuth } from 'firebase-admin/auth';
 import { getDatabase } from 'firebase-admin/database';
@@ -211,9 +211,9 @@ export async function updateUserStatus(userId: string, status: 'active' | 'block
 
         // If blocking, clear all active sessions
         if (isBlocked) {
-            const sessionsRef = collection(firestore, 'users', userId, 'sessions');
-            const sessionsSnap = await getDocs(sessionsRef);
-            const deletePromises = sessionsSnap.docs.map(doc => deleteDoc(doc.ref));
+            const sessionsRef = firestore.collection('users').doc(userId).collection('sessions');
+            const sessionsSnap = await sessionsRef.get();
+            const deletePromises = sessionsSnap.docs.map(doc => doc.ref.delete());
             await Promise.all(deletePromises);
             await userRef.update({ activeSessionId: AdminFieldValue.delete() });
         }
@@ -234,23 +234,23 @@ export async function manageUserSession(
 ): Promise<{ success: boolean; message?: string }> {
     const adminApp = initializeAdminApp();
     const { firestore } = getAdminServices(adminApp);
-    const userRef = doc(firestore, 'users', userId);
-    const sessionsRef = collection(firestore, 'users', userId, 'sessions');
+    const userRef = firestore.collection('users').doc(userId);
+    const sessionsRef = userRef.collection('sessions');
 
     try {
         if (action === 'logout') {
-            const sessionDocRef = doc(sessionsRef, sessionId);
-            await deleteDoc(sessionDocRef);
+            const sessionDocRef = sessionsRef.doc(sessionId);
+            await sessionDocRef.delete();
             // Check if this was the active session and clear it from the user profile
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists() && userSnap.data()?.activeSessionId === sessionId) {
-                await setDoc(userRef, { activeSessionId: AdminFieldValue.delete() }, { merge: true });
+            const userSnap = await userRef.get();
+            if (userSnap.exists && userSnap.data()?.activeSessionId === sessionId) {
+                await userRef.update({ activeSessionId: AdminFieldValue.delete() });
             }
             return { success: true };
         }
 
         // --- Handle Login ---
-        const userSnap = await getDoc(userRef);
+        const userSnap = await userRef.get();
         if (!userSnap.exists()) {
             return { success: false, message: "User profile not found." };
         }
@@ -258,14 +258,13 @@ export async function manageUserSession(
         const deviceLimit = userData.deviceLimit || 1;
 
         // Get current sessions, ordered by time
-        const q = query(sessionsRef, orderBy('timestamp', 'asc'));
-        const sessionsSnap = await getDocs(q);
+        const sessionsSnap = await sessionsRef.orderBy('timestamp', 'asc').get();
         const currentSessions = sessionsSnap.docs;
 
         // Enforce device limit
         if (currentSessions.length >= deviceLimit) {
             const oldestSession = currentSessions[0];
-            await deleteDoc(oldestSession.ref);
+            await oldestSession.ref.delete();
         }
 
         // Add the new session
@@ -274,10 +273,10 @@ export async function manageUserSession(
             timestamp: new Date().toISOString(),
             deviceInfo: deviceInfo,
         };
-        await setDoc(doc(sessionsRef, sessionId), newSession);
+        await sessionsRef.doc(sessionId).set(newSession);
 
         // Update the activeSessionId on the user's profile
-        await setDoc(userRef, { activeSessionId: sessionId }, { merge: true });
+        await userRef.update({ activeSessionId: sessionId });
 
         return { success: true };
 
@@ -474,3 +473,5 @@ export async function updateUserActivePlan(userId: string, planId: string): Prom
         return { success: false, message: error.message || 'Failed to update active plan.' };
     }
 }
+
+    
