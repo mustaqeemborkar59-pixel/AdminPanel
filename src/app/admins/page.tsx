@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/page-header';
 import { getAllUsers, updateUserRole, getVendorsFromFirestore, updateUserPermission } from '@/app/auth/actions'; // Using Firestore actions
 import type { UserProfile, Vendor } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ShieldCheck, Store, User, Lock, Crown, Check, X } from 'lucide-react';
+import { Loader2, ShieldCheck, Store, User, Lock, Crown, Check, X, Settings } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -21,19 +21,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAppContext } from '@/components/layout/app-content-wrapper';
 import { cn } from '@/lib/utils';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
+
 
 export default function AdminsPage() {
   const { userProfile: currentUserProfile, authLoading } = useAppContext();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // State for the settings dialog
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const [tempPermissions, setTempPermissions] = useState<{role: UserProfile['role'], vendorCode?: string | null, canUpdateOrderStatus?: boolean}>({});
+
   const { toast } = useToast();
 
   const isCurrentUserSuperAdmin = currentUserProfile?.role === 'super-admin';
@@ -80,39 +98,51 @@ export default function AdminsPage() {
   }, [authLoading, isCurrentUserSuperAdmin, currentUserProfile?.uid]);
 
 
-  const handleRoleChange = async (userId: string, newRole: 'admin' | 'vendor' | 'user' | 'super-admin', vendorCode?: string) => {
-    const result = await updateUserRole(userId, newRole, vendorCode);
-    if (result.success) {
-      toast({
-        title: "Role Updated",
-        description: "The user's role has been successfully updated.",
-      });
-      await fetchAllData();
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Update Failed",
-        description: result.message || "Could not update the user's role.",
-      });
-    }
+  const openSettingsDialog = (user: UserProfile) => {
+    setSelectedUser(user);
+    setTempPermissions({
+        role: user.role,
+        vendorCode: user.vendorCode,
+        canUpdateOrderStatus: user.canUpdateOrderStatus,
+    });
+    setIsDialogOpen(true);
   };
 
-  const handlePermissionChange = async (userId: string, canUpdate: boolean) => {
-    const result = await updateUserPermission(userId, canUpdate);
-    if (result.success) {
-      toast({
-        title: "Permission Updated",
-        description: `User can ${canUpdate ? 'now' : 'no longer'} update order statuses.`,
-      });
-      await fetchAllData();
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Permission Update Failed",
-        description: result.message || "Could not update permission.",
-      });
+  const handleSaveChanges = async () => {
+    if (!selectedUser) return;
+    setIsSaving(true);
+    
+    const roleChanged = selectedUser.role !== tempPermissions.role || (tempPermissions.role === 'vendor' && selectedUser.vendorCode !== tempPermissions.vendorCode);
+    const permissionChanged = selectedUser.canUpdateOrderStatus !== tempPermissions.canUpdateOrderStatus;
+
+    let roleUpdateSuccess = true;
+    let permUpdateSuccess = true;
+
+    if (roleChanged) {
+        const result = await updateUserRole(selectedUser.uid, tempPermissions.role, tempPermissions.vendorCode ?? undefined);
+        if (!result.success) {
+            roleUpdateSuccess = false;
+            toast({ variant: "destructive", title: "Role Update Failed", description: result.message });
+        }
     }
-  };
+
+    if (permissionChanged) {
+        const result = await updateUserPermission(selectedUser.uid, tempPermissions.canUpdateOrderStatus ?? false);
+        if (!result.success) {
+            permUpdateSuccess = false;
+            toast({ variant: "destructive", title: "Permission Update Failed", description: result.message });
+        }
+    }
+    
+    if(roleUpdateSuccess && permUpdateSuccess) {
+        toast({ title: "Settings Saved", description: `${selectedUser.displayName}'s settings have been updated.` });
+    }
+
+    await fetchAllData();
+    setIsSaving(false);
+    setIsDialogOpen(false);
+    setSelectedUser(null);
+  }
 
 
   const getRoleBadge = (user: UserProfile) => {
@@ -160,7 +190,7 @@ export default function AdminsPage() {
   }
 
   return (
-    <TooltipProvider>
+    <>
       <div className="flex flex-col h-full">
         <PageHeader
           title="User Management"
@@ -204,61 +234,10 @@ export default function AdminsPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex flex-col items-end gap-2">
-                            {/* Permissions Toggle */}
-                            <div className="inline-flex items-center rounded-md bg-muted p-0.5">
-                                <Button
-                                    variant={user.canUpdateOrderStatus ? "default" : "ghost"}
-                                    size="sm"
-                                    className={cn("h-7 px-3", user.canUpdateOrderStatus && "bg-green-500/80 hover:bg-green-500/90 text-white shadow")}
-                                    onClick={() => handlePermissionChange(user.uid, true)}
-                                >
-                                    <Check className="mr-2 h-4 w-4"/> Allow
-                                </Button>
-                                <Button
-                                    variant={!user.canUpdateOrderStatus ? "default" : "ghost"}
-                                    size="sm"
-                                    className={cn("h-7 px-3", !user.canUpdateOrderStatus && "bg-red-500/80 hover:bg-red-500/90 text-white shadow")}
-                                    onClick={() => handlePermissionChange(user.uid, false)}
-                                >
-                                    <X className="mr-2 h-4 w-4"/> Deny
-                                </Button>
-                            </div>
-                            
-                            {/* Role & Vendor Dropdowns */}
-                            <div className="flex justify-end items-center gap-2">
-                                {user.role === 'vendor' && (
-                                    <Select
-                                        value={user.vendorCode || ''}
-                                        onValueChange={(vendorCode) => handleRoleChange(user.uid, 'vendor', vendorCode)}
-                                        disabled={vendors.length === 0}
-                                    >
-                                        <SelectTrigger className="w-[180px] h-9">
-                                            <SelectValue placeholder="Assign Vendor" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {vendors.map(vendor => (
-                                                <SelectItem key={vendor.id} value={vendor.code}>{vendor.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                                <Select
-                                    value={user.role || 'user'}
-                                    onValueChange={(value) => handleRoleChange(user.uid, value as 'admin' | 'vendor' | 'user' | 'super-admin', user.vendorCode)}
-                                    >
-                                    <SelectTrigger className="w-[140px] h-9">
-                                    <SelectValue placeholder="Select role" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                    <SelectItem value="user">User</SelectItem>
-                                    <SelectItem value="vendor">Vendor</SelectItem>
-                                    <SelectItem value="admin">Admin</SelectItem>
-                                    <SelectItem value="super-admin">Super Admin</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
+                         <Button variant="ghost" size="icon" onClick={() => openSettingsDialog(user)}>
+                            <Settings className="h-5 w-5" />
+                            <span className="sr-only">Open Settings for {user.displayName}</span>
+                         </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -268,6 +247,94 @@ export default function AdminsPage() {
           )}
         </div>
       </div>
-    </TooltipProvider>
+      
+      {/* Settings Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Settings for {selectedUser?.displayName}</DialogTitle>
+                <DialogDescription>
+                    Manage permissions and roles for this user.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-6">
+                
+                {/* Permissions Section */}
+                <div className="space-y-3">
+                    <Label className="font-semibold">Update Order Status</Label>
+                    <p className="text-sm text-muted-foreground">Allow this user to change the status of an order.</p>
+                     <div className="inline-flex items-center rounded-md bg-muted p-0.5">
+                        <Button
+                            variant={tempPermissions.canUpdateOrderStatus ? "default" : "ghost"}
+                            size="sm"
+                            className={cn("h-8 px-4", tempPermissions.canUpdateOrderStatus && "bg-green-500/80 hover:bg-green-500/90 text-white shadow")}
+                            onClick={() => setTempPermissions(prev => ({...prev, canUpdateOrderStatus: true}))}
+                        >
+                            <Check className="mr-2 h-4 w-4"/> Allow
+                        </Button>
+                        <Button
+                            variant={!tempPermissions.canUpdateOrderStatus ? "default" : "ghost"}
+                            size="sm"
+                            className={cn("h-8 px-4", !tempPermissions.canUpdateOrderStatus && "bg-red-500/80 hover:bg-red-500/90 text-white shadow")}
+                            onClick={() => setTempPermissions(prev => ({...prev, canUpdateOrderStatus: false}))}
+                        >
+                            <X className="mr-2 h-4 w-4"/> Deny
+                        </Button>
+                    </div>
+                </div>
+
+                <Separator />
+
+                {/* Role Section */}
+                <div className="space-y-3">
+                    <Label className="font-semibold">User Role</Label>
+                     <p className="text-sm text-muted-foreground">Assign a primary role which determines access level.</p>
+                    <div className="flex items-center gap-2">
+                        <Select
+                            value={tempPermissions.role || 'user'}
+                            onValueChange={(value) => setTempPermissions(prev => ({...prev, role: value as UserProfile['role']}))}
+                            >
+                            <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Select role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="user">User</SelectItem>
+                                <SelectItem value="vendor">Vendor</SelectItem>
+                                <SelectItem value="admin">Admin</SelectItem>
+                                <SelectItem value="super-admin">Super Admin</SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        {tempPermissions.role === 'vendor' && (
+                            <Select
+                                value={tempPermissions.vendorCode || ''}
+                                onValueChange={(vendorCode) => setTempPermissions(prev => ({...prev, vendorCode}))}
+                                disabled={vendors.length === 0}
+                            >
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Assign Vendor" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {vendors.map(vendor => (
+                                        <SelectItem key={vendor.id} value={vendor.code}>{vendor.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    </div>
+                </div>
+
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSaving}>Cancel</Button>
+                <Button onClick={handleSaveChanges} disabled={isSaving}>
+                    {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Save Changes
+                </Button>
+            </DialogFooter>
+          </DialogContent>
+      </Dialog>
+    </>
   );
 }
+
