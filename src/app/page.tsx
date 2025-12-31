@@ -466,19 +466,26 @@ function DashboardContent() {
                 <BarChart data={weeklyOrderData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" vertical={false} />
                   <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} />
-                  <YAxis dataKey="orders" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <YAxis yAxisId="left" dataKey="orders" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} allowDecimals={false} />
                   <Tooltip
                     contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }}
                     labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
                     itemStyle={{ color: 'hsl(var(--foreground))' }}
                     cursor={{fill: 'hsl(var(--muted)/0.3)'}}
                   />
-                  <Bar dataKey="orders" name="Orders" radius={[4, 4, 0, 0]} className="cursor-pointer" onClick={handleBarClick}>
+                  <Bar yAxisId="left" dataKey="orders" name="Orders" radius={[4, 4, 0, 0]} className="cursor-pointer" onClick={handleBarClick}>
                     <LabelList dataKey="sales" content={<SalesLabel />} />
                      {weeklyOrderData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                   </Bar>
+                  <Bar 
+                    yAxisId="left" 
+                    dataKey="sales" 
+                    name="Sales" 
+                    className="hidden"
+                    formatter={(value) => `₹${Number(value).toLocaleString('en-IN')}`}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -521,5 +528,3 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
-
-    
