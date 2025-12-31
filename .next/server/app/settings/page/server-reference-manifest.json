@@ -154,6 +154,17 @@
         "app/settings/page": "action-browser"
       }
     },
+    "6055954a4e9da63a3af116a886100cc91355a03014": {
+      "workers": {
+        "app/settings/page": {
+          "moduleId": "[project]/.next-internal/server/app/settings/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        }
+      },
+      "layer": {
+        "app/settings/page": "action-browser"
+      }
+    },
     "606a4ec279f2e24ba2af4e3caf22487aef9541e622": {
       "workers": {
         "app/settings/page": {
@@ -177,6 +188,17 @@
       }
     },
     "70ca33ff81d844b3ec58711e7aa07fe89bb380c947": {
+      "workers": {
+        "app/settings/page": {
+          "moduleId": "[project]/.next-internal/server/app/settings/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        }
+      },
+      "layer": {
+        "app/settings/page": "action-browser"
+      }
+    },
+    "7821cab8edbe543f765dca6bcf306f1f969a22ea93": {
       "workers": {
         "app/settings/page": {
           "moduleId": "[project]/.next-internal/server/app/settings/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
