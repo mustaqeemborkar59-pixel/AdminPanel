@@ -20,10 +20,11 @@ const SESSION_ID_KEY = 'app_session_id';
 
 const getSessionId = (): string => {
     if (typeof window !== 'undefined') {
-        let sessionId = localStorage.getItem(SESSION_ID_KEY);
+        // Use sessionStorage to ensure each tab gets a unique session ID
+        let sessionId = sessionStorage.getItem(SESSION_ID_KEY);
         if (!sessionId) {
             sessionId = uuidv4();
-            localStorage.setItem(SESSION_ID_KEY, sessionId);
+            sessionStorage.setItem(SESSION_ID_KEY, sessionId);
         }
         return sessionId;
     }

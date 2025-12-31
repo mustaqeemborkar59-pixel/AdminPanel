@@ -45,7 +45,7 @@ __turbopack_async_result__();
 
 var { g: global, __dirname, a: __turbopack_async_module__ } = __turbopack_context__;
 __turbopack_async_module__(async (__turbopack_handle_async_dependencies__, __turbopack_async_result__) => { try {
-/* __next_internal_action_entry_do_not_use__ {"0058ccd4107f044ae62a70fc8e2eee88bfbe0baffe":"getVendorsFromFirestore","0086d1454012dae48d87f8b73ffe6497b833c94961":"signOut","00cf5330395e82bf8255922e76b18a7d7fd7cd3e01":"getCompanyDetailsFromRTDB","00dd23fa010684cc7dc200b3912066873c650a96f7":"getSubscriptionPlans","00fabfcbf6c7d5ce94aea620a37f0b27f8bc99710c":"getAllUsers","401f6e3642acf65262fa6d6423f207ff565e3c09fa":"saveCompanyDetailsToRTDB","4042fba4c964c1220f40c2e6c13f0a0d862e8d948b":"deleteVendorFromFirestore","40779c49dada2a560ce33d1bb110771da76088dfdb":"getUserProfile","40bf1e58e37d64aa62551098cfe74d13ce5ca568e6":"createUserProfile","40cdd3186aceaa109d8100201e04baed5ae628d655":"deleteSubscriptionPlan","600197aded821c9a500870fc90fb1fc9d483b962b8":"updateUserProfile","60264dd4e170d459c6d460ed6ff6579e23eea92dc5":"saveVendorToFirestore","603adb6b963b092fc1d79e2f15c10961a8a3444922":"saveSubscriptionPlan","6040c38bf3c9f6fa08e7c04be87df666c91aa52e8e":"updateUserActivePlan","6055954a4e9da63a3af116a886100cc91355a03014":"updateUserPermission","606a4ec279f2e24ba2af4e3caf22487aef9541e622":"updateUserStatus","60b99002cc4d9e22a51d06be687b33348a7e56bf24":"updateUserTrialStatus","70ca33ff81d844b3ec58711e7aa07fe89bb380c947":"updateUserRole"} */ __turbopack_context__.s({
+/* __next_internal_action_entry_do_not_use__ {"0058ccd4107f044ae62a70fc8e2eee88bfbe0baffe":"getVendorsFromFirestore","0086d1454012dae48d87f8b73ffe6497b833c94961":"signOut","00cf5330395e82bf8255922e76b18a7d7fd7cd3e01":"getCompanyDetailsFromRTDB","00dd23fa010684cc7dc200b3912066873c650a96f7":"getSubscriptionPlans","00fabfcbf6c7d5ce94aea620a37f0b27f8bc99710c":"getAllUsers","401f6e3642acf65262fa6d6423f207ff565e3c09fa":"saveCompanyDetailsToRTDB","4042fba4c964c1220f40c2e6c13f0a0d862e8d948b":"deleteVendorFromFirestore","40779c49dada2a560ce33d1bb110771da76088dfdb":"getUserProfile","40bf1e58e37d64aa62551098cfe74d13ce5ca568e6":"createUserProfile","40cdd3186aceaa109d8100201e04baed5ae628d655":"deleteSubscriptionPlan","600197aded821c9a500870fc90fb1fc9d483b962b8":"updateUserProfile","60264dd4e170d459c6d460ed6ff6579e23eea92dc5":"saveVendorToFirestore","603adb6b963b092fc1d79e2f15c10961a8a3444922":"saveSubscriptionPlan","6040c38bf3c9f6fa08e7c04be87df666c91aa52e8e":"updateUserActivePlan","6055954a4e9da63a3af116a886100cc91355a03014":"updateUserPermission","606a4ec279f2e24ba2af4e3caf22487aef9541e622":"updateUserStatus","60b99002cc4d9e22a51d06be687b33348a7e56bf24":"updateUserTrialStatus","70ca33ff81d844b3ec58711e7aa07fe89bb380c947":"updateUserRole","7821cab8edbe543f765dca6bcf306f1f969a22ea93":"manageUserSession"} */ __turbopack_context__.s({
     "createUserProfile": (()=>createUserProfile),
     "deleteSubscriptionPlan": (()=>deleteSubscriptionPlan),
     "deleteVendorFromFirestore": (()=>deleteVendorFromFirestore),
@@ -54,6 +54,7 @@ __turbopack_async_module__(async (__turbopack_handle_async_dependencies__, __tur
     "getSubscriptionPlans": (()=>getSubscriptionPlans),
     "getUserProfile": (()=>getUserProfile),
     "getVendorsFromFirestore": (()=>getVendorsFromFirestore),
+    "manageUserSession": (()=>manageUserSession),
     "saveCompanyDetailsToRTDB": (()=>saveCompanyDetailsToRTDB),
     "saveSubscriptionPlan": (()=>saveSubscriptionPlan),
     "saveVendorToFirestore": (()=>saveVendorToFirestore),
@@ -141,7 +142,8 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ createUserProfile(detai
             subscriptionStartDate: new Date().toISOString(),
             trialUsed: false,
             activePlanId: 'trial',
-            canUpdateOrderStatus: false
+            canUpdateOrderStatus: false,
+            deviceLimit: 1
         };
         await userRef.set(userProfile, {
             merge: true
@@ -196,6 +198,9 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ updateUserProfile(uid, 
         }
         if (details.photoURL) {
             updates.photoURL = details.photoURL;
+        }
+        if (details.deviceLimit && details.deviceLimit > 0) {
+            updates.deviceLimit = details.deviceLimit;
         }
         if (Object.keys(updates).length > 0) {
             await userRef.update(updates);
@@ -303,6 +308,16 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ updateUserStatus(userId
         await userRef.update({
             status: status
         });
+        // If blocking, clear all active sessions
+        if (isBlocked) {
+            const sessionsRef = firestore.collection('users').doc(userId).collection('sessions');
+            const sessionsSnap = await sessionsRef.get();
+            const deletePromises = sessionsSnap.docs.map((doc)=>doc.ref.delete());
+            await Promise.all(deletePromises);
+            await userRef.update({
+                activeSessionId: __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["FieldValue"].delete()
+            });
+        }
         return {
             success: true
         };
@@ -311,6 +326,66 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ updateUserStatus(userId
         return {
             success: false,
             message: error.message || 'Failed to update user status.'
+        };
+    }
+}
+async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ manageUserSession(userId, sessionId, deviceInfo, action) {
+    const adminApp = initializeAdminApp();
+    const { firestore } = getAdminServices(adminApp);
+    const userRef = firestore.collection('users').doc(userId);
+    const sessionsRef = userRef.collection('sessions');
+    try {
+        if (action === 'logout') {
+            const sessionDocRef = sessionsRef.doc(sessionId);
+            await sessionDocRef.delete();
+            // Check if this was the active session and clear it from the user profile
+            const userSnap = await userRef.get();
+            if (userSnap.exists && userSnap.data()?.activeSessionId === sessionId) {
+                await userRef.update({
+                    activeSessionId: __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$firestore__$5b$external$5d$__$28$firebase$2d$admin$2f$firestore$2c$__esm_import$29$__["FieldValue"].delete()
+                });
+            }
+            return {
+                success: true
+            };
+        }
+        // --- Handle Login ---
+        const userSnap = await userRef.get();
+        if (!userSnap.exists()) {
+            return {
+                success: false,
+                message: "User profile not found."
+            };
+        }
+        const userData = userSnap.data();
+        const deviceLimit = userData.deviceLimit || 1;
+        // Get current sessions, ordered by time
+        const sessionsSnap = await sessionsRef.orderBy('timestamp', 'asc').get();
+        const currentSessions = sessionsSnap.docs;
+        // Enforce device limit
+        if (currentSessions.length >= deviceLimit) {
+            const oldestSession = currentSessions[0];
+            await oldestSession.ref.delete();
+        }
+        // Add the new session
+        const newSession = {
+            id: sessionId,
+            timestamp: new Date().toISOString(),
+            deviceInfo: deviceInfo
+        };
+        await sessionsRef.doc(sessionId).set(newSession);
+        // Update the activeSessionId on the user's profile
+        await userRef.update({
+            activeSessionId: sessionId
+        });
+        return {
+            success: true
+        };
+    } catch (error) {
+        console.error('Failed to manage user session (Admin):', error);
+        return {
+            success: false,
+            message: error.message || 'Failed to manage user session.'
         };
     }
 }
@@ -555,6 +630,7 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ updateUserActivePlan(us
     updateUserRole,
     updateUserPermission,
     updateUserStatus,
+    manageUserSession,
     signOut,
     saveCompanyDetailsToRTDB,
     getCompanyDetailsFromRTDB,
@@ -574,6 +650,7 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ updateUserActivePlan(us
 (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(updateUserRole, "70ca33ff81d844b3ec58711e7aa07fe89bb380c947", null);
 (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(updateUserPermission, "6055954a4e9da63a3af116a886100cc91355a03014", null);
 (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(updateUserStatus, "606a4ec279f2e24ba2af4e3caf22487aef9541e622", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(manageUserSession, "7821cab8edbe543f765dca6bcf306f1f969a22ea93", null);
 (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(signOut, "0086d1454012dae48d87f8b73ffe6497b833c94961", null);
 (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(saveCompanyDetailsToRTDB, "401f6e3642acf65262fa6d6423f207ff565e3c09fa", null);
 (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getCompanyDetailsFromRTDB, "00cf5330395e82bf8255922e76b18a7d7fd7cd3e01", null);
@@ -593,6 +670,7 @@ __turbopack_async_result__();
 var { g: global, __dirname } = __turbopack_context__;
 {
 __turbopack_context__.s({});
+;
 ;
 ;
 ;
@@ -649,7 +727,8 @@ __turbopack_context__.s({
     "6055954a4e9da63a3af116a886100cc91355a03014": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["updateUserPermission"]),
     "606a4ec279f2e24ba2af4e3caf22487aef9541e622": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["updateUserStatus"]),
     "60b99002cc4d9e22a51d06be687b33348a7e56bf24": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["updateUserTrialStatus"]),
-    "70ca33ff81d844b3ec58711e7aa07fe89bb380c947": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["updateUserRole"])
+    "70ca33ff81d844b3ec58711e7aa07fe89bb380c947": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["updateUserRole"]),
+    "7821cab8edbe543f765dca6bcf306f1f969a22ea93": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["manageUserSession"])
 });
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$usage$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i('[project]/.next-internal/server/app/usage/page/actions.js { ACTIONS_MODULE0 => "[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)" } [app-rsc] (server actions loader, ecmascript) <locals>');
@@ -682,7 +761,8 @@ __turbopack_context__.s({
     "6055954a4e9da63a3af116a886100cc91355a03014": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$usage$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["6055954a4e9da63a3af116a886100cc91355a03014"]),
     "606a4ec279f2e24ba2af4e3caf22487aef9541e622": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$usage$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["606a4ec279f2e24ba2af4e3caf22487aef9541e622"]),
     "60b99002cc4d9e22a51d06be687b33348a7e56bf24": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$usage$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["60b99002cc4d9e22a51d06be687b33348a7e56bf24"]),
-    "70ca33ff81d844b3ec58711e7aa07fe89bb380c947": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$usage$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["70ca33ff81d844b3ec58711e7aa07fe89bb380c947"])
+    "70ca33ff81d844b3ec58711e7aa07fe89bb380c947": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$usage$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["70ca33ff81d844b3ec58711e7aa07fe89bb380c947"]),
+    "7821cab8edbe543f765dca6bcf306f1f969a22ea93": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$usage$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["7821cab8edbe543f765dca6bcf306f1f969a22ea93"])
 });
 var __TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$usage$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$module__evaluation$3e$__ = __turbopack_context__.i('[project]/.next-internal/server/app/usage/page/actions.js { ACTIONS_MODULE0 => "[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)" } [app-rsc] (server actions loader, ecmascript) <module evaluation>');
 var __TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$usage$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__ = __turbopack_context__.i('[project]/.next-internal/server/app/usage/page/actions.js { ACTIONS_MODULE0 => "[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)" } [app-rsc] (server actions loader, ecmascript) <exports>');

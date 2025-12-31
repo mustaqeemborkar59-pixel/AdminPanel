@@ -197,6 +197,17 @@
       "layer": {
         "app/admins/page": "action-browser"
       }
+    },
+    "7821cab8edbe543f765dca6bcf306f1f969a22ea93": {
+      "workers": {
+        "app/admins/page": {
+          "moduleId": "[project]/.next-internal/server/app/admins/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true
+        }
+      },
+      "layer": {
+        "app/admins/page": "action-browser"
+      }
     }
   },
   "edge": {}

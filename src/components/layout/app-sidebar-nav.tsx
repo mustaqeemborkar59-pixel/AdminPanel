@@ -68,10 +68,10 @@ export function AppSidebarNav({ user, userProfile, authLoading }: AppSidebarNavP
     return userProfile.role;
   }, [userProfile, authLoading]);
 
-  // State to get session ID from local storage
+  // State to get session ID from sessionStorage
   const [sessionId] = useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('app_session_id') || '';
+      return sessionStorage.getItem('app_session_id') || '';
     }
     return '';
   });
@@ -88,7 +88,7 @@ export function AppSidebarNav({ user, userProfile, authLoading }: AppSidebarNavP
     try {
       await auth.signOut();
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('app_session_id');
+        sessionStorage.removeItem('app_session_id');
       }
       router.push('/login'); 
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
