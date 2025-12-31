@@ -472,6 +472,12 @@ function DashboardContent() {
                     labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
                     itemStyle={{ color: 'hsl(var(--foreground))' }}
                     cursor={{fill: 'hsl(var(--muted)/0.3)'}}
+                    formatter={(value, name) => {
+                      if (name === 'sales') {
+                        return [`₹${Number(value).toLocaleString('en-IN')}`, 'Sales'];
+                      }
+                      return [value, 'Orders'];
+                    }}
                   />
                   <Bar yAxisId="left" dataKey="orders" name="Orders" radius={[4, 4, 0, 0]} className="cursor-pointer" onClick={handleBarClick}>
                     <LabelList dataKey="sales" content={<SalesLabel />} />
@@ -479,13 +485,8 @@ function DashboardContent() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                   </Bar>
-                  <Bar 
-                    yAxisId="left" 
-                    dataKey="sales" 
-                    name="Sales" 
-                    className="hidden"
-                    formatter={(value) => `₹${Number(value).toLocaleString('en-IN')}`}
-                  />
+                  {/* The sales data is now handled by the tooltip formatter, but we need the data in the chart payload */}
+                   <Bar dataKey="sales" name="sales" className="hidden" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
