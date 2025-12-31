@@ -685,10 +685,6 @@
           "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
         },
-        "app/pending-verification/page": {
-          "moduleId": "[project]/.next-internal/server/app/pending-verification/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
-        },
         "app/signup/page": {
           "moduleId": "[project]/.next-internal/server/app/signup/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
@@ -708,7 +704,6 @@
         "app/login/page": "action-browser",
         "app/orders/page": "action-browser",
         "app/page": "action-browser",
-        "app/pending-verification/page": "action-browser",
         "app/signup/page": "action-browser",
         "app/staff/page": "action-browser",
         "app/usage/page": "action-browser"
@@ -736,10 +731,6 @@
           "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
         },
-        "app/pending-verification/page": {
-          "moduleId": "[project]/.next-internal/server/app/pending-verification/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
-        },
         "app/signup/page": {
           "moduleId": "[project]/.next-internal/server/app/signup/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
@@ -759,7 +750,6 @@
         "app/login/page": "action-browser",
         "app/orders/page": "action-browser",
         "app/page": "action-browser",
-        "app/pending-verification/page": "action-browser",
         "app/signup/page": "action-browser",
         "app/staff/page": "action-browser",
         "app/usage/page": "action-browser"
@@ -838,10 +828,6 @@
           "moduleId": "[project]/.next-internal/server/app/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/orders/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
         },
-        "app/pending-verification/page": {
-          "moduleId": "[project]/.next-internal/server/app/pending-verification/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": true
-        },
         "app/signup/page": {
           "moduleId": "[project]/.next-internal/server/app/signup/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/auth/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": true
@@ -861,7 +847,6 @@
         "app/login/page": "action-browser",
         "app/orders/page": "action-browser",
         "app/page": "action-browser",
-        "app/pending-verification/page": "action-browser",
         "app/signup/page": "action-browser",
         "app/staff/page": "action-browser",
         "app/usage/page": "action-browser"

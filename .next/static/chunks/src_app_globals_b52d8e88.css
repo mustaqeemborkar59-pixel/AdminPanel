@@ -600,6 +600,11 @@ input, button, textarea, select {
   margin-bottom: 2rem;
 }
 
+.-mx-6 {
+  margin-left: -1.5rem;
+  margin-right: -1.5rem;
+}
+
 .mb-0\.5 {
   margin-bottom: .125rem;
 }
@@ -815,6 +820,10 @@ input, button, textarea, select {
 
 .max-h-screen {
   max-height: 100vh;
+}
+
+.max-h-\[90vh\] {
+  max-height: 90vh;
 }
 
 .min-h-0 {
@@ -3291,6 +3300,10 @@ body {
 
   .sm\:flex {
     display: flex;
+  }
+
+  .sm\:h-auto {
+    height: auto;
   }
 
   .sm\:w-\[140px\] {
