@@ -187,20 +187,23 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ getUserProfile(uid) {
 }
 async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ updateUserProfile(uid, details) {
     const adminApp = initializeAdminApp();
-    const { firestore } = getAdminServices(adminApp);
+    const { firestore, auth } = getAdminServices(adminApp);
     try {
         const userRef = firestore.collection('users').doc(uid);
-        const docSnap = await userRef.get();
-        if (docSnap.exists) {
-            const updates = {};
-            if (details.displayName && details.displayName !== docSnap.data()?.displayName) {
-                updates.displayName = details.displayName;
-            }
-            if (details.photoURL && details.photoURL !== docSnap.data()?.photoURL) {
-                updates.photoURL = details.photoURL;
-            }
-            if (Object.keys(updates).length > 0) {
-                await userRef.update(updates);
+        const updates = {};
+        if (details.displayName) {
+            updates.displayName = details.displayName;
+        }
+        if (details.photoURL) {
+            updates.photoURL = details.photoURL;
+        }
+        if (Object.keys(updates).length > 0) {
+            await userRef.update(updates);
+            // Also update the auth user display name if it's being changed
+            if (updates.displayName) {
+                await auth.updateUser(uid, {
+                    displayName: updates.displayName
+                });
             }
         }
         return {
@@ -210,7 +213,7 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ updateUserProfile(uid, 
         console.error('Firestore Profile Update Error (Admin):', error);
         return {
             success: false,
-            message: error.message || 'Failed to update user profile in database.'
+            message: error.message || 'Failed to update user profile.'
         };
     }
 }

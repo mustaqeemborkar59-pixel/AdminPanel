@@ -5,14 +5,30 @@ import React, { useState, useEffect, type ReactNode, createContext, useContext, 
 import { usePathname, useRouter } from 'next/navigation';
 import { type User } from 'firebase/auth';
 import { useUser, useFirebase, useFirestore } from '@/firebase';
-import { doc, onSnapshot } from 'firebase/firestore'; // Import onSnapshot
-import { createUserProfile } from '@/app/auth/actions';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { createUserProfile, manageUserSession } from '@/app/auth/actions';
 import type { UserProfile } from '@/types';
 import { Loader2 } from 'lucide-react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebarNav } from '@/components/layout/app-sidebar-nav';
 import { Header } from '@/components/layout/header';
 import { useToast } from '@/hooks/use-toast';
+import { v4 as uuidv4 } from 'uuid';
+
+
+const SESSION_ID_KEY = 'app_session_id';
+
+const getSessionId = (): string => {
+    if (typeof window !== 'undefined') {
+        let sessionId = localStorage.getItem(SESSION_ID_KEY);
+        if (!sessionId) {
+            sessionId = uuidv4();
+            localStorage.setItem(SESSION_ID_KEY, sessionId);
+        }
+        return sessionId;
+    }
+    return '';
+};
 
 
 interface AppContextType {
@@ -43,6 +59,7 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   const { firestore } = useFirebase();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [sessionId] = useState(getSessionId());
 
   const isAuthPage = pathname === '/login' || pathname === '/signup';
   const isPendingPage = pathname === '/pending-verification';
@@ -52,9 +69,6 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   const refreshUserProfile = useCallback(async () => {
     if (user && firestore) {
       const userDocRef = doc(firestore, 'users', user.uid);
-      // This is a one-time fetch, not a listener.
-      // onSnapshot inside a useCallback without proper dependency management is tricky.
-      // A one-time get is safer for a manual refresh function.
       const { getDoc } = await import('firebase/firestore');
       const docSnap = await getDoc(userDocRef);
       if (docSnap.exists()) {
@@ -90,6 +104,18 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
           router.replace('/login');
           return;
         }
+
+        // Force logout if session ID is no longer active
+        if (profileData.activeSessionId && profileData.activeSessionId !== sessionId) {
+             toast({
+                variant: "destructive",
+                title: "Session Expired",
+                description: "You have logged in from another device. This session has been terminated.",
+            });
+            await auth.signOut();
+            router.replace('/login');
+            return;
+        }
         
         setUserProfile(profileData);
 
@@ -111,7 +137,6 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
           });
           await auth.signOut();
         }
-        // The onSnapshot will trigger again once the profile is created.
       }
       setProfileLoading(false);
     }, (error) => {
@@ -126,7 +151,15 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
 
     return () => unsubscribe(); // Cleanup listener on unmount
 
-  }, [user, firestore, toast, router, auth]);
+  }, [user, firestore, toast, router, auth, sessionId]);
+
+  // Effect to manage session on login
+   useEffect(() => {
+    if (user && !loading) {
+      const deviceInfo = `${navigator.userAgent}`;
+      manageUserSession(user.uid, sessionId, deviceInfo, 'login');
+    }
+  }, [user, loading, sessionId]);
 
 
   useEffect(() => {

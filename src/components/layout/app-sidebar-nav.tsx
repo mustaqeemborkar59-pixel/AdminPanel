@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation'; // Added useRouter
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
@@ -29,12 +29,13 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/comp
 import { Logo } from './logo';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import React from 'react';
+import React, { useState } from 'react';
 import type { User } from 'firebase/auth'; 
 import { useAuth } from '@/firebase';
-import { useToast } from '@/hooks/use-toast'; // For potential error messages
+import { useToast } from '@/hooks/use-toast';
 import type { UserProfile } from '@/types';
 import { useAppContext } from './app-content-wrapper';
+import { manageUserSession } from '@/app/auth/actions';
 
 const allNavItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'vendor', 'super-admin'] },
@@ -67,14 +68,28 @@ export function AppSidebarNav({ user, userProfile, authLoading }: AppSidebarNavP
     return userProfile.role;
   }, [userProfile, authLoading]);
 
+  // State to get session ID from local storage
+  const [sessionId] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('app_session_id') || '';
+    }
+    return '';
+  });
+
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
 
   const handleLogout = async () => {
+    if (user) {
+        await manageUserSession(user.uid, sessionId, '', 'logout');
+    }
     try {
       await auth.signOut();
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('app_session_id');
+      }
       router.push('/login'); 
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
     } catch (error) {
@@ -189,10 +204,10 @@ export function AppSidebarNav({ user, userProfile, authLoading }: AppSidebarNavP
               </div>
             </div>
             <Button 
-              type="button" // Changed from submit
+              type="button" 
               variant="ghost" 
               className="w-full justify-start text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              onClick={handleLogout} // Added onClick handler
+              onClick={handleLogout}
             >
               <LogOut className="mr-2 h-5 w-5 text-sidebar-foreground/70" /> Logout
             </Button>
@@ -213,11 +228,11 @@ export function AppSidebarNav({ user, userProfile, authLoading }: AppSidebarNavP
                 <Tooltip>
                     <TooltipTrigger asChild>
                          <Button 
-                            type="button" // Changed from submit
+                            type="button"
                             variant="ghost" 
                             size="icon" 
                             className="w-9 h-9 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                            onClick={handleLogout} // Added onClick handler
+                            onClick={handleLogout}
                          >
                             <LogOut className="h-5 w-5 text-sidebar-foreground/70"/>
                          </Button>
