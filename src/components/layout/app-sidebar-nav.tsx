@@ -39,8 +39,7 @@ import { useAppContext } from './app-content-wrapper';
 const allNavItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'vendor', 'super-admin'] },
   { href: '/orders', label: 'Orders', icon: ClipboardList, roles: ['admin', 'vendor', 'super-admin'] },
-  { href: '/admins', label: 'Admins', icon: ShieldCheck, roles: ['super-admin'] },
-  { href: '/staff', label: 'Staff', icon: Users, roles: ['super-admin'] },
+  { href: '/admins', label: 'User Management', icon: ShieldCheck, roles: ['super-admin'] },
   { href: '/vendors', label: 'Vendors', icon: Store, roles: ['admin', 'super-admin'] },
   { href: '/delivery', label: 'Delivery', icon: Truck, roles: ['admin', 'super-admin'] },
   { href: '/usage', label: 'Subscription', icon: Gem, roles: ['vendor']},

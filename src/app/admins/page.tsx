@@ -2,10 +2,10 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
-import { getAllUsers, updateUserRole, getVendorsFromFirestore, updateUserPermission } from '@/app/auth/actions'; // Using Firestore actions
+import { getAllUsers, updateUserRole, getVendorsFromFirestore, updateUserPermission, updateUserStatus } from '@/app/auth/actions'; // Using Firestore actions
 import type { UserProfile, Vendor } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ShieldCheck, Store, User, Lock, Crown, Check, X, Settings } from 'lucide-react';
+import { Loader2, ShieldCheck, Store, User, Lock, Crown, Check, X, Settings, Ban } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -30,6 +30,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -50,7 +61,7 @@ export default function AdminsPage() {
   // State for the settings dialog
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
-  const [tempPermissions, setTempPermissions] = useState<{role: UserProfile['role'], vendorCode?: string | null, canUpdateOrderStatus?: boolean}>({});
+  const [tempPermissions, setTempPermissions] = useState<{role: UserProfile['role'], vendorCode?: string | null, canUpdateOrderStatus?: boolean, status?: UserProfile['status']}>({});
 
   const { toast } = useToast();
 
@@ -104,6 +115,7 @@ export default function AdminsPage() {
         role: user.role,
         vendorCode: user.vendorCode,
         canUpdateOrderStatus: user.canUpdateOrderStatus,
+        status: user.status,
     });
     setIsDialogOpen(true);
   };
@@ -114,7 +126,7 @@ export default function AdminsPage() {
     
     const roleChanged = selectedUser.role !== tempPermissions.role || (tempPermissions.role === 'vendor' && selectedUser.vendorCode !== tempPermissions.vendorCode);
     const permissionChanged = selectedUser.canUpdateOrderStatus !== tempPermissions.canUpdateOrderStatus;
-
+    
     let roleUpdateSuccess = true;
     let permUpdateSuccess = true;
 
@@ -143,6 +155,29 @@ export default function AdminsPage() {
     setIsDialogOpen(false);
     setSelectedUser(null);
   }
+
+  const handleStatusChange = async () => {
+    if (!selectedUser) return;
+    setIsSaving(true);
+    const newStatus = selectedUser.status === 'blocked' ? 'active' : 'blocked';
+    const result = await updateUserStatus(selectedUser.uid, newStatus);
+    if (result.success) {
+        toast({
+            title: "Status Updated",
+            description: `User has been ${newStatus === 'blocked' ? 'blocked' : 'unblocked'}.`
+        });
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Status Update Failed",
+            description: result.message || "Could not update user status."
+        });
+    }
+    await fetchAllData(); // Refresh users after status change
+    setIsSaving(false);
+    setIsDialogOpen(false);
+    setSelectedUser(null);
+  };
 
 
   const getRoleBadge = (user: UserProfile) => {
@@ -254,7 +289,7 @@ export default function AdminsPage() {
             <DialogHeader>
                 <DialogTitle>Settings for {selectedUser?.displayName}</DialogTitle>
                 <DialogDescription>
-                    Manage permissions and roles for this user.
+                    Manage permissions, roles, and status for this user.
                 </DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-6">
@@ -324,6 +359,44 @@ export default function AdminsPage() {
                     </div>
                 </div>
 
+                 <Separator />
+
+                {/* Status Section */}
+                <div className="space-y-3">
+                    <Label className="font-semibold">User Status</Label>
+                    <p className="text-sm text-muted-foreground">Block or unblock this user from accessing the application.</p>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                        {selectedUser?.status === 'blocked' ? (
+                            <Button variant="outline" className="border-green-500 text-green-700 hover:bg-green-100 hover:text-green-800 dark:border-green-600 dark:text-green-400 dark:hover:bg-green-900/50">
+                                <Check className="mr-2 h-4 w-4" /> Unblock User
+                            </Button>
+                        ) : (
+                            <Button variant="destructive">
+                                <Ban className="mr-2 h-4 w-4" /> Block User
+                            </Button>
+                        )}
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                You are about to {selectedUser?.status === 'blocked' ? 'unblock' : 'block'} the user: <span className="font-semibold">{selectedUser?.displayName}</span>. 
+                                {selectedUser?.status !== 'blocked' && ' They will be immediately logged out and unable to log in.'}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel disabled={isSaving}>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleStatusChange} disabled={isSaving}>
+                                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                                Confirm
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </div>
+
+
             </div>
             <DialogFooter>
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSaving}>Cancel</Button>
@@ -337,4 +410,3 @@ export default function AdminsPage() {
     </>
   );
 }
-

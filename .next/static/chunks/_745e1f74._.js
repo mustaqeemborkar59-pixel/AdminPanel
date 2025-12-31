@@ -1156,7 +1156,7 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
 var { g: global, __dirname } = __turbopack_context__;
 {
 /**
- * @license lucide-react v0.489.0 - ISC
+ * @license lucide-react v0.490.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
@@ -1415,7 +1415,7 @@ var Description2 = AlertDialogDescription;
 var { g: global, __dirname } = __turbopack_context__;
 {
 /**
- * @license lucide-react v0.489.0 - ISC
+ * @license lucide-react v0.490.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
@@ -1463,7 +1463,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$re
 var { g: global, __dirname } = __turbopack_context__;
 {
 /**
- * @license lucide-react v0.489.0 - ISC
+ * @license lucide-react v0.490.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
@@ -1509,7 +1509,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$re
 var { g: global, __dirname } = __turbopack_context__;
 {
 /**
- * @license lucide-react v0.489.0 - ISC
+ * @license lucide-react v0.490.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
@@ -1557,7 +1557,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$re
 var { g: global, __dirname } = __turbopack_context__;
 {
 /**
- * @license lucide-react v0.489.0 - ISC
+ * @license lucide-react v0.490.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.

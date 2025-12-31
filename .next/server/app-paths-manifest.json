@@ -6,5 +6,6 @@
   "/page": "app/page.js",
   "/pending-verification/page": "app/pending-verification/page.js",
   "/signup/page": "app/signup/page.js",
+  "/staff/page": "app/staff/page.js",
   "/usage/page": "app/usage/page.js"
 }
