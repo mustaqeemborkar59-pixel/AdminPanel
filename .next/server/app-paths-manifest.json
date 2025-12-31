@@ -1,12 +1,3 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/admins/page": "app/admins/page.js",
-  "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/login/page": "app/login/page.js",
-  "/orders/page": "app/orders/page.js",
-  "/page": "app/page.js",
-  "/pending-verification/page": "app/pending-verification/page.js",
-  "/signup/page": "app/signup/page.js",
-  "/staff/page": "app/staff/page.js",
-  "/usage/page": "app/usage/page.js"
+  "/page": "app/page.js"
 }
