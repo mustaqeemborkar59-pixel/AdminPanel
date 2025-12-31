@@ -668,10 +668,6 @@ input, button, textarea, select {
   margin-top: auto;
 }
 
-.mr-4 {
-  margin-right: 1rem;
-}
-
 .block {
   display: block;
 }
@@ -1245,6 +1241,12 @@ input, button, textarea, select {
   margin-left: calc(.25rem * calc(1 - var(--tw-space-x-reverse)));
 }
 
+.space-x-2 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 0;
+  margin-right: calc(.5rem * var(--tw-space-x-reverse));
+  margin-left: calc(.5rem * calc(1 - var(--tw-space-x-reverse)));
+}
+
 .space-x-3 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 0;
   margin-right: calc(.75rem * var(--tw-space-x-reverse));
@@ -1297,12 +1299,6 @@ input, button, textarea, select {
   --tw-space-y-reverse: 0;
   margin-top: calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));
   margin-bottom: calc(1.5rem * var(--tw-space-y-reverse));
-}
-
-.space-x-2 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-x-reverse: 0;
-  margin-right: calc(.5rem * var(--tw-space-x-reverse));
-  margin-left: calc(.5rem * calc(1 - var(--tw-space-x-reverse)));
 }
 
 .self-end {
@@ -1430,16 +1426,16 @@ input, button, textarea, select {
   border-color: hsl(var(--primary));
 }
 
+.border-primary\/50 {
+  border-color: hsl(var(--primary) / .5);
+}
+
 .border-sidebar-border {
   border-color: hsl(var(--sidebar-border));
 }
 
 .border-transparent {
   border-color: #0000;
-}
-
-.border-primary\/50 {
-  border-color: hsl(var(--primary) / .5);
 }
 
 .border-l-transparent {
@@ -2001,6 +1997,10 @@ input, button, textarea, select {
   letter-spacing: .1em;
 }
 
+.\!text-primary {
+  color: hsl(var(--primary)) !important;
+}
+
 .text-accent-foreground {
   color: hsl(var(--accent-foreground));
 }
@@ -2079,6 +2079,10 @@ input, button, textarea, select {
   color: hsl(var(--primary-foreground));
 }
 
+.text-primary\/80 {
+  color: hsl(var(--primary) / .8);
+}
+
 .text-red-500 {
   --tw-text-opacity: 1;
   color: rgb(239 68 68 / var(--tw-text-opacity, 1));
@@ -2111,14 +2115,6 @@ input, button, textarea, select {
 
 .text-white\/80 {
   color: #fffc;
-}
-
-.\!text-primary {
-  color: hsl(var(--primary)) !important;
-}
-
-.text-primary\/80 {
-  color: hsl(var(--primary) / .8);
 }
 
 .line-through {

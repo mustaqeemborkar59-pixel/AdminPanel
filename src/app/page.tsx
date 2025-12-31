@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DollarSign, Users, ShoppingBag, Activity, UsersRound, Package, ChevronDown, Loader2, Calendar as CalendarIcon, CheckCircle, Clock, PackageSearch, Truck, XCircle, Archive, Loader, ShieldCheck, Store, Crown } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label, LabelList } from 'recharts';
 import type { Order, StaffMember, OrderStatus, OrderType, MenuItem, Vendor, UserProfile } from '@/types';
 import { cn } from '@/lib/utils';
 import { getOrdersFromWooCommerce } from '@/app/orders/actions';
@@ -52,7 +52,7 @@ function DashboardContent() {
   const [totalSales, setTotalSales] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
   const [newCustomers, setNewCustomers] = useState(0);
-  const [weeklyOrderData, setWeeklyOrderData] = useState<{name: string, date: string, orders: number}[]>([]);
+  const [weeklyOrderData, setWeeklyOrderData] = useState<{name: string, date: string, orders: number, sales: number}[]>([]);
   const [salesDetailsData, setSalesDetailsData] = useState<{name: string, value: number, label: string, icon: React.ElementType, color: string}[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
     const today = new Date();
@@ -202,7 +202,8 @@ function DashboardContent() {
         const orderCountsByDay = intervalDays.map(day => ({
           name: format(day, 'MMM d'),
           date: format(day, 'yyyy-MM-dd'),
-          orders: 0
+          orders: 0,
+          sales: 0
         }));
 
         recentPaidSuccessfulOrders.forEach(order => {
@@ -214,6 +215,7 @@ function DashboardContent() {
               const dayData = orderCountsByDay.find(d => d.date === paymentDateStr);
               if (dayData) {
                   dayData.orders += 1;
+                  dayData.sales += order.totalAmount;
               }
             } catch {}
         });
@@ -276,6 +278,17 @@ function DashboardContent() {
 
     const orderIds = ordersForDate.map(o => o.id);
     alert(`Orders paid on ${clickedDate}:\n\n${orderIds.join(', ')}`);
+  };
+  
+  const SalesLabel = ({ x, y, width, value }: any) => {
+    if (value > 0) {
+      return (
+        <text x={x + width / 2} y={y} dy={-4} fill="hsl(var(--foreground))" fontSize={12} textAnchor="middle">
+          {`₹${Math.round(value).toLocaleString('en-IN')}`}
+        </text>
+      );
+    }
+    return null;
   };
 
 
@@ -450,10 +463,10 @@ function DashboardContent() {
             </CardHeader>
             <CardContent className="pt-4">
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={weeklyOrderData}>
+                <BarChart data={weeklyOrderData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" vertical={false} />
                   <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <YAxis dataKey="orders" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} allowDecimals={false} />
                   <Tooltip
                     contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }}
                     labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
@@ -461,6 +474,7 @@ function DashboardContent() {
                     cursor={{fill: 'hsl(var(--muted)/0.3)'}}
                   />
                   <Bar dataKey="orders" name="Orders" radius={[4, 4, 0, 0]} className="cursor-pointer" onClick={handleBarClick}>
+                    <LabelList dataKey="sales" content={<SalesLabel />} />
                      {weeklyOrderData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
@@ -507,3 +521,5 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
+
+    
