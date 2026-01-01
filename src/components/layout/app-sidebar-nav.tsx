@@ -83,7 +83,8 @@ export function AppSidebarNav({ user, userProfile, authLoading }: AppSidebarNavP
 
   const handleLogout = async () => {
     if (user) {
-        await manageUserSession(user.uid, sessionId, '', 'logout');
+        // Do not await this. Let it run in the background.
+        manageUserSession(user.uid, sessionId, '', 'logout');
     }
     try {
       await auth.signOut();
