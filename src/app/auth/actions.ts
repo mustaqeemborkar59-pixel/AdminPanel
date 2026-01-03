@@ -6,7 +6,7 @@ import { getFirestore, Timestamp, FieldValue as AdminFieldValue } from 'firebase
 import { initializeApp, getApps, App, cert } from 'firebase-admin/app';
 import { getAuth as getAdminAuth } from 'firebase-admin/auth';
 import { getDatabase } from 'firebase-admin/database';
-import type { UserProfile, CompanyDetails, Vendor, UserSession } from '@/types';
+import type { UserProfile, CompanyDetails, Vendor } from '@/types';
 import type { SubscriptionPlan } from '@/app/usage/page';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -80,7 +80,6 @@ export async function createUserProfile(details: UserProfileOnSignup): Promise<{
       trialUsed: false, // Initialize trialUsed as false for new users
       activePlanId: 'trial', // Default active plan is trial
       canUpdateOrderStatus: false, // Default permission is false
-      deviceLimit: 1, // Default device limit
     };
 
     await userRef.set(userProfile, { merge: true });
@@ -111,7 +110,7 @@ export async function getUserProfile(uid: string): Promise<{ success: boolean; d
     }
 }
 
-export async function updateUserProfile(uid: string, details: { displayName?: string | null, photoURL?: string | null, deviceLimit?: number }): Promise<{ success: boolean; message?: string }> {
+export async function updateUserProfile(uid: string, details: { displayName?: string | null, photoURL?: string | null }): Promise<{ success: boolean; message?: string }> {
   const adminApp = initializeAdminApp();
   const { firestore, auth } = getAdminServices(adminApp);
   try {
@@ -122,9 +121,6 @@ export async function updateUserProfile(uid: string, details: { displayName?: st
     }
     if (details.photoURL) {
         updates.photoURL = details.photoURL;
-    }
-    if (details.deviceLimit && details.deviceLimit > 0) {
-        updates.deviceLimit = details.deviceLimit;
     }
 
     if (Object.keys(updates).length > 0) {
@@ -211,86 +207,12 @@ export async function updateUserStatus(userId: string, status: 'active' | 'block
         // Update Firestore user state
         await userRef.update({ status: status });
 
-        // If blocking, clear all active sessions
-        if (isBlocked) {
-            const sessionsRef = firestore.collection('users').doc(userId).collection('sessions');
-            const sessionsSnap = await sessionsRef.get();
-            const deletePromises = sessionsSnap.docs.map(doc => doc.ref.delete());
-            await Promise.all(deletePromises);
-            await userRef.update({ activeSessionId: AdminFieldValue.delete() });
-        }
-
-
         return { success: true };
     } catch (error: any) {
         console.error('Failed to update user status (Admin):', error);
         return { success: false, message: error.message || 'Failed to update user status.' };
     }
 }
-
-export async function manageUserSession(
-    userId: string, 
-    sessionId: string, 
-    deviceInfo: string,
-    action: 'login' | 'logout'
-): Promise<{ success: boolean; message?: string }> {
-    const adminApp = initializeAdminApp();
-    const { firestore } = getAdminServices(adminApp);
-    const userRef = firestore.collection('users').doc(userId);
-    const sessionsRef = userRef.collection('sessions');
-
-    try {
-        if (action === 'logout') {
-            const sessionDocRef = sessionsRef.doc(sessionId);
-            await sessionDocRef.delete();
-            // Check if this was the active session and clear it from the user profile
-            const userSnap = await userRef.get();
-            if (userSnap.exists && userSnap.data()?.activeSessionId === sessionId) {
-                await userRef.update({ activeSessionId: AdminFieldValue.delete() });
-            }
-            return { success: true };
-        }
-
-        // --- Handle Login ---
-        const userSnap = await userRef.get();
-        if (!userSnap.exists) {
-            return { success: false, message: "User profile not found." };
-        }
-        const userData = userSnap.data() as UserProfile;
-        const deviceLimit = userData.deviceLimit || 1;
-
-        // Get current sessions, ordered by time
-        const sessionsSnap = await sessionsRef.orderBy('timestamp', 'asc').get();
-        const currentSessions = sessionsSnap.docs;
-
-        // Enforce device limit: remove oldest sessions if limit is exceeded
-        if (currentSessions.length >= deviceLimit) {
-            const sessionsToRemoveCount = currentSessions.length - deviceLimit + 1;
-            const oldestSessions = currentSessions.slice(0, sessionsToRemoveCount);
-            const deletePromises = oldestSessions.map(doc => doc.ref.delete());
-            await Promise.all(deletePromises);
-        }
-
-        // Add the new session
-        const newSession: UserSession = {
-            id: sessionId,
-            timestamp: new Date().toISOString(),
-            deviceInfo: deviceInfo,
-        };
-        await sessionsRef.doc(sessionId).set(newSession);
-
-        // Update the activeSessionId on the user's profile
-        await userRef.update({ activeSessionId: sessionId });
-
-        return { success: true };
-
-    } catch (error: any) {
-        console.error('Failed to manage user session (Admin):', error);
-        return { success: false, message: error.message || 'Failed to manage user session.' };
-    }
-}
-
-
 
 // --- Company Details Actions ---
 

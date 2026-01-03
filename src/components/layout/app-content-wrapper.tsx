@@ -1,36 +1,18 @@
 
 "use client";
 
-import React, { useState, useEffect, type ReactNode, createContext, useContext, useCallback, useRef } from 'react';
+import React, { useState, useEffect, type ReactNode, createContext, useContext, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { type User } from 'firebase/auth';
 import { useUser, useFirebase, useFirestore } from '@/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { createUserProfile, manageUserSession } from '@/app/auth/actions';
+import { createUserProfile } from '@/app/auth/actions';
 import type { UserProfile } from '@/types';
 import { Loader2 } from 'lucide-react';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebarNav } from '@/components/layout/app-sidebar-nav';
 import { Header } from '@/components/layout/header';
 import { useToast } from '@/hooks/use-toast';
-import { v4 as uuidv4 } from 'uuid';
-
-
-const SESSION_ID_KEY = 'app_session_id';
-
-const getSessionId = (): string => {
-    if (typeof window !== 'undefined') {
-        // Use sessionStorage to ensure each tab gets a unique session ID
-        let sessionId = sessionStorage.getItem(SESSION_ID_KEY);
-        if (!sessionId) {
-            sessionId = uuidv4();
-            sessionStorage.setItem(SESSION_ID_KEY, sessionId);
-        }
-        return sessionId;
-    }
-    return '';
-};
-
 
 interface AppContextType {
   user: User | null;
@@ -60,10 +42,6 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   const { firestore } = useFirebase();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
-  const [sessionId] = useState(getSessionId());
-
-  // Ref to prevent logout race condition on new login
-  const isLoggingInRef = useRef(false);
 
   const isAuthPage = pathname === '/login' || pathname === '/signup';
   const isPendingPage = pathname === '/pending-verification';
@@ -109,12 +87,6 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
           return;
         }
         
-        // If we are not in the process of logging in, check for session conflicts.
-        if (!isLoggingInRef.current && profileData.activeSessionId && profileData.activeSessionId !== sessionId) {
-            await auth.signOut();
-            return;
-        }
-        
         setUserProfile(profileData);
 
       } else {
@@ -149,24 +121,7 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
 
     return () => unsubscribe(); // Cleanup listener on unmount
 
-  }, [user, firestore, toast, router, auth, sessionId]);
-
-  // Effect to manage session on login
-   useEffect(() => {
-    if (user && !loading) {
-      const deviceInfo = `${navigator.userAgent}`;
-      
-      // Set the flag to true before managing session to prevent race condition
-      isLoggingInRef.current = true;
-      manageUserSession(user.uid, sessionId, deviceInfo, 'login');
-      
-      // Reset the flag after a short delay to allow the new session ID to propagate
-      setTimeout(() => {
-        isLoggingInRef.current = false;
-      }, 2000); // 2 seconds should be enough for the backend to update
-    }
-  }, [user, loading, sessionId]);
-
+  }, [user, firestore, toast, router, auth]);
 
   useEffect(() => {
     if (loading) return;

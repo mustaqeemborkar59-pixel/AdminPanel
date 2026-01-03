@@ -109,16 +109,7 @@ export interface UserProfile {
   trialUsed?: boolean; // To track if the user has used their trial
   activePlanId?: string; // To track the current active plan ID
   canUpdateOrderStatus?: boolean; // New permission field
-  deviceLimit?: number;
-  activeSessionId?: string; // ID of the currently active session for this user
 }
-
-export interface UserSession {
-    id: string;
-    timestamp: string; // ISO string
-    deviceInfo: string;
-}
-
 
 export interface Vendor {
     id: string;

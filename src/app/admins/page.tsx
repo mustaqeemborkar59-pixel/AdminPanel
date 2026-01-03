@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/page-header';
 import { getAllUsers, updateUserRole, getVendorsFromFirestore, updateUserPermission, updateUserStatus, updateUserProfile } from '@/app/auth/actions'; // Using Firestore actions
 import type { UserProfile, Vendor } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ShieldCheck, Store, User, Lock, Crown, Check, X, Settings, Ban, Smartphone } from 'lucide-react';
+import { Loader2, ShieldCheck, Store, User, Lock, Crown, Check, X, Settings, Ban } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -63,7 +63,7 @@ export default function AdminsPage() {
   // State for the settings dialog
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
-  const [tempPermissions, setTempPermissions] = useState<{displayName: string, role: UserProfile['role'], vendorCode?: string | null, canUpdateOrderStatus?: boolean, status?: UserProfile['status'], deviceLimit?: number}>({});
+  const [tempPermissions, setTempPermissions] = useState<{displayName: string, role: UserProfile['role'], vendorCode?: string | null, canUpdateOrderStatus?: boolean, status?: UserProfile['status']}>({});
 
   const { toast } = useToast();
 
@@ -119,7 +119,6 @@ export default function AdminsPage() {
         vendorCode: user.vendorCode,
         canUpdateOrderStatus: user.canUpdateOrderStatus,
         status: user.status,
-        deviceLimit: user.deviceLimit || 1,
     });
     setIsDialogOpen(true);
   };
@@ -131,9 +130,6 @@ export default function AdminsPage() {
     const profileUpdates: Partial<UserProfile> = {};
     if (selectedUser.displayName !== tempPermissions.displayName) {
         profileUpdates.displayName = tempPermissions.displayName;
-    }
-    if (selectedUser.deviceLimit !== tempPermissions.deviceLimit) {
-        profileUpdates.deviceLimit = tempPermissions.deviceLimit;
     }
 
     const roleChanged = selectedUser.role !== tempPermissions.role || (tempPermissions.role === 'vendor' && selectedUser.vendorCode !== tempPermissions.vendorCode);
@@ -325,25 +321,6 @@ export default function AdminsPage() {
                         onChange={(e) => setTempPermissions(prev => ({...prev, displayName: e.target.value}))} 
                         placeholder="Enter user's display name"
                         />
-                    </div>
-
-                    <Separator />
-
-                     {/* Device Limit Section */}
-                    <div className="space-y-3">
-                        <Label htmlFor="deviceLimit" className="font-semibold">Device Limit</Label>
-                        <p className="text-sm text-muted-foreground">Set the maximum number of devices a user can log into simultaneously.</p>
-                         <div className="relative w-40">
-                             <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input 
-                                id="deviceLimit" 
-                                type="number"
-                                value={tempPermissions.deviceLimit || 1} 
-                                onChange={(e) => setTempPermissions(prev => ({...prev, deviceLimit: parseInt(e.target.value, 10) || 1}))} 
-                                className="pl-9"
-                                min="1"
-                            />
-                        </div>
                     </div>
 
                     <Separator />

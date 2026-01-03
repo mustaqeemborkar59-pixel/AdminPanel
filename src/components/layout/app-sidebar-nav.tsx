@@ -29,13 +29,12 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/comp
 import { Logo } from './logo';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import React, { useState } from 'react';
+import React from 'react';
 import type { User } from 'firebase/auth'; 
 import { useAuth } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import type { UserProfile } from '@/types';
 import { useAppContext } from './app-content-wrapper';
-import { manageUserSession } from '@/app/auth/actions';
 
 const allNavItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'vendor', 'super-admin'] },
@@ -68,29 +67,13 @@ export function AppSidebarNav({ user, userProfile, authLoading }: AppSidebarNavP
     return userProfile.role;
   }, [userProfile, authLoading]);
 
-  // State to get session ID from sessionStorage
-  const [sessionId] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return sessionStorage.getItem('app_session_id') || '';
-    }
-    return '';
-  });
-
-
   React.useEffect(() => {
     setMounted(true);
   }, []);
 
   const handleLogout = async () => {
-    if (user) {
-        // Do not await this. Let it run in the background.
-        manageUserSession(user.uid, sessionId, '', 'logout');
-    }
     try {
       await auth.signOut();
-      if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('app_session_id');
-      }
       router.push('/login'); 
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
     } catch (error) {
