@@ -8,6 +8,8 @@ import { getAuth as getAdminAuth } from 'firebase-admin/auth';
 import { getDatabase } from 'firebase-admin/database';
 import type { UserProfile, CompanyDetails, Vendor, UserSession } from '@/types';
 import type { SubscriptionPlan } from '@/app/usage/page';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 
 // Server-side initialization for Firebase Admin SDK
@@ -251,7 +253,7 @@ export async function manageUserSession(
 
         // --- Handle Login ---
         const userSnap = await userRef.get();
-        if (!userSnap.exists()) {
+        if (!userSnap.exists) {
             return { success: false, message: "User profile not found." };
         }
         const userData = userSnap.data() as UserProfile;
@@ -288,43 +290,46 @@ export async function manageUserSession(
 
 
 
-// --- Other Actions (SignOut, Company Details) ---
+// --- Company Details Actions ---
 
-export async function signOut() {
-  redirect('/login');
-}
-
-
-// --- RTDB Actions using Admin SDK ---
-
-export async function saveCompanyDetailsToRTDB(details: CompanyDetails): Promise<{ success: boolean; message?: string }> {
+export async function getCompanyDetailsFromFirestore(): Promise<{ success: boolean; data?: CompanyDetails; message?: string }> {
     const adminApp = initializeAdminApp();
-    const { rtdb } = getAdminServices(adminApp);
+    const { firestore } = getAdminServices(adminApp);
     try {
-        const detailsRef = rtdb.ref('companyDetails/info');
-        await detailsRef.set(details);
-        return { success: true };
-    } catch (error: any) {
-        console.error('Failed to save company details to RTDB (Admin):', error);
-        return { success: false, message: error.message || 'Failed to save company details.' };
-    }
-}
-
-export async function getCompanyDetailsFromRTDB(): Promise<{ success: boolean; data?: CompanyDetails; message?: string }> {
-    const adminApp = initializeAdminApp();
-    const { rtdb } = getAdminServices(adminApp);
-    try {
-        const detailsRef = rtdb.ref('companyDetails/info');
-        const snapshot = await detailsRef.once('value');
-        if (snapshot.exists()) {
-            return { success: true, data: snapshot.val() };
+        const detailsRef = firestore.collection('companyDetails').doc('info');
+        const docSnap = await detailsRef.get();
+        if (docSnap.exists) {
+            return { success: true, data: docSnap.data() as CompanyDetails };
         }
         return { success: true, data: undefined };
     } catch (error: any) {
-        console.error('Failed to get company details from RTDB (Admin):', error);
+        console.error('Failed to get company details from Firestore (Admin):', error);
         return { success: false, message: error.message || 'Failed to fetch company details.' };
     }
 }
+
+export async function saveCompanyDetailsToFirestore(details: CompanyDetails): Promise<{ success: boolean; message?: string }> {
+  const adminApp = initializeAdminApp();
+  const { firestore } = getAdminServices(adminApp);
+  const detailsRef = firestore.collection('companyDetails').doc('info');
+
+  return detailsRef.set(details, { merge: true })
+    .then(() => ({ success: true }))
+    .catch((error) => {
+      console.error('Firestore Save Error (Admin - Company Details):', error);
+      
+      const permissionError = new FirestorePermissionError({
+        path: detailsRef.path,
+        operation: 'write', // 'set' with 'merge:true' can be create or update
+        requestResourceData: details,
+      });
+
+      // We can't emit from a server component directly, but we can return the structured error
+      // For now, let's just return a generic message. The proper fix would be to do this client-side.
+      return { success: false, message: permissionError.message || 'Failed to save company details due to a permission issue.' };
+    });
+}
+
 
 // --- Firestore Vendor Actions ---
 
@@ -473,5 +478,7 @@ export async function updateUserActivePlan(userId: string, planId: string): Prom
         return { success: false, message: error.message || 'Failed to update active plan.' };
     }
 }
+
+    
 
     

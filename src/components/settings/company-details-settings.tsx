@@ -5,15 +5,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Building, Loader2 } from "lucide-react";
+import { Building, Loader2, Power } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
-import { saveCompanyDetailsToRTDB, getCompanyDetailsFromRTDB } from "@/app/auth/actions";
+import { saveCompanyDetailsToFirestore, getCompanyDetailsFromFirestore } from "@/app/auth/actions";
 import { Skeleton } from "../ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import { useAppContext } from "../layout/app-content-wrapper";
+import { doc, onSnapshot } from "firebase/firestore";
+import { useFirebase } from "@/firebase";
 
 
 export function CompanyDetailsSettings() {
   const { toast } = useToast();
+  const { userProfile, companyDetails: contextCompanyDetails, refreshCompanyDetails } = useAppContext();
+  const { firestore } = useFirebase();
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
@@ -22,61 +29,64 @@ export function CompanyDetailsSettings() {
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [email, setEmail] = useState("");
+  const [isSubscriptionEnabled, setIsSubscriptionEnabled] = useState(false);
+
+  const isSuperAdmin = userProfile?.role === 'super-admin';
   
   const defaultDetails = {
     companyName: "Your Company",
     address: "123 Business Rd, Suite 100",
     city: "Your City, State, 12345",
     email: "contact@yourcompany.com",
+    isSubscriptionEnabled: false,
   };
 
   useEffect(() => {
-    async function fetchDetails() {
-      setIsLoading(true);
-      const result = await getCompanyDetailsFromRTDB();
-      if (result.success && result.data) {
-        setCompanyName(result.data.companyName);
-        setAddress(result.data.address);
-        setCity(result.data.city);
-        setEmail(result.data.email);
-      } else {
-        // Set default values if no data is found in DB
-        setCompanyName(defaultDetails.companyName);
-        setAddress(defaultDetails.address);
-        setCity(defaultDetails.city);
-        setEmail(defaultDetails.email);
-        if(!result.success){
-             toast({
-                variant: "destructive",
-                title: "Failed to load settings",
-                description: result.message || "Could not fetch company details from the database.",
-            });
-        }
-      }
+    // We now get live updates from the context, which is fed by a real-time listener
+    // in AppContentWrapper. We just need to sync the local form state.
+     if (contextCompanyDetails !== undefined) {
+      const details = contextCompanyDetails ?? defaultDetails;
+      setCompanyName(details.companyName);
+      setAddress(details.address);
+      setCity(details.city);
+      setEmail(details.email);
+      setIsSubscriptionEnabled(details.isSubscriptionEnabled ?? false);
       setIsLoading(false);
     }
-    fetchDetails();
-  }, [toast]);
+  }, [contextCompanyDetails]);
 
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!firestore) return;
     setIsSaving(true);
-    const details = { companyName, address, city, email };
-    const result = await saveCompanyDetailsToRTDB(details);
+    
+    const detailsToSave = { 
+        companyName, 
+        address, 
+        city, 
+        email,
+        isSubscriptionEnabled,
+    };
+    
+    const detailsRef = doc(firestore, 'companyDetails', 'info');
 
-    if (result.success) {
+    try {
+        await (await import('firebase/firestore')).setDoc(detailsRef, detailsToSave, { merge: true });
         toast({
             title: "Settings Saved",
             description: "Your company details have been updated.",
         });
-    } else {
+        // No need to manually call refresh, the listener will pick it up.
+    } catch (error: any) {
+        console.error('Firestore Save Error (Client - Company Details):', error);
         toast({
             variant: "destructive",
             title: "Save Failed",
-            description: result.message || "Could not save company details.",
+            description: error.message || "Could not save company details.",
         });
     }
+
     setIsSaving(false);
   };
 
@@ -126,29 +136,58 @@ export function CompanyDetailsSettings() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1">
-            <Label htmlFor="companyName" className="font-body">Company Name</Label>
-            <Input id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="font-body" disabled={isSaving}/>
+        <form onSubmit={handleSave} className="space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <Label htmlFor="companyName" className="font-body">Company Name</Label>
+              <Input id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="font-body" disabled={isSaving}/>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="address" className="font-body">Address</Label>
+              <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} className="font-body" disabled={isSaving}/>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="city" className="font-body">City, State, Pincode</Label>
+              <Input id="city" value={city} onChange={(e) => setCity(e.target.value)} className="font-body" disabled={isSaving}/>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="email" className="font-body">Contact Email</Label>
+              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="font-body" disabled={isSaving}/>
+            </div>
           </div>
-           <div className="space-y-1">
-            <Label htmlFor="address" className="font-body">Address</Label>
-            <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} className="font-body" disabled={isSaving}/>
+          
+          {isSuperAdmin && (
+             <>
+                <div className="my-6 border-t" />
+                <div className="space-y-3 p-4 border rounded-lg bg-background">
+                     <div className="flex items-center justify-between">
+                        <div>
+                            <Label htmlFor="subscription-switch" className="font-semibold flex items-center gap-2">
+                                <Power className="h-5 w-5 text-primary"/>
+                                Enable Subscription System
+                            </Label>
+                            <p className="text-xs text-muted-foreground mt-1">If disabled, all vendors will have free access to premium features.</p>
+                        </div>
+                        <Switch
+                            id="subscription-switch"
+                            checked={isSubscriptionEnabled}
+                            onCheckedChange={setIsSubscriptionEnabled}
+                            disabled={isSaving}
+                        />
+                     </div>
+                </div>
+            </>
+          )}
+
+          <div className="mt-6">
+            <Button type="submit" className="font-body" disabled={isSaving}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSaving ? 'Saving...' : 'Save Settings'}
+            </Button>
           </div>
-           <div className="space-y-1">
-            <Label htmlFor="city" className="font-body">City, State, Pincode</Label>
-            <Input id="city" value={city} onChange={(e) => setCity(e.target.value)} className="font-body" disabled={isSaving}/>
-          </div>
-           <div className="space-y-1">
-            <Label htmlFor="email" className="font-body">Contact Email</Label>
-            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="font-body" disabled={isSaving}/>
-          </div>
-          <Button type="submit" className="font-body" disabled={isSaving}>
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSaving ? 'Saving...' : 'Save Company Details'}
-          </Button>
         </form>
       </CardContent>
     </Card>
   );
 }
+
