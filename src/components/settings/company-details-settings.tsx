@@ -12,14 +12,11 @@ import { saveCompanyDetailsToFirestore, getCompanyDetailsFromFirestore } from "@
 import { Skeleton } from "../ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { useAppContext } from "../layout/app-content-wrapper";
-import { doc, onSnapshot } from "firebase/firestore";
-import { useFirebase } from "@/firebase";
 
 
 export function CompanyDetailsSettings() {
   const { toast } = useToast();
-  const { userProfile, companyDetails: contextCompanyDetails, refreshCompanyDetails } = useAppContext();
-  const { firestore } = useFirebase();
+  const { userProfile } = useAppContext();
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -33,60 +30,52 @@ export function CompanyDetailsSettings() {
 
   const isSuperAdmin = userProfile?.role === 'super-admin';
   
-  const defaultDetails = {
-    companyName: "Your Company",
-    address: "123 Business Rd, Suite 100",
-    city: "Your City, State, 12345",
-    email: "contact@yourcompany.com",
-    isSubscriptionEnabled: false,
-  };
-
   useEffect(() => {
-    // We now get live updates from the context, which is fed by a real-time listener
-    // in AppContentWrapper. We just need to sync the local form state.
-     if (contextCompanyDetails !== undefined) {
-      const details = contextCompanyDetails ?? defaultDetails;
-      setCompanyName(details.companyName);
-      setAddress(details.address);
-      setCity(details.city);
-      setEmail(details.email);
-      setIsSubscriptionEnabled(details.isSubscriptionEnabled ?? false);
+    const fetchDetails = async () => {
+      setIsLoading(true);
+      const result = await getCompanyDetailsFromFirestore();
+      if (result.success && result.data) {
+        setCompanyName(result.data.companyName);
+        setAddress(result.data.address);
+        setCity(result.data.city);
+        setEmail(result.data.email);
+        setIsSubscriptionEnabled(result.data.isSubscriptionEnabled || false);
+      } else if (!result.success && result.message) {
+         toast({
+          variant: "destructive",
+          title: "Failed to load settings",
+          description: result.message,
+        });
+      }
       setIsLoading(false);
-    }
-  }, [contextCompanyDetails]);
+    };
+
+    fetchDetails();
+  }, [toast]); // Correctly add toast to dependency array
 
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firestore) return;
     setIsSaving(true);
-    
-    const detailsToSave = { 
-        companyName, 
-        address, 
-        city, 
-        email,
-        isSubscriptionEnabled,
-    };
-    
-    const detailsRef = doc(firestore, 'companyDetails', 'info');
-
-    try {
-        await (await import('firebase/firestore')).setDoc(detailsRef, detailsToSave, { merge: true });
-        toast({
-            title: "Settings Saved",
-            description: "Your company details have been updated.",
-        });
-        // No need to manually call refresh, the listener will pick it up.
-    } catch (error: any) {
-        console.error('Firestore Save Error (Client - Company Details):', error);
-        toast({
-            variant: "destructive",
-            title: "Save Failed",
-            description: error.message || "Could not save company details.",
-        });
+    const result = await saveCompanyDetailsToFirestore({
+      companyName,
+      address,
+      city,
+      email,
+      isSubscriptionEnabled
+    });
+    if (result.success) {
+      toast({
+        title: "Settings Saved",
+        description: "Your company details have been updated.",
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Save Failed",
+        description: result.message || "Could not save company details.",
+      });
     }
-
     setIsSaving(false);
   };
 
@@ -190,4 +179,3 @@ export function CompanyDetailsSettings() {
     </Card>
   );
 }
-
