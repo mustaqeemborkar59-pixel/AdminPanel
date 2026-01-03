@@ -106,15 +106,12 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
           return;
         }
 
-        // Force logout if session ID is no longer active
+        // If the activeSessionId in the DB does not match this tab's session ID,
+        // it means another device has logged in. Log this device out.
         if (profileData.activeSessionId && profileData.activeSessionId !== sessionId) {
-             toast({
-                variant: "destructive",
-                title: "Session Expired",
-                description: "You have logged in from another device. This session has been terminated.",
-            });
             await auth.signOut();
-            router.replace('/login');
+            // No toast here, as it's an expected behavior, not an error for the user.
+            // The user will be redirected to the login page by the auth state change logic.
             return;
         }
         
@@ -238,3 +235,5 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     </AppContext.Provider>
   );
 }
+
+    

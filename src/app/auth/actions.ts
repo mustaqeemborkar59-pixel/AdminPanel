@@ -263,10 +263,12 @@ export async function manageUserSession(
         const sessionsSnap = await sessionsRef.orderBy('timestamp', 'asc').get();
         const currentSessions = sessionsSnap.docs;
 
-        // Enforce device limit
+        // Enforce device limit: remove oldest sessions if limit is exceeded
         if (currentSessions.length >= deviceLimit) {
-            const oldestSession = currentSessions[0];
-            await oldestSession.ref.delete();
+            const sessionsToRemoveCount = currentSessions.length - deviceLimit + 1;
+            const oldestSessions = currentSessions.slice(0, sessionsToRemoveCount);
+            const deletePromises = oldestSessions.map(doc => doc.ref.delete());
+            await Promise.all(deletePromises);
         }
 
         // Add the new session
@@ -478,6 +480,8 @@ export async function updateUserActivePlan(userId: string, planId: string): Prom
         return { success: false, message: error.message || 'Failed to update active plan.' };
     }
 }
+
+    
 
     
 

@@ -3146,15 +3146,12 @@ function AppContentWrapper({ children }) {
                             router.replace('/login');
                             return;
                         }
-                        // Force logout if session ID is no longer active
+                        // If the activeSessionId in the DB does not match this tab's session ID,
+                        // it means another device has logged in. Log this device out.
                         if (profileData.activeSessionId && profileData.activeSessionId !== sessionId) {
-                            toast({
-                                variant: "destructive",
-                                title: "Session Expired",
-                                description: "You have logged in from another device. This session has been terminated."
-                            });
                             await auth.signOut();
-                            router.replace('/login');
+                            // No toast here, as it's an expected behavior, not an error for the user.
+                            // The user will be redirected to the login page by the auth state change logic.
                             return;
                         }
                         setUserProfile(profileData);
@@ -3256,12 +3253,12 @@ function AppContentWrapper({ children }) {
                 className: "h-10 w-10 animate-spin text-primary"
             }, void 0, false, {
                 fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                lineNumber: 201,
+                lineNumber: 198,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-            lineNumber: 200,
+            lineNumber: 197,
             columnNumber: 7
         }, this);
     }
@@ -3276,7 +3273,7 @@ function AppContentWrapper({ children }) {
             children: children
         }, void 0, false, {
             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-            lineNumber: 208,
+            lineNumber: 205,
             columnNumber: 7
         }, this);
     }
@@ -3289,12 +3286,12 @@ function AppContentWrapper({ children }) {
                 className: "h-10 w-10 animate-spin text-primary"
             }, void 0, false, {
                 fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                lineNumber: 220,
+                lineNumber: 217,
                 columnNumber: 11
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-            lineNumber: 219,
+            lineNumber: 216,
             columnNumber: 10
         }, this);
     }
@@ -3315,12 +3312,12 @@ function AppContentWrapper({ children }) {
                         authLoading: loading
                     }, void 0, false, {
                         fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                        lineNumber: 229,
+                        lineNumber: 226,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                    lineNumber: 228,
+                    lineNumber: 225,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sidebar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SidebarInset"], {
@@ -3328,7 +3325,7 @@ function AppContentWrapper({ children }) {
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$layout$2f$header$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Header"], {}, void 0, false, {
                             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                            lineNumber: 232,
+                            lineNumber: 229,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -3336,24 +3333,24 @@ function AppContentWrapper({ children }) {
                             children: children
                         }, void 0, false, {
                             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                            lineNumber: 233,
+                            lineNumber: 230,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                    lineNumber: 231,
+                    lineNumber: 228,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-            lineNumber: 227,
+            lineNumber: 224,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-        lineNumber: 226,
+        lineNumber: 223,
         columnNumber: 5
     }, this);
 }

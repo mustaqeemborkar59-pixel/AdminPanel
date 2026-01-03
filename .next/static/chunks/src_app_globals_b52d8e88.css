@@ -982,10 +982,6 @@ input, button, textarea, select {
   width: 1px;
 }
 
-.w-\[240px\] {
-  width: 240px;
-}
-
 .w-auto {
   width: auto;
 }
@@ -3304,16 +3300,16 @@ body {
     width: 140px;
   }
 
+  .sm\:w-\[240px\] {
+    width: 240px;
+  }
+
   .sm\:w-\[260px\] {
     width: 260px;
   }
 
   .sm\:w-auto {
     width: auto;
-  }
-
-  .sm\:w-\[240px\] {
-    width: 240px;
   }
 
   .sm\:max-w-\[480px\] {
