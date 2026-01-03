@@ -3312,6 +3312,10 @@ body {
     width: auto;
   }
 
+  .sm\:w-\[240px\] {
+    width: 240px;
+  }
+
   .sm\:max-w-\[480px\] {
     max-width: 480px;
   }
@@ -3342,6 +3346,10 @@ body {
 
   .sm\:flex-col {
     flex-direction: column;
+  }
+
+  .sm\:items-center {
+    align-items: center;
   }
 
   .sm\:justify-end {

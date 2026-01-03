@@ -54,6 +54,8 @@ function DashboardContent() {
   const [newCustomers, setNewCustomers] = useState(0);
   const [weeklyOrderData, setWeeklyOrderData] = useState<{name: string, date: string, orders: number, sales: number}[]>([]);
   const [salesDetailsData, setSalesDetailsData] = useState<{name: string, value: number, label: string, icon: React.ElementType, color: string}[]>([]);
+  const [totalSalesForRange, setTotalSalesForRange] = useState(0); // New state for total sales in range
+
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
     const today = new Date();
     const sixDaysAgo = new Date();
@@ -206,6 +208,7 @@ function DashboardContent() {
           sales: 0
         }));
 
+        let rangeTotal = 0;
         recentPaidSuccessfulOrders.forEach(order => {
             if (!order.paymentDate) return;
             try {
@@ -216,13 +219,16 @@ function DashboardContent() {
               if (dayData) {
                   dayData.orders += 1;
                   dayData.sales += order.totalAmount;
+                  rangeTotal += order.totalAmount;
               }
             } catch {}
         });
         setWeeklyOrderData(orderCountsByDay);
+        setTotalSalesForRange(rangeTotal); // Set total for the selected range
 
       } else {
         setWeeklyOrderData([]);
+        setTotalSalesForRange(0);
       }
 
 
@@ -256,6 +262,7 @@ function DashboardContent() {
       setNewCustomers(0);
        setWeeklyOrderData([]);
        setSalesDetailsData([]);
+       setTotalSalesForRange(0);
     }
   }, [vendorFilteredOrders, dateRange, isVendor]);
 
@@ -421,8 +428,15 @@ function DashboardContent() {
           </Card>
 
           <Card className="lg:col-span-3">
-             <CardHeader className="flex-row items-center justify-between">
-                <CardTitle className="font-headline text-xl">Order Activity</CardTitle>
+             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <div className='flex-1'>
+                    <CardTitle className="font-headline text-xl">Order Activity</CardTitle>
+                    {dateRange?.from && (
+                       <p className="text-sm text-primary font-bold pt-1">
+                            Total Sales: ₹{totalSalesForRange.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}
+                        </p>
+                    )}
+                </div>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -430,7 +444,7 @@ function DashboardContent() {
                       variant={"outline"}
                       size="sm"
                       className={cn(
-                        "w-[240px] justify-start text-left font-normal h-8 text-xs",
+                        "w-full sm:w-[240px] justify-start text-left font-normal h-8 text-xs",
                         !dateRange && "text-muted-foreground"
                       )}
                     >
