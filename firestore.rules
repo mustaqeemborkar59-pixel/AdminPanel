@@ -233,7 +233,29 @@ service cloud.firestore {
         allow update: if isStaffOrAdmin();
         allow delete: if isStaffOrAdmin();
     }
+    
+    /**
+     * @description Manages global company details. Publicly readable for all signed-in users,
+     *              but only writable by super-admins.
+     * @path /companyDetails/{docId}
+     * @principle Secures global settings to super-admins.
+     */
+    match /companyDetails/{docId} {
+        allow get: if isSignedIn();
+        allow list: if isSignedIn(); // Although it will only be one doc
+        allow create, update, delete: if isSuperAdmin();
+    }
+
+    /**
+     * @description Manages subscription plan details. Publicly readable for all signed-in users
+     *              but only writable by super-admins.
+     * @path /subscriptionPlans/{planId}
+     * @principle Secures plan management to super-admins while allowing all users to see them.
+     */
+    match /subscriptionPlans/{planId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create, update, delete: if isSuperAdmin();
+    }
   }
 }
-
-    
