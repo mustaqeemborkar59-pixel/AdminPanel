@@ -19,7 +19,7 @@ import {
   DropdownMenuPortal
 } from "@/components/ui/dropdown-menu";
 import { getOrdersFromWooCommerce, updateOrderStatusInWooCommerce } from './actions';
-import { getCompanyDetailsFromRTDB, getVendorsFromFirestore, getSubscriptionPlans } from '@/app/auth/actions';
+import { getCompanyDetailsFromFirestore, getVendorsFromFirestore, getSubscriptionPlans } from '@/app/auth/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Search, ListFilter, Download, FileDown, FileText, FileSpreadsheet, Calendar as CalendarIcon, Building, Gem } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -136,6 +136,13 @@ export default function OrdersPage() {
   }, [toast, isVendor]);
 
   useEffect(() => {
+    // If not a vendor, premium is always considered active.
+    if (!isVendor) {
+        setIsPremiumActive(true);
+        return;
+    }
+    
+    // For vendors, check their subscription status
     if (userProfile && subscriptionPlans.length > 0) {
         const activePlanId = userProfile.activePlanId;
         const subStartDate = userProfile.subscriptionStartDate;
@@ -360,7 +367,7 @@ export default function OrdersPage() {
   
   const generatePdf = async (ordersToExport: Order[]) => {
     const doc = new jsPDF();
-    const dbDetailsResult = await getCompanyDetailsFromRTDB();
+    const dbDetailsResult = await getCompanyDetailsFromFirestore();
 
     const companyDetails = dbDetailsResult.success && dbDetailsResult.data ? dbDetailsResult.data : {
         companyName: "Your Company",

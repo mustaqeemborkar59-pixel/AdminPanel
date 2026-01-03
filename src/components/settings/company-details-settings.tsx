@@ -5,12 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Building, Loader2, Power } from "lucide-react";
+import { Building, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { saveCompanyDetailsToFirestore, getCompanyDetailsFromFirestore } from "@/app/auth/actions";
 import { Skeleton } from "../ui/skeleton";
-import { Switch } from "@/components/ui/switch";
 import { useAppContext } from "../layout/app-content-wrapper";
 
 
@@ -26,7 +25,6 @@ export function CompanyDetailsSettings() {
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [email, setEmail] = useState("");
-  const [isSubscriptionEnabled, setIsSubscriptionEnabled] = useState(false);
 
   const isSuperAdmin = userProfile?.role === 'super-admin';
   
@@ -39,7 +37,6 @@ export function CompanyDetailsSettings() {
         setAddress(result.data.address);
         setCity(result.data.city);
         setEmail(result.data.email);
-        setIsSubscriptionEnabled(result.data.isSubscriptionEnabled || false);
       } else if (!result.success && result.message) {
          toast({
           variant: "destructive",
@@ -51,7 +48,7 @@ export function CompanyDetailsSettings() {
     };
 
     fetchDetails();
-  }, [toast]); // Correctly add toast to dependency array
+  }, [toast]);
 
 
   const handleSave = async (e: React.FormEvent) => {
@@ -62,7 +59,6 @@ export function CompanyDetailsSettings() {
       address,
       city,
       email,
-      isSubscriptionEnabled
     });
     if (result.success) {
       toast({
@@ -129,51 +125,30 @@ export function CompanyDetailsSettings() {
           <div className="space-y-4">
             <div className="space-y-1">
               <Label htmlFor="companyName" className="font-body">Company Name</Label>
-              <Input id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="font-body" disabled={isSaving}/>
+              <Input id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="font-body" disabled={isSaving || !isSuperAdmin}/>
             </div>
             <div className="space-y-1">
               <Label htmlFor="address" className="font-body">Address</Label>
-              <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} className="font-body" disabled={isSaving}/>
+              <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} className="font-body" disabled={isSaving || !isSuperAdmin}/>
             </div>
             <div className="space-y-1">
               <Label htmlFor="city" className="font-body">City, State, Pincode</Label>
-              <Input id="city" value={city} onChange={(e) => setCity(e.target.value)} className="font-body" disabled={isSaving}/>
+              <Input id="city" value={city} onChange={(e) => setCity(e.target.value)} className="font-body" disabled={isSaving || !isSuperAdmin}/>
             </div>
             <div className="space-y-1">
               <Label htmlFor="email" className="font-body">Contact Email</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="font-body" disabled={isSaving}/>
+              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="font-body" disabled={isSaving || !isSuperAdmin}/>
             </div>
           </div>
-          
-          {isSuperAdmin && (
-             <>
-                <div className="my-6 border-t" />
-                <div className="space-y-3 p-4 border rounded-lg bg-background">
-                     <div className="flex items-center justify-between">
-                        <div>
-                            <Label htmlFor="subscription-switch" className="font-semibold flex items-center gap-2">
-                                <Power className="h-5 w-5 text-primary"/>
-                                Enable Subscription System
-                            </Label>
-                            <p className="text-xs text-muted-foreground mt-1">If disabled, all vendors will have free access to premium features.</p>
-                        </div>
-                        <Switch
-                            id="subscription-switch"
-                            checked={isSubscriptionEnabled}
-                            onCheckedChange={setIsSubscriptionEnabled}
-                            disabled={isSaving}
-                        />
-                     </div>
-                </div>
-            </>
-          )}
 
-          <div className="mt-6">
-            <Button type="submit" className="font-body" disabled={isSaving}>
-              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isSaving ? 'Saving...' : 'Save Settings'}
-            </Button>
-          </div>
+          {isSuperAdmin && (
+            <div className="mt-6">
+                <Button type="submit" className="font-body" disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSaving ? 'Saving...' : 'Save Settings'}
+                </Button>
+            </div>
+          )}
         </form>
       </CardContent>
     </Card>
