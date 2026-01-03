@@ -2853,6 +2853,8 @@ function AppContentWrapper({ children }) {
     const [userProfile, setUserProfile] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const [profileLoading, setProfileLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(true);
     const [sessionId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(getSessionId());
+    // Ref to prevent logout race condition on new login
+    const isLoggingInRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(false);
     const isAuthPage = pathname === '/login' || pathname === '/signup';
     const isPendingPage = pathname === '/pending-verification';
     const loading = authLoading || profileLoading;
@@ -2892,12 +2894,9 @@ function AppContentWrapper({ children }) {
                     router.replace('/login');
                     return;
                 }
-                // If the activeSessionId in the DB does not match this tab's session ID,
-                // it means another device has logged in. Log this device out.
-                if (profileData.activeSessionId && profileData.activeSessionId !== sessionId) {
+                // If we are not in the process of logging in, check for session conflicts.
+                if (!isLoggingInRef.current && profileData.activeSessionId && profileData.activeSessionId !== sessionId) {
                     await auth.signOut();
-                    // No toast here, as it's an expected behavior, not an error for the user.
-                    // The user will be redirected to the login page by the auth state change logic.
                     return;
                 }
                 setUserProfile(profileData);
@@ -2942,7 +2941,13 @@ function AppContentWrapper({ children }) {
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         if (user && !loading) {
             const deviceInfo = `${navigator.userAgent}`;
+            // Set the flag to true before managing session to prevent race condition
+            isLoggingInRef.current = true;
             (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["manageUserSession"])(user.uid, sessionId, deviceInfo, 'login');
+            // Reset the flag after a short delay to allow the new session ID to propagate
+            setTimeout(()=>{
+                isLoggingInRef.current = false;
+            }, 2000); // 2 seconds should be enough for the backend to update
         }
     }, [
         user,
@@ -2989,12 +2994,12 @@ function AppContentWrapper({ children }) {
                 className: "h-10 w-10 animate-spin text-primary"
             }, void 0, false, {
                 fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                lineNumber: 198,
+                lineNumber: 206,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-            lineNumber: 197,
+            lineNumber: 205,
             columnNumber: 7
         }, this);
     }
@@ -3009,7 +3014,7 @@ function AppContentWrapper({ children }) {
             children: children
         }, void 0, false, {
             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-            lineNumber: 205,
+            lineNumber: 213,
             columnNumber: 7
         }, this);
     }
@@ -3022,12 +3027,12 @@ function AppContentWrapper({ children }) {
                 className: "h-10 w-10 animate-spin text-primary"
             }, void 0, false, {
                 fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                lineNumber: 217,
+                lineNumber: 225,
                 columnNumber: 11
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-            lineNumber: 216,
+            lineNumber: 224,
             columnNumber: 10
         }, this);
     }
@@ -3048,12 +3053,12 @@ function AppContentWrapper({ children }) {
                         authLoading: loading
                     }, void 0, false, {
                         fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                        lineNumber: 226,
+                        lineNumber: 234,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                    lineNumber: 225,
+                    lineNumber: 233,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sidebar$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SidebarInset"], {
@@ -3061,7 +3066,7 @@ function AppContentWrapper({ children }) {
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$layout$2f$header$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Header"], {}, void 0, false, {
                             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                            lineNumber: 229,
+                            lineNumber: 237,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -3069,24 +3074,24 @@ function AppContentWrapper({ children }) {
                             children: children
                         }, void 0, false, {
                             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                            lineNumber: 230,
+                            lineNumber: 238,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-                    lineNumber: 228,
+                    lineNumber: 236,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-            lineNumber: 224,
+            lineNumber: 232,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/components/layout/app-content-wrapper.tsx",
-        lineNumber: 223,
+        lineNumber: 231,
         columnNumber: 5
     }, this);
 }

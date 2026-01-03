@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, type ReactNode, createContext, useContext, useCallback } from 'react';
+import React, { useState, useEffect, type ReactNode, createContext, useContext, useCallback, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { type User } from 'firebase/auth';
 import { useUser, useFirebase, useFirestore } from '@/firebase';
@@ -62,6 +62,9 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
   const [profileLoading, setProfileLoading] = useState(true);
   const [sessionId] = useState(getSessionId());
 
+  // Ref to prevent logout race condition on new login
+  const isLoggingInRef = useRef(false);
+
   const isAuthPage = pathname === '/login' || pathname === '/signup';
   const isPendingPage = pathname === '/pending-verification';
   
@@ -105,13 +108,10 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
           router.replace('/login');
           return;
         }
-
-        // If the activeSessionId in the DB does not match this tab's session ID,
-        // it means another device has logged in. Log this device out.
-        if (profileData.activeSessionId && profileData.activeSessionId !== sessionId) {
+        
+        // If we are not in the process of logging in, check for session conflicts.
+        if (!isLoggingInRef.current && profileData.activeSessionId && profileData.activeSessionId !== sessionId) {
             await auth.signOut();
-            // No toast here, as it's an expected behavior, not an error for the user.
-            // The user will be redirected to the login page by the auth state change logic.
             return;
         }
         
@@ -155,7 +155,15 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
    useEffect(() => {
     if (user && !loading) {
       const deviceInfo = `${navigator.userAgent}`;
+      
+      // Set the flag to true before managing session to prevent race condition
+      isLoggingInRef.current = true;
       manageUserSession(user.uid, sessionId, deviceInfo, 'login');
+      
+      // Reset the flag after a short delay to allow the new session ID to propagate
+      setTimeout(() => {
+        isLoggingInRef.current = false;
+      }, 2000); // 2 seconds should be enough for the backend to update
     }
   }, [user, loading, sessionId]);
 
@@ -235,5 +243,3 @@ export function AppContentWrapper({ children }: AppContentWrapperProps) {
     </AppContext.Provider>
   );
 }
-
-    
