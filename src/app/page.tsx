@@ -5,12 +5,12 @@ import { useState, useEffect, ReactNode, Suspense, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { DollarSign, Users, ShoppingBag, Activity, UsersRound, Package, ChevronDown, Loader2, Calendar as CalendarIcon, CheckCircle, Clock, PackageSearch, Truck, XCircle, Archive, Loader, ShieldCheck, Store, Crown } from 'lucide-react';
+import { DollarSign, Users, ShoppingBag, Activity, UsersRound, Package, ChevronDown, Loader2, Calendar as CalendarIcon, CheckCircle, Clock, PackageSearch, Truck, XCircle, Archive, Loader, ShieldCheck, Store, Crown, Download } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label, LabelList } from 'recharts';
 import type { Order, StaffMember, OrderStatus, OrderType, MenuItem, Vendor, UserProfile } from '@/types';
 import { cn } from '@/lib/utils';
 import { getOrdersFromWooCommerce } from '@/app/orders/actions';
-import { getVendorsFromFirestore, getAllUsers } from '@/app/auth/actions';
+import { getVendorsFromFirestore, getAllUsers, getCompanyDetailsFromFirestore } from '@/app/auth/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -18,6 +18,9 @@ import { format, eachDayOfInterval, startOfDay, endOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import type { DateRange } from "react-day-picker";
 import { useAppContext } from '@/components/layout/app-content-wrapper';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 const GRADIENT_COLORS = ["url(#colorSales)", "url(#colorOrders)", "url(#colorCustomers)", "url(#colorProcessing)", "url(#colorCancelled)"];
@@ -54,7 +57,9 @@ function DashboardContent() {
   const [newCustomers, setNewCustomers] = useState(0);
   const [weeklyOrderData, setWeeklyOrderData] = useState<{name: string, date: string, orders: number, sales: number}[]>([]);
   const [salesDetailsData, setSalesDetailsData] = useState<{name: string, value: number, label: string, icon: React.ElementType, color: string}[]>([]);
-  const [totalSalesForRange, setTotalSalesForRange] = useState(0); // New state for total sales in range
+  const [totalSalesForRange, setTotalSalesForRange] = useState(0);
+  const [ordersInDateRange, setOrdersInDateRange] = useState<Order[]>([]);
+
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
     const today = new Date();
@@ -199,6 +204,7 @@ function DashboardContent() {
             }
         });
         
+        setOrdersInDateRange(recentPaidSuccessfulOrders);
         const intervalDays = eachDayOfInterval({ start: startDate, end: endDate });
         
         const orderCountsByDay = intervalDays.map(day => ({
@@ -229,6 +235,7 @@ function DashboardContent() {
       } else {
         setWeeklyOrderData([]);
         setTotalSalesForRange(0);
+        setOrdersInDateRange([]);
       }
 
 
@@ -263,8 +270,85 @@ function DashboardContent() {
        setWeeklyOrderData([]);
        setSalesDetailsData([]);
        setTotalSalesForRange(0);
+       setOrdersInDateRange([]);
     }
   }, [vendorFilteredOrders, dateRange, isVendor]);
+
+  const generateDashboardPdf = async (ordersToExport: Order[]) => {
+    if (ordersToExport.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "No Data",
+        description: "No orders found in the selected date range to export.",
+      });
+      return;
+    }
+
+    const doc = new jsPDF();
+    const dbDetailsResult = await getCompanyDetailsFromFirestore();
+    const companyDetails = dbDetailsResult.success && dbDetailsResult.data ? dbDetailsResult.data : { companyName: "Your Company" };
+
+    const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+    const margin = 10;
+    let yPos = 20;
+
+    // Header
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Order Activity Report', pageWidth / 2, yPos, { align: 'center' });
+    yPos += 10;
+
+    // Company & Date Range
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(companyDetails.companyName, margin, yPos);
+
+    const dateRangeString = dateRange?.from && dateRange.to
+      ? `${format(dateRange.from, 'MMM d, yyyy')} - ${format(dateRange.to, 'MMM d, yyyy')}`
+      : 'All Time';
+    doc.text(dateRangeString, pageWidth - margin, yPos, { align: 'right' });
+    yPos += 8;
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Total Sales: ₹${totalSalesForRange.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`, pageWidth - margin, yPos, { align: 'right' });
+    yPos += 12;
+
+    // Table
+    const tableColumn = ["Order ID", "Payment Date", "Customer Name", "Status", "Total Amount"];
+    const tableRows: (string | number)[][] = [];
+
+    ordersToExport.forEach(order => {
+      const orderData = [
+        order.id,
+        order.paymentDate ? format(toZonedTime(order.paymentDate, 'Asia/Kolkata'), 'MMM d, yyyy') : 'N/A',
+        order.customerName || 'N/A',
+        order.status,
+        `₹${order.totalAmount.toFixed(2)}`
+      ];
+      tableRows.push(orderData);
+    });
+
+    (doc as any).autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: yPos,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [52, 73, 94], // Dark blue-gray
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+      },
+      styles: {
+        font: 'helvetica',
+        fontSize: 10,
+      },
+      margin: { left: margin, right: margin }
+    });
+
+    const dateStr = new Date().toISOString().split('T')[0];
+    doc.save(`order-activity-report-${dateStr}.pdf`);
+  };
 
   const handleBarClick = (data: any) => {
     const clickedDate = data.date;
@@ -437,43 +521,55 @@ function DashboardContent() {
                         </p>
                     )}
                 </div>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      id="date"
-                      variant={"outline"}
-                      size="sm"
-                      className={cn(
-                        "w-full sm:w-[240px] justify-start text-left font-normal h-8 text-xs",
-                        !dateRange && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateRange?.from ? (
-                        dateRange.to ? (
-                          <>
-                            {format(dateRange.from, "LLL dd, y")} -{" "}
-                            {format(dateRange.to, "LLL dd, y")}
-                          </>
+                <div className="flex items-center gap-2">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        id="date"
+                        variant={"outline"}
+                        size="sm"
+                        className={cn(
+                          "w-full sm:w-[240px] justify-start text-left font-normal h-8 text-xs",
+                          !dateRange && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateRange?.from ? (
+                          dateRange.to ? (
+                            <>
+                              {format(dateRange.from, "LLL dd, y")} -{" "}
+                              {format(dateRange.to, "LLL dd, y")}
+                            </>
+                          ) : (
+                            format(dateRange.from, "LLL dd, y")
+                          )
                         ) : (
-                          format(dateRange.from, "LLL dd, y")
-                        )
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="end">
-                    <Calendar
-                      initialFocus
-                      mode="range"
-                      defaultMonth={dateRange?.from}
-                      selected={dateRange}
-                      onSelect={setDateRange}
-                      numberOfMonths={2}
-                    />
-                  </PopoverContent>
-                </Popover>
+                          <span>Pick a date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <Calendar
+                        initialFocus
+                        mode="range"
+                        defaultMonth={dateRange?.from}
+                        selected={dateRange}
+                        onSelect={setDateRange}
+                        numberOfMonths={2}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs"
+                      disabled={ordersInDateRange.length === 0}
+                      onClick={() => generateDashboardPdf(ordersInDateRange)}
+                  >
+                      <Download className="mr-2 h-4 w-4" />
+                      Download PDF
+                  </Button>
+                </div>
             </CardHeader>
             <CardContent className="pt-4">
               <ResponsiveContainer width="100%" height={250}>
@@ -543,3 +639,5 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
+
+    

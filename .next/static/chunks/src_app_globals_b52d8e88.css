@@ -926,10 +926,6 @@ input, button, textarea, select {
   width: 1rem;
 }
 
-.w-40 {
-  width: 10rem;
-}
-
 .w-44 {
   width: 11rem;
 }
@@ -1840,10 +1836,6 @@ input, button, textarea, select {
 
 .pl-8 {
   padding-left: 2rem;
-}
-
-.pl-9 {
-  padding-left: 2.25rem;
 }
 
 .pr-2 {
