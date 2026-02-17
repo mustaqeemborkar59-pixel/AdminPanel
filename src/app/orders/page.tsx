@@ -396,21 +396,24 @@ export default function OrdersPage() {
         yPos += 15;
 
         // Company & Order Details
+        const col1X = margin;
+        const col2X = pageWidth / 2;
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text(companyDetails.companyName, margin, yPos);
-        doc.text(companyDetails.address, margin, yPos + 6);
-        doc.text(companyDetails.city, margin, yPos + 12);
+        doc.text(companyDetails.companyName, col1X, yPos);
+        doc.text(companyDetails.address, col1X, yPos + 6);
+        doc.text(companyDetails.city, col1X, yPos + 12);
 
         doc.setFont('helvetica', 'bold');
-        doc.text('Order ID:', pageWidth - 70, yPos, { align: 'left' });
-        doc.text('Date:', pageWidth - 70, yPos + 7, { align: 'left' });
-        doc.text('Status:', pageWidth - 70, yPos + 14, { align: 'left' });
+        doc.text('Order ID:', col2X, yPos);
+        doc.text('Date:', col2X, yPos + 7);
+        doc.text('Status:', col2X, yPos + 14);
 
         doc.setFont('helvetica', 'normal');
-        doc.text(order.id, pageWidth - margin, yPos, { align: 'right' });
-        doc.text(formatDateInIST(order.timestamp), pageWidth - margin, yPos + 7, { align: 'right' });
-        doc.text(order.status, pageWidth-margin, yPos + 14, {align: 'right'})
+        const valueX = pageWidth - margin;
+        doc.text(order.id, valueX, yPos, { align: 'right' });
+        doc.text(formatDateInIST(order.timestamp), valueX, yPos + 7, { align: 'right' });
+        doc.text(order.status, valueX, yPos + 14, {align: 'right'})
         yPos += 24;
         
         // Line Separator
@@ -421,7 +424,8 @@ export default function OrdersPage() {
         // Bill To
         const lineSpacing = 6;
         const valueXOffset = 25;
-        const maxContentWidth = (pageWidth - margin * 2) * 0.8;
+        const addressBlockMaxWidth = pageWidth - (margin * 2) - valueXOffset;
+
 
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
@@ -440,9 +444,9 @@ export default function OrdersPage() {
         doc.setFont('helvetica', 'bold');
         doc.text('Address:', margin, yPos);
         doc.setFont('helvetica', 'normal');
-        const addressLines = doc.splitTextToSize(order.billingAddress || 'No address provided', maxContentWidth);
+        const addressLines = doc.splitTextToSize(order.billingAddress || 'No address provided', addressBlockMaxWidth);
         doc.text(addressLines, margin + valueXOffset, yPos);
-        yPos += addressLines.length * (lineSpacing - 2); // Adjust spacing for multiline text
+        yPos += addressLines.length * (lineSpacing - 1); // Adjust spacing for multiline text
         
         doc.setFont('helvetica', 'bold');
         doc.text('Pincode:', margin, yPos);
@@ -511,27 +515,28 @@ export default function OrdersPage() {
             doc.addPage();
             finalY = 20;
         }
-
-        const subtotalX = pageWidth - 80;
-        const textX = pageWidth - margin;
+        
+        const labelX = pageWidth - 100;
+        const totalValueX = pageWidth - margin;
         const totalY = finalY + 20;
 
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
         
-        doc.text('Subtotal:', subtotalX, totalY, { align: 'right' });
-        doc.text(`₹${order.subTotal.toFixed(0)}`, textX, totalY, { align: 'right' });
+        doc.text('Subtotal:', labelX, totalY, { align: 'left' });
+        doc.text(`₹${order.subTotal.toFixed(0)}`, totalValueX, totalY, { align: 'right' });
         
-        doc.text(`Tax (${(order.subTotal > 0 ? (order.taxAmount / order.subTotal) * 100 : 0).toFixed(0)}%):`, subtotalX, totalY + 7, { align: 'right' });
-        doc.text(`₹${order.taxAmount.toFixed(0)}`, textX, totalY + 7, { align: 'right' });
+        doc.text(`Tax (${(order.subTotal > 0 ? (order.taxAmount / order.subTotal) * 100 : 0).toFixed(0)}%):`, labelX, totalY + 7, { align: 'left' });
+        doc.text(`₹${order.taxAmount.toFixed(0)}`, totalValueX, totalY + 7, { align: 'right' });
         
         doc.setDrawColor(40, 40, 40);
-        doc.line(subtotalX - 5, totalY + 12, textX, totalY + 12);
+        doc.line(labelX, totalY + 12, totalValueX, totalY + 12);
         
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        doc.text('TOTAL:', subtotalX, totalY + 18, { align: 'right' });
-        doc.text(`₹${order.totalAmount.toFixed(0)}`, textX, totalY + 18, { align: 'right' });
+        doc.text('TOTAL:', labelX, totalY + 18, { align: 'left' });
+        doc.text(`₹${order.totalAmount.toFixed(0)}`, totalValueX, totalY + 18, { align: 'right' });
+
 
         // Footer
         doc.setFontSize(10);
