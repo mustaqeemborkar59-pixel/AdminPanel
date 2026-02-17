@@ -572,7 +572,7 @@ function DashboardContent() {
                     <CardTitle className="font-headline text-xl">Order Activity</CardTitle>
                     {dateRange?.from && (
                        <p className="text-sm text-primary font-bold pt-1">
-                            Total Sales: ₹{totalSalesForRange.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}
+                            Sales in Range: ₹{totalSalesForRange.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}
                         </p>
                     )}
                 </div>
