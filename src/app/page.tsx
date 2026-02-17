@@ -14,7 +14,7 @@ import { getVendorsFromFirestore, getAllUsers, getCompanyDetailsFromFirestore } 
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { format, eachDayOfInterval, startOfDay, endOfDay } from 'date-fns';
+import { format, eachDayOfInterval, startOfDay, endOfDay, startOfWeek, eachWeekOfInterval, startOfMonth, eachMonthOfInterval } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import type { DateRange } from "react-day-picker";
 import { useAppContext } from '@/components/layout/app-content-wrapper';
@@ -59,6 +59,7 @@ function DashboardContent() {
   const [salesDetailsData, setSalesDetailsData] = useState<{name: string, value: number, label: string, icon: React.ElementType, color: string}[]>([]);
   const [totalSalesForRange, setTotalSalesForRange] = useState(0);
   const [ordersInDateRange, setOrdersInDateRange] = useState<Order[]>([]);
+  const [activityView, setActivityView] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
@@ -205,32 +206,82 @@ function DashboardContent() {
         });
         
         setOrdersInDateRange(recentPaidSuccessfulOrders);
-        const intervalDays = eachDayOfInterval({ start: startDate, end: endDate });
         
-        const orderCountsByDay = intervalDays.map(day => ({
-          name: format(day, 'MMM d'),
-          date: format(day, 'yyyy-MM-dd'),
-          orders: 0,
-          sales: 0
-        }));
-
         let rangeTotal = 0;
-        recentPaidSuccessfulOrders.forEach(order => {
-            if (!order.paymentDate) return;
-            try {
-              // Use startOfDay on the timezone-aware date to get the correct day for grouping
-              const paymentDayInIST = startOfDay(toZonedTime(order.paymentDate, timeZone));
-              const paymentDateStr = format(paymentDayInIST, 'yyyy-MM-dd');
-              const dayData = orderCountsByDay.find(d => d.date === paymentDateStr);
-              if (dayData) {
-                  dayData.orders += 1;
-                  dayData.sales += order.totalAmount;
-                  rangeTotal += order.totalAmount;
-              }
-            } catch {}
-        });
-        setWeeklyOrderData(orderCountsByDay);
-        setTotalSalesForRange(rangeTotal); // Set total for the selected range
+        let activityData: {name: string, date: string, orders: number, sales: number}[] = [];
+
+        if (activityView === 'daily') {
+            const intervalDays = eachDayOfInterval({ start: startDate, end: endDate });
+            activityData = intervalDays.map(day => ({
+              name: format(day, 'MMM d'),
+              date: format(day, 'yyyy-MM-dd'),
+              orders: 0,
+              sales: 0
+            }));
+
+            recentPaidSuccessfulOrders.forEach(order => {
+                if (!order.paymentDate) return;
+                try {
+                  const paymentDayInIST = startOfDay(toZonedTime(order.paymentDate, timeZone));
+                  const paymentDateStr = format(paymentDayInIST, 'yyyy-MM-dd');
+                  const dayData = activityData.find(d => d.date === paymentDateStr);
+                  if (dayData) {
+                      dayData.orders += 1;
+                      dayData.sales += order.totalAmount;
+                      rangeTotal += order.totalAmount;
+                  }
+                } catch {}
+            });
+        } else if (activityView === 'weekly') {
+            const intervalWeeks = eachWeekOfInterval({ start: startDate, end: endDate }, { weekStartsOn: 1 });
+            activityData = intervalWeeks.map(weekStart => ({
+              name: format(weekStart, 'MMM d'),
+              date: format(weekStart, 'yyyy-MM-dd'),
+              orders: 0,
+              sales: 0
+            }));
+            
+            recentPaidSuccessfulOrders.forEach(order => {
+                if (!order.paymentDate) return;
+                try {
+                  const paymentDateInIST = toZonedTime(order.paymentDate, timeZone);
+                  const weekStart = startOfWeek(paymentDateInIST, { weekStartsOn: 1 });
+                  const weekKey = format(weekStart, 'yyyy-MM-dd');
+                  const weekData = activityData.find(w => w.date === weekKey);
+                  if (weekData) {
+                    weekData.orders += 1;
+                    weekData.sales += order.totalAmount;
+                    rangeTotal += order.totalAmount;
+                  }
+                } catch {}
+            });
+        } else if (activityView === 'monthly') {
+            const intervalMonths = eachMonthOfInterval({ start: startDate, end: endDate });
+            activityData = intervalMonths.map(monthStart => ({
+              name: format(monthStart, 'MMM yyyy'),
+              date: format(monthStart, 'yyyy-MM-dd'),
+              orders: 0,
+              sales: 0
+            }));
+
+            recentPaidSuccessfulOrders.forEach(order => {
+                if (!order.paymentDate) return;
+                try {
+                  const paymentDateInIST = toZonedTime(order.paymentDate, timeZone);
+                  const monthStart = startOfMonth(paymentDateInIST);
+                  const monthKey = format(monthStart, 'yyyy-MM-dd');
+                  const monthData = activityData.find(m => m.date === monthKey);
+                  if (monthData) {
+                    monthData.orders += 1;
+                    monthData.sales += order.totalAmount;
+                    rangeTotal += order.totalAmount;
+                  }
+                } catch {}
+            });
+        }
+        
+        setWeeklyOrderData(activityData);
+        setTotalSalesForRange(rangeTotal);
 
       } else {
         setWeeklyOrderData([]);
@@ -272,7 +323,7 @@ function DashboardContent() {
        setTotalSalesForRange(0);
        setOrdersInDateRange([]);
     }
-  }, [vendorFilteredOrders, dateRange, isVendor]);
+  }, [vendorFilteredOrders, dateRange, isVendor, activityView]);
 
   const generateDashboardPdf = async (ordersToExport: Order[]) => {
     if (ordersToExport.length === 0) {
@@ -351,24 +402,17 @@ function DashboardContent() {
   };
 
   const handleBarClick = (data: any) => {
-    const clickedDate = data.date;
-    if (!clickedDate) return;
-
-    const timeZone = 'Asia/Kolkata';
-
-    const ordersForDate = vendorFilteredOrders.filter(order => {
-      if (!order.paymentDate) return false;
-      try {
-        const paymentDayInIST = startOfDay(toZonedTime(order.paymentDate, timeZone));
-        const paymentDateStr = format(paymentDayInIST, 'yyyy-MM-dd');
-        return paymentDateStr === clickedDate;
-      } catch {
-        return false;
-      }
-    });
-
-    const orderIds = ordersForDate.map(o => o.id);
-    alert(`Orders paid on ${clickedDate}:\n\n${orderIds.join(', ')}`);
+    if (!data || !data.activePayload || !data.activePayload[0]) return;
+    
+    const payload = data.activePayload[0].payload;
+    const { name, orders, sales } = payload;
+    
+    if (orders > 0) {
+      toast({
+          title: `Activity for ${name}`,
+          description: `There were ${orders} order(s) totaling ₹${sales.toLocaleString('en-IN', { maximumFractionDigits: 2 })}.`,
+      });
+    }
   };
   
   const SalesLabel = ({ x, y, width, value }: any) => {
@@ -521,7 +565,24 @@ function DashboardContent() {
                         </p>
                     )}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                    <div className="inline-flex items-center rounded-md bg-muted p-0.5">
+                        <Button
+                            variant={activityView === 'daily' ? "secondary" : "ghost"}
+                            onClick={() => setActivityView('daily')}
+                            size="sm" className="h-7 px-2 text-xs"
+                        >Daily</Button>
+                        <Button
+                            variant={activityView === 'weekly' ? "secondary" : "ghost"}
+                            onClick={() => setActivityView('weekly')}
+                            size="sm" className="h-7 px-2 text-xs"
+                        >Weekly</Button>
+                        <Button
+                            variant={activityView === 'monthly' ? "secondary" : "ghost"}
+                            onClick={() => setActivityView('monthly')}
+                            size="sm" className="h-7 px-2 text-xs"
+                        >Monthly</Button>
+                    </div>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -573,7 +634,7 @@ function DashboardContent() {
             </CardHeader>
             <CardContent className="pt-4">
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={weeklyOrderData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
+                <BarChart data={weeklyOrderData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }} onClick={handleBarClick}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" vertical={false} />
                   <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} />
                   <YAxis yAxisId="left" dataKey="orders" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} allowDecimals={false} />
@@ -589,7 +650,7 @@ function DashboardContent() {
                       return [value, 'Orders'];
                     }}
                   />
-                  <Bar yAxisId="left" dataKey="orders" name="Orders" radius={[4, 4, 0, 0]} className="cursor-pointer" onClick={handleBarClick}>
+                  <Bar yAxisId="left" dataKey="orders" name="Orders" radius={[4, 4, 0, 0]} className="cursor-pointer">
                     <LabelList dataKey="sales" content={<SalesLabel />} />
                      {weeklyOrderData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -639,5 +700,3 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
-
-    
