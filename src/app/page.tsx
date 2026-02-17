@@ -335,6 +335,27 @@ function DashboardContent() {
       return;
     }
 
+    const monthlySales: { [key: string]: number } = {};
+    ordersToExport.forEach(order => {
+      if (order.paymentDate) {
+        try {
+          const paymentDateInIST = toZonedTime(order.paymentDate, 'Asia/Kolkata');
+          const monthKey = format(paymentDateInIST, 'MMM yyyy');
+          if (!monthlySales[monthKey]) {
+            monthlySales[monthKey] = 0;
+          }
+          monthlySales[monthKey] += order.totalAmount;
+        } catch (e) {
+          console.error("Could not parse date for monthly summary:", order.paymentDate, e);
+        }
+      }
+    });
+
+    const monthlySalesRows = Object.entries(monthlySales).map(([month, sales]) => [
+      month,
+      `₹${sales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`
+    ]);
+
     const doc = new jsPDF();
     const dbDetailsResult = await getCompanyDetailsFromFirestore();
     const companyDetails = dbDetailsResult.success && dbDetailsResult.data ? dbDetailsResult.data : { companyName: "Your Company" };
@@ -346,10 +367,9 @@ function DashboardContent() {
     // Header
     doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
-    doc.text('Order Activity Report', pageWidth / 2, yPos, { align: 'center' });
+    doc.text('Sales Activity Report', pageWidth / 2, yPos, { align: 'center' });
     yPos += 10;
 
-    // Company & Date Range
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
     doc.text(companyDetails.companyName, margin, yPos);
@@ -362,31 +382,22 @@ function DashboardContent() {
 
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text(`Total Sales: ₹${totalSalesForRange.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`, pageWidth - margin, yPos, { align: 'right' });
-    yPos += 12;
+    doc.text(`Total Sales in Range: ₹${totalSalesForRange.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`, pageWidth - margin, yPos, { align: 'right' });
+    yPos += 15;
 
-    // Table
-    const tableColumn = ["Order ID", "Payment Date", "Customer Name", "Status", "Total Amount"];
-    const tableRows: (string | number)[][] = [];
-
-    ordersToExport.forEach(order => {
-      const orderData = [
-        order.id,
-        order.paymentDate ? format(toZonedTime(order.paymentDate, 'Asia/Kolkata'), 'MMM d, yyyy') : 'N/A',
-        order.customerName || 'N/A',
-        order.status,
-        `₹${order.totalAmount.toFixed(2)}`
-      ];
-      tableRows.push(orderData);
-    });
+    // Monthly Summary Table
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Monthly Sales Summary', margin, yPos);
+    yPos += 8;
 
     (doc as any).autoTable({
-      head: [tableColumn],
-      body: tableRows,
+      head: [["Month", "Total Sales"]],
+      body: monthlySalesRows,
       startY: yPos,
-      theme: 'striped',
+      theme: 'grid',
       headStyles: {
-        fillColor: [52, 73, 94], // Dark blue-gray
+        fillColor: [52, 73, 94],
         textColor: [255, 255, 255],
         fontStyle: 'bold',
       },
@@ -398,7 +409,7 @@ function DashboardContent() {
     });
 
     const dateStr = new Date().toISOString().split('T')[0];
-    doc.save(`order-activity-report-${dateStr}.pdf`);
+    doc.save(`sales-summary-report-${dateStr}.pdf`);
   };
 
   const handleBarClick = (data: any) => {
