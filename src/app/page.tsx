@@ -378,11 +378,6 @@ function DashboardContent() {
       ? `${format(dateRange.from, 'MMM d, yyyy')} - ${format(dateRange.to, 'MMM d, yyyy')}`
       : 'All Time';
     doc.text(dateRangeString, pageWidth - margin, yPos, { align: 'right' });
-    yPos += 8;
-
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Total Sales in Range: ₹${totalSalesForRange.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`, pageWidth - margin, yPos, { align: 'right' });
     yPos += 15;
 
     // Monthly Summary Table
@@ -394,12 +389,31 @@ function DashboardContent() {
     (doc as any).autoTable({
       head: [["Month", "Total Sales"]],
       body: monthlySalesRows,
+      foot: [[
+          'Total',
+          `₹${totalSalesForRange.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`
+      ]],
       startY: yPos,
       theme: 'grid',
       headStyles: {
-        fillColor: [52, 73, 94],
+        fillColor: [52, 73, 94], // Dark blue-gray
         textColor: [255, 255, 255],
         fontStyle: 'bold',
+      },
+      footStyles: {
+        fillColor: [240, 240, 240], // A light gray
+        textColor: [0, 0, 0],
+        fontStyle: 'bold',
+      },
+      didParseCell: function (data: any) {
+        // Right align the 'Total Sales' column for both body and footer
+        if (data.column.index === 1) {
+          data.cell.styles.halign = 'right';
+        }
+        // Right align the 'Total' label in the footer
+        if (data.row.section === 'foot' && data.column.index === 0) {
+          data.cell.styles.halign = 'right';
+        }
       },
       styles: {
         font: 'helvetica',
