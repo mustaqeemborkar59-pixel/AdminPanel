@@ -1,861 +1,95 @@
 
 "use client";
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
-import { type Order, type OrderItem, type OrderStatus, type Vendor, type UserProfile } from '@/types';
-import { OrderListItem } from '@/components/orders/order-list-item';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuItem,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuPortal
-} from "@/components/ui/dropdown-menu";
-import { getOrdersFromWooCommerce, updateOrderStatusInWooCommerce } from './actions';
-import { getCompanyDetailsFromFirestore, getVendorsFromFirestore, getSubscriptionPlans } from '@/app/auth/actions';
+import { getOrdersFromWooCommerce } from './actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Search, ListFilter, Download, FileDown, FileText, FileSpreadsheet, Calendar as CalendarIcon, Building, Gem } from 'lucide-react';
+import { Loader2, AlertTriangle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Accordion } from '@/components/ui/accordion';
-import { Input } from '@/components/ui/input';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import * as XLSX from 'xlsx';
-import { addDays, format, type DateRange } from "date-fns";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
-import { useAppContext } from '@/components/layout/app-content-wrapper';
-import { type SubscriptionPlan } from '@/app/usage/page';
-import Link from 'next/link';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-
-
-const orderStatuses: OrderStatus[] = ['pending', 'queue', 'processing', 'dispatch', 'completed', 'hold', 'failed', 'cancelled'];
-const ITEMS_PER_PAGE = 10;
-
-// New timezone-aware formatting function
-function formatDateInIST(dateInput: string | Date | null | undefined): string {
-  if (!dateInput) return 'N/A';
-  try {
-    const date = new Date(dateInput);
-    if (isNaN(date.getTime())) return 'Invalid Date';
-    
-    const options: Intl.DateTimeFormatOptions = {
-      year: 'numeric',
-      month: 'short',
-      day: '2-digit',
-      timeZone: 'Asia/Kolkata'
-    };
-    
-    const formattedParts = new Intl.DateTimeFormat('en-GB', options).formatToParts(date);
-    const day = formattedParts.find(p => p.type === 'day')?.value;
-    const month = formattedParts.find(p => p.type === 'month')?.value;
-    const year = formattedParts.find(p => p.type === 'year')?.value;
-
-    return `${day} ${month}, ${year}`;
-  } catch (error) {
-    console.error("Error formatting date:", dateInput, error);
-    return 'Invalid Date';
-  }
-}
 
 export default function OrdersPage() {
-  const { userProfile } = useAppContext(); // Get user profile from context
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
-  const [vendorFilter, setVendorFilter] = useState<string>('all');
+  const [rawData, setRawData] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  
-  const [allVendors, setAllVendors] = useState<Vendor[]>([]);
-  const [vendorMap, setVendorMap] = useState<Map<string, string>>(new Map());
-  
-  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([]);
-  const [isPremiumActive, setIsPremiumActive] = useState(false);
 
-  const userRole = userProfile?.role;
-  const isVendor = userRole === 'vendor';
-
-  // The new permission check for updating status
-  const canUpdateStatus = userProfile?.role === 'super-admin' || userProfile?.role === 'admin' || (userProfile?.canUpdateOrderStatus ?? false);
-
-
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      setIsLoading(true);
-
-      const vendorsResult = await getVendorsFromFirestore();
-      if(vendorsResult.success && vendorsResult.data) {
-        setAllVendors(vendorsResult.data);
-        const newVendorMap = new Map(vendorsResult.data.map(v => [v.code, v.name]));
-        setVendorMap(newVendorMap);
-      } else if (!vendorsResult.success) {
-         toast({
-          variant: "destructive",
-          title: "Failed to load vendors",
-          description: vendorsResult.error || "Could not fetch vendors from the database.",
-        });
-      }
-      
-      const ordersResult = await getOrdersFromWooCommerce();
-      if (ordersResult.success && ordersResult.data) {
-        setOrders(ordersResult.data);
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Failed to load orders",
-          description: ordersResult.error || "Could not fetch orders from WooCommerce.",
-        });
-      }
-
-      if (isVendor) {
-        const plansResult = await getSubscriptionPlans();
-        if (plansResult.success && plansResult.data) {
-            setSubscriptionPlans(plansResult.data);
-        }
-      }
-
-      setIsLoading(false);
-    };
-    fetchInitialData();
-  }, [toast, isVendor]);
-
-  useEffect(() => {
-    // If not a vendor, premium is always considered active.
-    if (!isVendor) {
-        setIsPremiumActive(true);
-        return;
-    }
-    
-    // For vendors, check their subscription status
-    if (userProfile && subscriptionPlans.length > 0) {
-        const activePlanId = userProfile.activePlanId;
-        const subStartDate = userProfile.subscriptionStartDate;
-
-        if (!activePlanId || !subStartDate) {
-            setIsPremiumActive(false);
-            return;
-        }
-        
-        const activePlan = subscriptionPlans.find(p => p.id === activePlanId);
-
-        if (activePlan && activePlan.trialDays && activePlan.trialDays > 0) {
-            const startDate = new Date(subStartDate);
-            const endDate = new Date(startDate);
-            endDate.setDate(startDate.getDate() + activePlan.trialDays);
-            
-            // Premium is active if the current date is before the calculated end date.
-            setIsPremiumActive(new Date() < endDate);
-        } else if(activePlan && (!activePlan.trialDays || activePlan.trialDays <= 0)) {
-            // If a plan exists but has no duration (or duration is 0), it's considered premium indefinitely.
-            setIsPremiumActive(true);
-        }
-        else {
-            setIsPremiumActive(false);
-        }
-    } else if (userProfile && (userProfile.role === 'admin' || userProfile.role === 'super-admin')) {
-        // For non-vendors (admin, super-admin), premium is always active
-        setIsPremiumActive(true);
-    }
-  }, [userProfile, subscriptionPlans, isVendor]);
-
-
-  useEffect(() => {
-    setCurrentPage(1);
-    setSelectedOrderIds(new Set());
-  }, [statusFilter, searchTerm, dateRange, vendorFilter]);
-
-
-  const handleUpdateOrderStatus = async (orderId: string, status: OrderStatus) => {
-    // Security check: Now based on the canUpdateStatus flag.
-    if (!canUpdateStatus) {
+  const fetchRawData = async () => {
+    setIsLoading(true);
+    setError(null);
+    const result = await getOrdersFromWooCommerce();
+    if (result.success) {
+      setRawData(result.data);
       toast({
-        variant: "destructive",
-        title: "Permission Denied",
-        description: "You do not have permission to update order status.",
-      });
-      return; // Stop the function here.
-    }
-
-    const originalOrders = [...orders];
-    setOrders(prevOrders => prevOrders.map(order => order.id === orderId ? { ...order, status } : order));
-
-    const result = await updateOrderStatusInWooCommerce(orderId, status);
-
-    if (!result.success) {
-      setOrders(originalOrders);
-      toast({
-        variant: "destructive",
-        title: "Update Failed",
-        description: result.error || "Could not update the order status.",
+        title: "Data Fetched Successfully",
+        description: "Raw JSON data from WooCommerce is displayed below.",
       });
     } else {
-       toast({
-        title: "Order Updated",
-        description: `Order ${orderId} status set to ${status}.`,
+      setError(result.error || "An unknown error occurred.");
+      toast({
+        variant: "destructive",
+        title: "Failed to Fetch Data",
+        description: result.error || "Could not fetch data from WooCommerce.",
       });
     }
+    setIsLoading(false);
   };
 
-  const getUniqueOrders = (orderArray: Order[]): Order[] => {
-    const seen = new Set<string>();
-    return orderArray.filter(order => {
-      if (seen.has(order.id)) {
-        return false;
-      }
-      seen.add(order.id);
-      return true;
-    });
-  };
-  
-  // This calculates orders based on status, date, and search term first.
-  const preVendorFilteredOrders = useMemo(() => {
-    const currentVendorCode = isVendor ? userProfile?.vendorCode : null;
-
-    let baseFiltered = orders;
-
-    // Vendor role filtering (for items)
-    if (isVendor && currentVendorCode) {
-        baseFiltered = orders.map(order => {
-            const itemsToShow = order.items.filter(item => item.vendorName === currentVendorCode);
-            if (itemsToShow.length === 0) return null;
-            if (itemsToShow.length !== order.items.length) {
-                const subTotal = itemsToShow.reduce((sum, item) => sum + (item.price * item.qty), 0);
-                const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
-                const taxAmount = subTotal * taxRatio;
-                const totalAmount = subTotal + taxAmount;
-                return { ...order, items: itemsToShow, subTotal, taxAmount, totalAmount };
-            }
-            return order;
-        }).filter((order): order is Order => order !== null);
-    }
-
-    return baseFiltered
-      .filter(order => statusFilter === 'all' || order.status === statusFilter)
-      .filter(order => {
-        if (!dateRange?.from) return true;
-        const dateStringToFilter = order.paymentDate || order.timestamp;
-        if (!dateStringToFilter) return false;
-        try {
-          const orderDateInIST = new Date(new Date(dateStringToFilter).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-          if (isNaN(orderDateInIST.getTime())) return false;
-          const fromDate = new Date(dateRange.from);
-          fromDate.setHours(0, 0, 0, 0);
-          const toDate = dateRange.to ? new Date(dateRange.to) : new Date(dateRange.from);
-          toDate.setHours(23, 59, 59, 999);
-          return orderDateInIST >= fromDate && orderDateInIST <= toDate;
-        } catch {
-          return false;
-        }
-      })
-      .filter(order => 
-          order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (order.customerName && order.customerName.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-  }, [orders, statusFilter, dateRange, searchTerm, isVendor, userProfile]);
-  
-  const vendorOrderCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    if (!preVendorFilteredOrders.length || !allVendors.length) {
-      return counts;
-    }
-  
-    // Initialize counts for all known vendors to 0
-    allVendors.forEach(vendor => {
-      counts.set(vendor.name, 0);
-    });
-  
-    preVendorFilteredOrders.forEach(order => {
-      // Use a Set to count each vendor only once per order
-      const vendorsInOrder = new Set<string>();
-      order.items.forEach(item => {
-        // Find the vendor details (name) based on the item's vendor code
-        const vendorDetails = allVendors.find(v => v.code === item.vendorName);
-        if (vendorDetails) {
-          vendorsInOrder.add(vendorDetails.name);
-        }
-      });
-      
-      // Increment the count for each unique vendor found in the order
-      vendorsInOrder.forEach(vendorName => {
-        counts.set(vendorName, (counts.get(vendorName) || 0) + 1);
-      });
-    });
-  
-    return counts;
-  }, [preVendorFilteredOrders, allVendors]);
-
-
-  const filteredOrders = useMemo(() => {
-    let finalFiltered = preVendorFilteredOrders;
-
-    if (!isVendor && vendorFilter !== 'all') {
-        const vendorCodeToFilter = allVendors.find(v => v.name === vendorFilter)?.code;
-        if (vendorCodeToFilter) {
-            finalFiltered = preVendorFilteredOrders.map(order => {
-                const itemsToShow = order.items.filter(item => item.vendorName && item.vendorName === vendorCodeToFilter);
-                 if (itemsToShow.length === 0) return null;
-        
-                if (itemsToShow.length !== order.items.length) {
-                    const subTotal = itemsToShow.reduce((sum, item) => sum + (item.price * item.qty), 0);
-                    const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
-                    const taxAmount = subTotal * taxRatio;
-                    const totalAmount = subTotal + taxAmount;
-                    return { ...order, items: itemsToShow, subTotal, taxAmount, totalAmount };
-                }
-                
-                return order;
-            }).filter((order): order is Order => order !== null);
-        }
-    }
-
-    return getUniqueOrders(finalFiltered);
-  }, [preVendorFilteredOrders, vendorFilter, isVendor, allVendors]);
-  
-  const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
-
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const toggleSelectOrder = (orderId: string) => {
-    setSelectedOrderIds(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(orderId)) {
-        newSet.delete(orderId);
-      } else {
-        newSet.add(orderId);
-      }
-      return newSet;
-    });
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedOrderIds.size === paginatedOrders.length && paginatedOrders.length > 0) {
-      setSelectedOrderIds(new Set());
-    } else {
-      setSelectedOrderIds(new Set(paginatedOrders.map(o => o.id)));
-    }
-  };
-  
-  const generatePdf = async (ordersToExport: Order[]) => {
-    const doc = new jsPDF();
-    const dbDetailsResult = await getCompanyDetailsFromFirestore();
-
-    const companyDetails = dbDetailsResult.success && dbDetailsResult.data ? dbDetailsResult.data : {
-        companyName: "Your Company",
-        address: "123 Business Rd, Suite 100",
-        city: "Your City, State, 12345",
-        email: "contact@yourcompany.com"
-    };
-
-    ordersToExport.forEach((originalOrder, index) => {
-        if (index > 0) {
-            doc.addPage();
-        }
-
-        const order = originalOrder;
-
-        const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
-        const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
-        const margin = 10;
-        let yPos = 20;
-
-        // Header
-        doc.setFontSize(28);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(40, 40, 40);
-        doc.text('INVOICE', pageWidth / 2, yPos, { align: 'center' });
-        yPos += 15;
-
-        // Company & Order Details
-        const col1X = margin;
-        const col2X = pageWidth / 2;
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        doc.text(companyDetails.companyName, col1X, yPos);
-        doc.text(companyDetails.address, col1X, yPos + 6);
-        doc.text(companyDetails.city, col1X, yPos + 12);
-
-        doc.setFont('helvetica', 'bold');
-        doc.text('Order ID:', col2X, yPos);
-        doc.text('Date:', col2X, yPos + 7);
-        doc.text('Status:', col2X, yPos + 14);
-
-        doc.setFont('helvetica', 'normal');
-        const valueX = pageWidth - margin;
-        doc.text(order.id, valueX, yPos, { align: 'right' });
-        doc.text(formatDateInIST(order.timestamp), valueX, yPos + 7, { align: 'right' });
-        doc.text(order.status, valueX, yPos + 14, {align: 'right'})
-        yPos += 24;
-        
-        // Line Separator
-        doc.setDrawColor(200, 200, 200);
-        doc.line(margin, yPos, pageWidth - margin, yPos);
-        yPos += 10;
-
-        // Bill To
-        const lineSpacing = 6;
-        const valueXOffset = 25;
-        const addressBlockMaxWidth = pageWidth - (margin * 2) - valueXOffset;
-
-
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text('BILL TO:', margin, yPos);
-        yPos += lineSpacing;
-
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        
-        doc.setFont('helvetica', 'bold');
-        doc.text('Name:', margin, yPos);
-        doc.setFont('helvetica', 'normal');
-        doc.text(order.customerName || 'N/A', margin + valueXOffset, yPos);
-        yPos += lineSpacing;
-
-        doc.setFont('helvetica', 'bold');
-        doc.text('Address:', margin, yPos);
-        doc.setFont('helvetica', 'normal');
-        const addressLines = doc.splitTextToSize(order.billingAddress || 'No address provided', addressBlockMaxWidth);
-        doc.text(addressLines, margin + valueXOffset, yPos);
-        yPos += addressLines.length * (lineSpacing - 1); // Adjust spacing for multiline text
-        
-        doc.setFont('helvetica', 'bold');
-        doc.text('Pincode:', margin, yPos);
-        doc.setFont('helvetica', 'normal');
-        doc.text(order.pincode || '', margin + valueXOffset, yPos);
-        yPos += lineSpacing;
-        
-        doc.setFont('helvetica', 'bold');
-        doc.text('Phone:', margin, yPos);
-        doc.setFont('helvetica', 'normal');
-        doc.text(order.phone || 'N/A', margin + valueXOffset, yPos);
-        yPos += lineSpacing;
-        
-        if (order.altPhone) {
-          doc.setFont('helvetica', 'bold');
-          doc.text('Alt Phone:', margin, yPos);
-          doc.setFont('helvetica', 'normal');
-          doc.text(order.altPhone, margin + valueXOffset, yPos);
-          yPos += lineSpacing;
-        }
-
-        doc.setFont('helvetica', 'bold');
-        doc.text('Email:', margin, yPos);
-        doc.setFont('helvetica', 'normal');
-        doc.text(order.gmail || 'N/A', margin + valueXOffset, yPos);
-        yPos += lineSpacing;
-
-
-        // Table
-        const tableColumn = ["ITEM", "QUANTITY", "PRICE", "TOTAL"];
-        const tableRows: (string | number)[][] = [];
-
-        order.items.forEach(item => {
-            const itemData = [
-                item.name,
-                item.qty,
-                `₹${item.price.toFixed(0)}`,
-                `₹${(item.price * item.qty).toFixed(0)}`
-            ];
-            tableRows.push(itemData);
-        });
-
-        (doc as any).autoTable({
-            head: [tableColumn],
-            body: tableRows,
-            startY: yPos + 5, // Start table after BILL TO section
-            theme: 'striped',
-            headStyles: {
-                fillColor: [52, 73, 94], // Dark blue-gray
-                textColor: [255, 255, 255],
-                fontStyle: 'bold',
-            },
-            alternateRowStyles: {
-                fillColor: [245, 245, 245]
-            },
-            styles: {
-                font: 'helvetica',
-                fontSize: 10,
-            },
-            margin: { left: margin, right: margin }
-        });
-
-        // Totals at the bottom
-        let finalY = (doc as any).lastAutoTable.finalY || yPos + 5;
-        if (finalY > pageHeight - 60) {
-            doc.addPage();
-            finalY = 20;
-        }
-        
-        const labelX = pageWidth - 100;
-        const totalValueX = pageWidth - margin;
-        const totalY = finalY + 20;
-
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        
-        doc.text('Subtotal:', labelX, totalY, { align: 'left' });
-        doc.text(`₹${order.subTotal.toFixed(0)}`, totalValueX, totalY, { align: 'right' });
-        
-        doc.text(`Tax (${(order.subTotal > 0 ? (order.taxAmount / order.subTotal) * 100 : 0).toFixed(0)}%):`, labelX, totalY + 7, { align: 'left' });
-        doc.text(`₹${order.taxAmount.toFixed(0)}`, totalValueX, totalY + 7, { align: 'right' });
-        
-        doc.setDrawColor(40, 40, 40);
-        doc.line(labelX, totalY + 12, totalValueX, totalY + 12);
-        
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
-        doc.text('TOTAL:', labelX, totalY + 18, { align: 'left' });
-        doc.text(`₹${order.totalAmount.toFixed(0)}`, totalValueX, totalY + 18, { align: 'right' });
-
-
-        // Footer
-        doc.setFontSize(10);
-        doc.setTextColor(150);
-        doc.text('Thank you for business with Sakib Truth!', margin, pageHeight - 20);
-    });
-
-    const dateStr = new Date().toISOString().split('T')[0];
-    let fileName = `invoices-${dateStr}.pdf`;
-    if (vendorFilter !== 'all') {
-        const safeVendorName = vendorFilter.replace(/[^a-zA-Z0-9]/g, '_');
-        fileName = `${safeVendorName}_invoices-${dateStr}.pdf`;
-    }
-    doc.save(fileName);
-  };
-
-  const generateExcel = (ordersToExport: Order[]) => {
-    const worksheetData = ordersToExport.flatMap(order => 
-      order.items.map(item => ({
-        "Order ID": order.id,
-        "Status": order.status,
-        "Payment Date": formatDateInIST(order.paymentDate),
-        "Customer Name": order.customerName || 'N/A',
-        "Email ID": order.gmail || 'N/A',
-        "Phone": order.phone || 'N/A',
-        "Alt Phone": order.altPhone || 'N/A',
-        "Pincode": order.pincode || 'N/A',
-        "Billing Address": order.billingAddress || 'N/A',
-        "Product Name": item.name,
-        "Quantity": item.qty,
-        "Unit Price": item.price,
-        "Line Total": item.qty * item.price,
-        "Vendor": vendorMap.get(item.vendorName || '') || item.vendorName || 'N/A',
-        "Order Total": order.totalAmount,
-      }))
-    );
-
-    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
-    
-    const dateStr = new Date().toISOString().split('T')[0];
-    let fileName = `orders-${dateStr}.xlsx`;
-    if (vendorFilter !== 'all' && !isVendor) {
-        const safeVendorName = vendorFilter.replace(/[^a-zA-Z0-9]/g, '_');
-        fileName = `${safeVendorName}_orders-${dateStr}.xlsx`;
-    }
-    XLSX.writeFile(workbook, fileName);
-  };
-  
-  const handleExport = (format: 'pdf' | 'excel', scope: 'selected' | 'all') => {
-    let ordersToExport: Order[] = [];
-
-    if (scope === 'selected') {
-      if (selectedOrderIds.size === 0) {
-        toast({
-          variant: 'destructive',
-          title: 'No Orders Selected',
-          description: 'Please select at least one order to export.',
-        });
-        return;
-      }
-      // Use the already filtered and recalculated orders
-      ordersToExport = filteredOrders.filter(o => selectedOrderIds.has(o.id));
-    } else { // 'all'
-      if (filteredOrders.length === 0) {
-        toast({
-          variant: 'destructive',
-          title: 'No Orders Found',
-          description: 'There are no orders matching the current filters to export.',
-        });
-        return;
-      }
-      ordersToExport = filteredOrders;
-    }
-
-    if (format === 'pdf') {
-      generatePdf(ordersToExport);
-    } else { // 'excel'
-      generateExcel(ordersToExport);
-    }
-  };
-
+  useEffect(() => {
+    fetchRawData();
+  }, [toast]);
 
   return (
     <div className="flex flex-col h-full">
       <PageHeader
-        title="Order Management"
-        description="View and manage customer orders from your WooCommerce store."
+        title="Raw Order Data Viewer"
+        description="Displaying raw, unmapped JSON data directly from the WooCommerce API."
+        actions={
+          <Button onClick={fetchRawData} disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Refresh Data
+          </Button>
+        }
       />
-      <div className="px-4 md:px-6 pt-4 flex flex-col sm:flex-row items-center gap-4">
-        <div className="relative flex-grow w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search by Order ID or Customer Name..."
-            className="pl-10 w-full"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                id="date"
-                variant={"outline"}
-                className={cn(
-                  "w-full sm:w-[260px] justify-start text-left font-normal",
-                  !dateRange && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateRange?.from ? (
-                  dateRange.to ? (
-                    <>
-                      {format(dateRange.from, "LLL dd, y")} -{" "}
-                      {format(dateRange.to, "LLL dd, y")}
-                    </>
-                  ) : (
-                    format(dateRange.from, "LLL dd, y")
-                  )
-                ) : (
-                  <span>Pick a date range</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                initialFocus
-                mode="range"
-                defaultMonth={dateRange?.from}
-                selected={dateRange}
-                onSelect={setDateRange}
-                numberOfMonths={2}
-              />
-            </PopoverContent>
-          </Popover>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-full sm:w-auto capitalize">
-                <ListFilter className="mr-2 h-4 w-4" />
-                {statusFilter === 'all' ? 'Filter by Status' : statusFilter}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56">
-              <DropdownMenuLabel>Order Status</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup value={statusFilter} onValueChange={(value) => setStatusFilter(value as OrderStatus | 'all')}>
-                <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
-                {orderStatuses.map(status => (
-                  <DropdownMenuRadioItem key={status} value={status} className="capitalize">{status}</DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {!isVendor && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full sm:w-auto" disabled={allVendors.length === 0}>
-                  <Building className="mr-2 h-4 w-4" />
-                  {vendorFilter === 'all' ? 'Filter by Vendor' : vendorFilter}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>Vendor</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup value={vendorFilter} onValueChange={setVendorFilter}>
-                  <DropdownMenuRadioItem value="all">All Vendors ({preVendorFilteredOrders.length})</DropdownMenuRadioItem>
-                  {allVendors.map(vendor => (
-                     <DropdownMenuRadioItem key={vendor.id} value={vendor.name}>
-                        {vendor.name} ({vendorOrderCounts.get(vendor.name) || 0})
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-full sm:w-auto" disabled={!isPremiumActive}>
-                <Download className="mr-2 h-4 w-4" />
-                Export
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-64">
-              <DropdownMenuLabel>Export Options</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-               <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <FileDown className="mr-2 h-4 w-4" />
-                  <span>Export Selected</span>
-                </DropdownMenuSubTrigger>
-                <DropdownMenuPortal>
-                  <DropdownMenuSubContent>
-                    <DropdownMenuItem onClick={() => handleExport('pdf', 'selected')} disabled={selectedOrderIds.size === 0}>
-                      <FileText className="mr-2 h-4 w-4"/>
-                      <span>As PDF</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleExport('excel', 'selected')} disabled={selectedOrderIds.size === 0}>
-                      <FileSpreadsheet className="mr-2 h-4 w-4"/>
-                      <span>As Excel</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuSubContent>
-                </DropdownMenuPortal>
-              </DropdownMenuSub>
-
-               <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <FileDown className="mr-2 h-4 w-4" />
-                  <span>Export All Filtered</span>
-                </DropdownMenuSubTrigger>
-                <DropdownMenuPortal>
-                  <DropdownMenuSubContent>
-                    <DropdownMenuItem onClick={() => handleExport('pdf', 'all')}>
-                      <FileText className="mr-2 h-4 w-4"/>
-                      <span>As PDF</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleExport('excel', 'all')}>
-                      <FileSpreadsheet className="mr-2 h-4 w-4"/>
-                      <span>As Excel</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuSubContent>
-                </DropdownMenuPortal>
-              </DropdownMenuSub>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
-       {!isLoading && isVendor && !isPremiumActive && (
-          <div className="px-4 md:px-6 mt-4">
-            <Alert variant="default" className="border-primary/50 bg-primary/10">
-              <Gem className="h-4 w-4 !text-primary" />
-              <AlertTitle className="text-primary font-bold">Activate Premium to View Details</AlertTitle>
-              <AlertDescription className="text-primary/80">
-                You are seeing a blurred preview of your orders. To unlock all details and enable exporting, please upgrade to a premium plan.
-                <Link href="/usage">
-                  <Button size="sm" className="mt-2 ml-auto block">Upgrade Now</Button>
-                </Link>
-              </AlertDescription>
-            </Alert>
-          </div>
-      )}
-
-
-      <div className="flex-1 p-4 md:p-6 space-y-4 overflow-auto">
+      <div className="flex-1 p-4 md:p-6 overflow-auto">
         {isLoading ? (
           <div className="flex justify-center items-center h-full">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="ml-4 text-muted-foreground">Fetching data from WooCommerce...</p>
           </div>
-        ) : paginatedOrders.length > 0 ? (
-          <>
-            <div className="flex items-center gap-2 px-1 py-2">
-                <Checkbox
-                    id="select-all"
-                    checked={selectedOrderIds.size > 0 && selectedOrderIds.size === paginatedOrders.length && paginatedOrders.length > 0}
-                    onCheckedChange={toggleSelectAll}
-                    aria-label="Select all orders on this page"
-                    disabled={!isPremiumActive}
-                />
-                <Label htmlFor="select-all" className="text-sm font-medium text-muted-foreground">
-                    Select All on Page ({selectedOrderIds.size} selected)
-                </Label>
-            </div>
-            <Accordion type="single" collapsible className="space-y-4">
-              {paginatedOrders.map((order, index) => (
-                <OrderListItem 
-                  key={`${order.id}-${startIndex + index}`} 
-                  order={order} 
-                  onUpdateStatus={handleUpdateOrderStatus} 
-                  value={`${order.id}-${startIndex + index}`}
-                  isSelected={selectedOrderIds.has(order.id)}
-                  onToggleSelect={toggleSelectOrder}
-                  formatDate={formatDateInIST}
-                  userRole={userRole}
-                  isPremiumActive={isPremiumActive}
-                  canUpdateStatus={canUpdateStatus}
-                />
-              ))}
-            </Accordion>
-          </>
+        ) : error ? (
+          <Card className="border-destructive bg-destructive/10">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-destructive">
+                <AlertTriangle /> Fetch Error
+              </CardTitle>
+              <CardDescription className="text-destructive/80">
+                There was a problem communicating with the WooCommerce server.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="font-semibold">Error Details:</p>
+              <pre className="mt-2 p-3 bg-destructive/10 border border-destructive/20 rounded-md text-sm text-destructive font-mono">
+                {error}
+              </pre>
+            </CardContent>
+          </Card>
         ) : (
-          <div className="text-center py-12">
-            <p className="font-body text-muted-foreground">No orders found matching your criteria.</p>
-          </div>
+          <Card>
+             <CardHeader>
+              <CardTitle>Raw JSON Response</CardTitle>
+               <CardDescription>
+                This is the actual data received from the server, before any processing or mapping.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <pre className="p-4 bg-muted rounded-lg text-xs overflow-auto max-h-[60vh]">
+                {JSON.stringify(rawData, null, 2)}
+              </pre>
+            </CardContent>
+          </Card>
         )}
       </div>
-
-       {totalPages > 1 && (
-        <div className="flex items-center justify-center p-4 border-t">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Previous
-            </Button>
-            <span className="text-sm font-medium text-muted-foreground">
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-            >
-              Next
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
