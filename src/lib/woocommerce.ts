@@ -31,127 +31,6 @@ const getWooCommerceApi = (): WooCommerceRestApi => {
   }
 };
 
-const mapWCOrderToAppOrder = (order: any): Order => {
-  const lineItems: OrderItem[] = (order.line_items || []).map((item: any): OrderItem => {
-    // Safely find vendor name from meta data
-    const vendorMeta = (item.meta_data || []).find((meta: any) => meta.key === 'vendor');
-    const vendorName = vendorMeta ? vendorMeta.value : undefined;
-
-    return {
-      itemId: String(item.product_id),
-      name: item.name || 'Unknown Item',
-      sku: item.sku || undefined,
-      qty: item.quantity || 0,
-      price: parseFloat(item.price || '0'),
-      imageUrl: item.image?.src,
-      vendorName: vendorName,
-    };
-  });
-
-  const getMetaValue = (key: string) => {
-    const meta = (order.meta_data || []).find((m: any) => m.key === key);
-    return meta ? meta.value : undefined;
-  };
-
-  const statusMap: { [key: string]: OrderStatus } = {
-    'pending': 'pending',
-    'processing': 'processing',
-    'on-hold': 'hold',
-    'completed': 'completed',
-    'cancelled': 'cancelled',
-    'failed': 'failed',
-    'refunded': 'failed', // map refunded to a known status
-    'queue': 'queue',
-    'dispatch': 'dispatch',
-  };
-  const appStatus = statusMap[order.status] || 'pending';
-
-  const formatAddress = (addr: any) => {
-    if (!addr) return '';
-    const parts = [addr.address_1, addr.address_2, addr.city, addr.state, addr.postcode, addr.country];
-    return parts.filter(Boolean).join(', ');
-  };
-  
-  const subTotal = lineItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
-
-  return {
-    id: String(order.id),
-    customerName: `${order.billing?.first_name || ''} ${order.billing?.last_name || ''}`.trim() || 'N/A',
-    phone: order.billing?.phone || undefined,
-    altPhone: getMetaValue('_billing_alternate_phone'),
-    pincode: order.billing?.postcode || undefined,
-    gmail: order.billing?.email || undefined,
-    items: lineItems,
-    status: appStatus,
-    orderType: 'delivery', // Defaulting as WC doesn't have this concept out of box
-    billingAddress: formatAddress(order.billing),
-    billing_city: order.billing?.city,
-    billing_state: order.billing?.state,
-    billing_country: order.billing?.country,
-    shippingAddress: formatAddress(order.shipping),
-    trackingId: getMetaValue('_wc_shipment_tracking_items')?.[0]?.tracking_number,
-    totalAmount: parseFloat(order.total || '0'),
-    taxAmount: parseFloat(order.total_tax || '0'),
-    subTotal: subTotal,
-    timestamp: order.date_created_gmt ? `${order.date_created_gmt}Z` : new Date().toISOString(),
-    paymentMethod: 'card', // Placeholder
-    paymentDate: order.date_paid_gmt ? `${order.date_paid_gmt}Z` : null,
-    vendorName: lineItems.length > 0 ? lineItems[0].vendorName : undefined, // Top level vendor for simplicity
-  };
-};
-
-// This function now returns mapped and validated Order objects
-export const getOrders = async (): Promise<Order[]> => {
-  const api = getWooCommerceApi();
-  let allOrders: Order[] = [];
-  let page = 1;
-  const perPage = 100;
-  let keepFetching = true;
-
-  while (keepFetching) {
-    try {
-      const response = await api.get("orders", {
-        per_page: perPage,
-        page: page,
-        orderby: 'date',
-        order: 'desc',
-      });
-
-      if (response.status !== 200) {
-        throw new Error(`Failed to fetch orders on page ${page}. Status: ${response.status} ${response.statusText}`);
-      }
-
-      const rawOrders = response.data;
-      
-      const mappedOrders: Order[] = rawOrders.map((order: any) => {
-        try {
-          // Map each order inside a try-catch to isolate errors
-          return mapWCOrderToAppOrder(order);
-        } catch (mapError) {
-          console.error(`Skipping order ${order.id} due to mapping error:`, mapError);
-          return null; // Return null for failed mappings
-        }
-      }).filter((order: Order | null): order is Order => order !== null); // Filter out nulls
-      
-      allOrders = allOrders.concat(mappedOrders);
-
-      if (rawOrders.length < perPage) {
-        keepFetching = false;
-      } else {
-        page++;
-      }
-
-    } catch (error: any) {
-      console.error(`Error fetching orders from WooCommerce on page ${page}:`, error.response?.data || error.message);
-      // Stop fetching on any API error to prevent infinite loops
-      keepFetching = false; 
-      throw new Error(error.response?.data?.message || error.message || 'An unknown error occurred during API communication.');
-    }
-  }
-  return allOrders;
-};
-
-
 export const updateOrderStatus = async (orderId: string, status: OrderStatus): Promise<boolean> => {
    const api = getWooCommerceApi(); // Get a fresh API instance
    try {
@@ -160,9 +39,9 @@ export const updateOrderStatus = async (orderId: string, status: OrderStatus): P
     });
 
     return response.status === 200;
-  } catch (error) {
-    console.error(`Failed to update order ${orderId} status in WooCommerce:`, error);
-    throw new Error('Failed to update order status in WooCommerce.');
+  } catch (error: any) {
+    console.error(`Failed to update order ${orderId} status in WooCommerce:`, error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Failed to update order status in WooCommerce.');
   }
 };
 
@@ -193,9 +72,9 @@ export const updateOrderAddress = async (orderId: string, payload: UpdateOrderAd
     
     const response = await api.put(`orders/${orderId}`, data);
     return response.status === 200;
-  } catch (error) {
-    console.error(`Failed to update order ${orderId} address in WooCommerce:`, error);
-    throw new Error('Failed to update order address in WooCommerce.');
+  } catch (error: any) {
+    console.error(`Failed to update order ${orderId} address in WooCommerce:`, error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Failed to update order address in WooCommerce.');
   }
 };
 

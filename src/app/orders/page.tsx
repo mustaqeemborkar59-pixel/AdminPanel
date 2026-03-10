@@ -2,9 +2,9 @@
 "use client";
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
-import { getOrdersFromWooCommerce, updateOrderStatusInWooCommerce } from './actions';
+import { updateOrderStatusInWooCommerce } from './actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, AlertTriangle, Printer, FileDown } from 'lucide-react';
+import { Loader2, AlertTriangle, FileDown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -51,18 +51,29 @@ export default function OrdersPage() {
   const fetchOrders = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    const result = await getOrdersFromWooCommerce();
-    if (result.success && result.data) {
-      setOrders(result.data);
-    } else {
-      setError(result.error || "An unknown error occurred.");
-      toast({
+    try {
+      // NEW: Fetch from the internal API route
+      const response = await fetch('/api/orders');
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Request failed with status ${response.status}`);
+      }
+
+      const data: Order[] = await response.json();
+      setOrders(data);
+
+    } catch (err: any) {
+       const errorMessage = err.message || "An unknown error occurred.";
+       setError(errorMessage);
+       toast({
         variant: "destructive",
         title: "Failed to Fetch Orders",
-        description: result.error || "Could not fetch data from WooCommerce.",
+        description: errorMessage,
       });
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, [toast]);
 
   useEffect(() => {
@@ -202,7 +213,7 @@ export default function OrdersPage() {
                 <AlertTriangle /> Fetch Error
               </CardTitle>
               <CardDescription className="text-destructive/80">
-                There was a problem communicating with the WooCommerce server.
+                There was a problem communicating with the server.
               </CardDescription>
             </CardHeader>
             <CardContent>

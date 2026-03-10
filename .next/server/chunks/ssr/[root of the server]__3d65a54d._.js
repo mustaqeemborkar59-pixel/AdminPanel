@@ -698,7 +698,6 @@ module.exports = mod;
 var { g: global, __dirname } = __turbopack_context__;
 {
 __turbopack_context__.s({
-    "getOrders": (()=>getOrders),
     "getProducts": (()=>getProducts),
     "updateOrderAddress": (()=>updateOrderAddress),
     "updateOrderStatus": (()=>updateOrderStatus)
@@ -731,117 +730,6 @@ const getWooCommerceApi = ()=>{
         throw error;
     }
 };
-const mapWCOrderToAppOrder = (order)=>{
-    const lineItems = (order.line_items || []).map((item)=>{
-        // Safely find vendor name from meta data
-        const vendorMeta = (item.meta_data || []).find((meta)=>meta.key === 'vendor');
-        const vendorName = vendorMeta ? vendorMeta.value : undefined;
-        return {
-            itemId: String(item.product_id),
-            name: item.name || 'Unknown Item',
-            sku: item.sku || undefined,
-            qty: item.quantity || 0,
-            price: parseFloat(item.price || '0'),
-            imageUrl: item.image?.src,
-            vendorName: vendorName
-        };
-    });
-    const getMetaValue = (key)=>{
-        const meta = (order.meta_data || []).find((m)=>m.key === key);
-        return meta ? meta.value : undefined;
-    };
-    const statusMap = {
-        'pending': 'pending',
-        'processing': 'processing',
-        'on-hold': 'hold',
-        'completed': 'completed',
-        'cancelled': 'cancelled',
-        'failed': 'failed',
-        'refunded': 'failed',
-        'queue': 'queue',
-        'dispatch': 'dispatch'
-    };
-    const appStatus = statusMap[order.status] || 'pending';
-    const formatAddress = (addr)=>{
-        if (!addr) return '';
-        const parts = [
-            addr.address_1,
-            addr.address_2,
-            addr.city,
-            addr.state,
-            addr.postcode,
-            addr.country
-        ];
-        return parts.filter(Boolean).join(', ');
-    };
-    const subTotal = lineItems.reduce((sum, item)=>sum + item.price * item.qty, 0);
-    return {
-        id: String(order.id),
-        customerName: `${order.billing?.first_name || ''} ${order.billing?.last_name || ''}`.trim() || 'N/A',
-        phone: order.billing?.phone || undefined,
-        altPhone: getMetaValue('_billing_alternate_phone'),
-        pincode: order.billing?.postcode || undefined,
-        gmail: order.billing?.email || undefined,
-        items: lineItems,
-        status: appStatus,
-        orderType: 'delivery',
-        billingAddress: formatAddress(order.billing),
-        billing_city: order.billing?.city,
-        billing_state: order.billing?.state,
-        billing_country: order.billing?.country,
-        shippingAddress: formatAddress(order.shipping),
-        trackingId: getMetaValue('_wc_shipment_tracking_items')?.[0]?.tracking_number,
-        totalAmount: parseFloat(order.total || '0'),
-        taxAmount: parseFloat(order.total_tax || '0'),
-        subTotal: subTotal,
-        timestamp: order.date_created_gmt ? `${order.date_created_gmt}Z` : new Date().toISOString(),
-        paymentMethod: 'card',
-        paymentDate: order.date_paid_gmt ? `${order.date_paid_gmt}Z` : null,
-        vendorName: lineItems.length > 0 ? lineItems[0].vendorName : undefined
-    };
-};
-const getOrders = async ()=>{
-    const api = getWooCommerceApi();
-    let allOrders = [];
-    let page = 1;
-    const perPage = 100;
-    let keepFetching = true;
-    while(keepFetching){
-        try {
-            const response = await api.get("orders", {
-                per_page: perPage,
-                page: page,
-                orderby: 'date',
-                order: 'desc'
-            });
-            if (response.status !== 200) {
-                throw new Error(`Failed to fetch orders on page ${page}. Status: ${response.status} ${response.statusText}`);
-            }
-            const rawOrders = response.data;
-            const mappedOrders = rawOrders.map((order)=>{
-                try {
-                    // Map each order inside a try-catch to isolate errors
-                    return mapWCOrderToAppOrder(order);
-                } catch (mapError) {
-                    console.error(`Skipping order ${order.id} due to mapping error:`, mapError);
-                    return null; // Return null for failed mappings
-                }
-            }).filter((order)=>order !== null); // Filter out nulls
-            allOrders = allOrders.concat(mappedOrders);
-            if (rawOrders.length < perPage) {
-                keepFetching = false;
-            } else {
-                page++;
-            }
-        } catch (error) {
-            console.error(`Error fetching orders from WooCommerce on page ${page}:`, error.response?.data || error.message);
-            // Stop fetching on any API error to prevent infinite loops
-            keepFetching = false;
-            throw new Error(error.response?.data?.message || error.message || 'An unknown error occurred during API communication.');
-        }
-    }
-    return allOrders;
-};
 const updateOrderStatus = async (orderId, status)=>{
     const api = getWooCommerceApi(); // Get a fresh API instance
     try {
@@ -850,8 +738,8 @@ const updateOrderStatus = async (orderId, status)=>{
         });
         return response.status === 200;
     } catch (error) {
-        console.error(`Failed to update order ${orderId} status in WooCommerce:`, error);
-        throw new Error('Failed to update order status in WooCommerce.');
+        console.error(`Failed to update order ${orderId} status in WooCommerce:`, error.response?.data || error.message);
+        throw new Error(error.response?.data?.message || 'Failed to update order status in WooCommerce.');
     }
 };
 const updateOrderAddress = async (orderId, payload)=>{
@@ -886,8 +774,8 @@ const updateOrderAddress = async (orderId, payload)=>{
         const response = await api.put(`orders/${orderId}`, data);
         return response.status === 200;
     } catch (error) {
-        console.error(`Failed to update order ${orderId} address in WooCommerce:`, error);
-        throw new Error('Failed to update order address in WooCommerce.');
+        console.error(`Failed to update order ${orderId} address in WooCommerce:`, error.response?.data || error.message);
+        throw new Error(error.response?.data?.message || 'Failed to update order address in WooCommerce.');
     }
 };
 const mapWCProductToMenuItem = (product)=>{
@@ -944,8 +832,7 @@ const getProducts = async ()=>{
 
 var { g: global, __dirname } = __turbopack_context__;
 {
-/* __next_internal_action_entry_do_not_use__ {"00297a05172ea2864074da52ab33dfd029b3e8f318":"getOrdersFromWooCommerce","600529d4c40d5b4637b282fe829a47ef19349e74f0":"updateOrderAddressInWooCommerce","601f181b794cd63f50dfa4b14a542bb6ac1499894b":"updateOrderStatusInWooCommerce"} */ __turbopack_context__.s({
-    "getOrdersFromWooCommerce": (()=>getOrdersFromWooCommerce),
+/* __next_internal_action_entry_do_not_use__ {"600529d4c40d5b4637b282fe829a47ef19349e74f0":"updateOrderAddressInWooCommerce","601f181b794cd63f50dfa4b14a542bb6ac1499894b":"updateOrderStatusInWooCommerce"} */ __turbopack_context__.s({
     "updateOrderAddressInWooCommerce": (()=>updateOrderAddressInWooCommerce),
     "updateOrderStatusInWooCommerce": (()=>updateOrderStatusInWooCommerce)
 });
@@ -958,29 +845,12 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist
 ;
 ;
 ;
-async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ getOrdersFromWooCommerce() {
-    try {
-        // This will now return the mapped, validated data from the server
-        const mappedData = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$woocommerce$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getOrders"])();
-        return {
-            success: true,
-            data: mappedData
-        };
-    } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-        console.error("Server Action Error (getOrdersFromWooCommerce):", errorMessage);
-        // Propagate the specific error message to the client
-        return {
-            success: false,
-            error: errorMessage
-        };
-    }
-}
 async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ updateOrderStatusInWooCommerce(orderId, status) {
     try {
         const wasSuccessful = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$woocommerce$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["updateOrderStatus"])(orderId, status);
         if (wasSuccessful) {
             (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])('/orders'); // Revalidate the orders page to show the update
+            (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])('/api/orders'); // Also revalidate the API route
             return {
                 success: true
             };
@@ -1004,6 +874,7 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ updateOrderAddressInWoo
         const wasSuccessful = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$woocommerce$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["updateOrderAddress"])(orderId, payload);
         if (wasSuccessful) {
             (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])('/orders');
+            (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])('/api/orders'); // Also revalidate the API route
             return {
                 success: true
             };
@@ -1024,11 +895,9 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ updateOrderAddressInWoo
 }
 ;
 (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ensureServerEntryExports"])([
-    getOrdersFromWooCommerce,
     updateOrderStatusInWooCommerce,
     updateOrderAddressInWooCommerce
 ]);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getOrdersFromWooCommerce, "00297a05172ea2864074da52ab33dfd029b3e8f318", null);
 (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(updateOrderStatusInWooCommerce, "601f181b794cd63f50dfa4b14a542bb6ac1499894b", null);
 (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(updateOrderAddressInWooCommerce, "600529d4c40d5b4637b282fe829a47ef19349e74f0", null);
 }}),
@@ -1038,7 +907,6 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ updateOrderAddressInWoo
 var { g: global, __dirname } = __turbopack_context__;
 {
 __turbopack_context__.s({});
-;
 ;
 ;
 ;
@@ -1080,7 +948,6 @@ __turbopack_async_result__();
 var { g: global, __dirname, a: __turbopack_async_module__ } = __turbopack_context__;
 __turbopack_async_module__(async (__turbopack_handle_async_dependencies__, __turbopack_async_result__) => { try {
 __turbopack_context__.s({
-    "00297a05172ea2864074da52ab33dfd029b3e8f318": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getOrdersFromWooCommerce"]),
     "0058ccd4107f044ae62a70fc8e2eee88bfbe0baffe": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getVendorsFromFirestore"]),
     "007419605e3de2c582565146fb4c8adc3781b455cb": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getCompanyDetailsFromFirestore"]),
     "00dd23fa010684cc7dc200b3912066873c650a96f7": (()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getSubscriptionPlans"]),
@@ -1116,7 +983,6 @@ __turbopack_async_result__();
 var { g: global, __dirname, a: __turbopack_async_module__ } = __turbopack_context__;
 __turbopack_async_module__(async (__turbopack_handle_async_dependencies__, __turbopack_async_result__) => { try {
 __turbopack_context__.s({
-    "00297a05172ea2864074da52ab33dfd029b3e8f318": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["00297a05172ea2864074da52ab33dfd029b3e8f318"]),
     "0058ccd4107f044ae62a70fc8e2eee88bfbe0baffe": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["0058ccd4107f044ae62a70fc8e2eee88bfbe0baffe"]),
     "007419605e3de2c582565146fb4c8adc3781b455cb": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["007419605e3de2c582565146fb4c8adc3781b455cb"]),
     "00dd23fa010684cc7dc200b3912066873c650a96f7": (()=>__TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f$orders$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$exports$3e$__["00dd23fa010684cc7dc200b3912066873c650a96f7"]),

@@ -9,7 +9,6 @@ import { DollarSign, Users, ShoppingBag, Activity, UsersRound, Package, ChevronD
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label, LabelList } from 'recharts';
 import type { Order, StaffMember, OrderStatus, OrderType, MenuItem, Vendor, UserProfile } from '@/types';
 import { cn } from '@/lib/utils';
-import { getOrdersFromWooCommerce } from '@/app/orders/actions';
 import { getVendorsFromFirestore, getAllUsers, getCompanyDetailsFromFirestore } from '@/app/auth/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -93,48 +92,57 @@ function DashboardContent() {
     const fetchDashboardData = async () => {
       setIsLoading(true);
 
-      const promises = [
-        getOrdersFromWooCommerce(),
-        getVendorsFromFirestore()
+      const fetchOrders = async (): Promise<Order[]> => {
+        const response = await fetch('/api/orders');
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to fetch orders from API.');
+        }
+        return response.json();
+      };
+      
+      const promises: [Promise<Order[]>, Promise<any>, ...Promise<any>[]] = [
+        fetchOrders(),
+        getVendorsFromFirestore(),
       ];
 
       if (isSuperAdmin) {
         promises.push(getAllUsers());
       }
-      
-      const [ordersResult, vendorsResult, usersResult] = await Promise.all(promises);
 
-      if (ordersResult.success && ordersResult.data) {
-        setOrders(ordersResult.data);
-      } else {
+      try {
+        const [ordersData, vendorsResult, usersResult] = await Promise.all(promises);
+        
+        setOrders(ordersData);
+
+        if (vendorsResult.success && vendorsResult.data) {
+          setVendors(vendorsResult.data);
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Failed to load vendor data",
+            description: vendorsResult.error || "Could not fetch vendors.",
+          });
+        }
+
+        if (usersResult && usersResult.success && usersResult.data) {
+          setAllUsers(usersResult.data);
+        } else if (usersResult && !usersResult.success) {
+          toast({
+            variant: "destructive",
+            title: "Failed to load user data",
+            description: usersResult.message || "Could not fetch users.",
+          });
+        }
+      } catch (error: any) {
         toast({
           variant: "destructive",
           title: "Failed to load dashboard data",
-          description: ordersResult.error || "Could not fetch order data from WooCommerce.",
+          description: error.message || "An unexpected error occurred.",
         });
+      } finally {
+        setIsLoading(false);
       }
-
-      if (vendorsResult.success && vendorsResult.data) {
-        setVendors(vendorsResult.data);
-      } else {
-         toast({
-          variant: "destructive",
-          title: "Failed to load vendor data",
-          description: vendorsResult.error || "Could not fetch vendors.",
-        });
-      }
-
-      if (usersResult && usersResult.success && usersResult.data) {
-        setAllUsers(usersResult.data);
-      } else if (usersResult && !usersResult.success) {
-        toast({
-          variant: "destructive",
-          title: "Failed to load user data",
-          description: usersResult.message || "Could not fetch users.",
-        });
-      }
-
-      setIsLoading(false);
     };
     fetchDashboardData();
   }, [toast, isSuperAdmin]);
@@ -725,3 +733,5 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
+
+    
