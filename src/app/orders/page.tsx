@@ -124,13 +124,15 @@ export default function OrdersPage() {
     }
     // Always include status to avoid WooCommerce default, using 'any' for all.
     params.append('status', statusFilter === 'any' ? 'any' : statusFilter);
+    
     if (dateRange?.from) {
-      params.append('after', dateRange.from.toISOString());
+      // Format the date to "YYYY-MM-DDTHH:mm:ss" in local time to avoid timezone shifts.
+      // This ensures the API fetches data from the start of the selected day in the site's timezone.
+      params.append('after', format(startOfDay(dateRange.from), "yyyy-MM-dd'T'HH:mm:ss"));
     }
     if (dateRange?.to) {
-      const toDate = new Date(dateRange.to);
-      toDate.setHours(23, 59, 59, 999);
-      params.append('before', toDate.toISOString());
+      // Format the date to the end of the day to include all orders on that day.
+      params.append('before', format(endOfDay(dateRange.to), "yyyy-MM-dd'T'HH:mm:ss"));
     }
 
     try {
