@@ -277,8 +277,20 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ GET(request) {
             order: 'desc'
         };
         // Apply filters from the request to the parameters
-        if (searchParams.get('status')) {
-            params.status = searchParams.get('status');
+        const statusParam = searchParams.get('status');
+        if (statusParam && statusParam !== 'any') {
+            params.status = statusParam;
+        } else {
+            // To be robust against server default configs, if 'any' or no status is specified,
+            // explicitly request all main statuses.
+            params.status = [
+                'pending',
+                'processing',
+                'on-hold',
+                'completed',
+                'cancelled',
+                'failed'
+            ].join(',');
         }
         if (searchParams.get('after')) {
             params.after = searchParams.get('after');
@@ -288,6 +300,10 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ GET(request) {
         }
         if (searchParams.get('search')) {
             params.search = searchParams.get('search');
+        }
+        // FIX: Add page parameter handling for pagination
+        if (searchParams.get('page')) {
+            params.page = searchParams.get('page');
         }
         const response = await api.get("orders", params);
         if (response.status !== 200) {
