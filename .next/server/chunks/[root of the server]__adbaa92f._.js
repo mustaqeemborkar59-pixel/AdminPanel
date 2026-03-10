@@ -284,6 +284,9 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ GET(request) {
         if (searchParams.get('before')) {
             params.before = searchParams.get('before');
         }
+        if (searchParams.get('search')) {
+            params.search = searchParams.get('search');
+        }
         const response = await api.get("orders", params);
         if (response.status !== 200) {
             console.error("WooCommerce API Error:", response.data);

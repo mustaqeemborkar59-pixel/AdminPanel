@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
@@ -23,6 +24,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import { OrderListItem } from '@/components/orders/order-list-item';
 import { Accordion } from '@/components/ui/accordion';
@@ -181,11 +186,13 @@ export default function OrdersPage() {
     }
   };
 
-  const exportToPDF = () => {
+  const exportToPDF = (ordersToExport: Order[]) => {
+    if (ordersToExport.length === 0) {
+      toast({ variant: "destructive", title: "No Orders to Export", description: "There are no orders to export for the selected criteria." });
+      return;
+    }
     const doc = new jsPDF();
-    const tableData = orders
-      .filter(o => selectedOrders.has(o.id))
-      .map(o => [
+    const tableData = ordersToExport.map(o => [
         o.id,
         o.customerName,
         formatDateWithTimezone(o.timestamp),
@@ -193,27 +200,21 @@ export default function OrdersPage() {
         `₹${o.totalAmount.toFixed(2)}`
       ]);
 
-    if (tableData.length === 0) {
-      toast({ variant: "destructive", title: "No orders selected" });
-      return;
-    }
-
-    doc.text("Selected Orders Report", 14, 16);
+    doc.text("Orders Report", 14, 16);
     (doc as any).autoTable({
       head: [['ID', 'Customer', 'Date', 'Status', 'Total']],
       body: tableData,
       startY: 20
     });
-    doc.save('selected_orders.pdf');
+    doc.save('orders_report.pdf');
   };
 
-  const exportToExcel = () => {
-    const selected = orders.filter(o => selectedOrders.has(o.id));
-    if (selected.length === 0) {
-      toast({ variant: "destructive", title: "No orders selected" });
-      return;
+  const exportToExcel = (ordersToExport: Order[]) => {
+     if (ordersToExport.length === 0) {
+        toast({ variant: "destructive", title: "No Orders to Export", description: "There are no orders to export for the selected criteria." });
+        return;
     }
-    const worksheet = XLSX.utils.json_to_sheet(selected.map(o => ({
+    const worksheet = XLSX.utils.json_to_sheet(ordersToExport.map(o => ({
       'Order ID': o.id,
       'Customer Name': o.customerName,
       'Date': formatDateWithTimezone(o.timestamp),
@@ -223,15 +224,19 @@ export default function OrdersPage() {
     })));
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
-    XLSX.writeFile(workbook, "selected_orders.xlsx");
+    XLSX.writeFile(workbook, "orders_report.xlsx");
   };
+
+  const selectedOrdersData = useMemo(() => {
+    return orders.filter(o => selectedOrders.has(o.id));
+  }, [orders, selectedOrders]);
 
 
   return (
     <div className="flex flex-col h-full">
       <PageHeader
         title="Manage Orders"
-        description={`Viewing ${orders.length} orders. ${selectedOrders.size} selected.`}
+        description={`Viewing ${orders.length} filtered orders. ${selectedOrders.size} selected.`}
         actions={
           <div className="flex items-center gap-2">
             <Button onClick={fetchOrders} variant="outline" disabled={isLoading}>
@@ -240,15 +245,46 @@ export default function OrdersPage() {
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" disabled={selectedOrders.size === 0}>
-                  <FileDown className="mr-2 h-4 w-4" /> Export ({selectedOrders.size})
+                <Button variant="outline">
+                  <FileDown className="mr-2 h-4 w-4" /> Export
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuLabel>Export Selected As</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Export Options</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={exportToPDF}>PDF</DropdownMenuItem>
-                <DropdownMenuItem onClick={exportToExcel}>Excel (XLSX)</DropdownMenuItem>
+                
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger disabled={selectedOrders.size === 0}>
+                    Export Selected ({selectedOrders.size})
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuItem onClick={() => exportToPDF(selectedOrdersData)}>
+                        PDF
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => exportToExcel(selectedOrdersData)}>
+                        Excel (XLSX)
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger disabled={orders.length === 0}>
+                     Export Filtered ({orders.length})
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuItem onClick={() => exportToPDF(orders)}>
+                        PDF
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => exportToExcel(orders)}>
+                        Excel (XLSX)
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+                
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
