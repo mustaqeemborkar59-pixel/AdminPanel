@@ -5,7 +5,6 @@ import { redirect } from 'next/navigation';
 import { getFirestore, Timestamp, FieldValue as AdminFieldValue } from 'firebase-admin/firestore';
 import { initializeApp, getApps, App, cert } from 'firebase-admin/app';
 import { getAuth as getAdminAuth } from 'firebase-admin/auth';
-import { getDatabase } from 'firebase-admin/database';
 import type { UserProfile, CompanyDetails, Vendor } from '@/types';
 import type { SubscriptionPlan } from '@/app/usage/page';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -33,15 +32,13 @@ function initializeAdminApp(): App {
 
   return initializeApp({
     credential: cert(serviceAccount),
-    databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL
   });
 }
 
 function getAdminServices(app: App) {
   const firestore = getFirestore(app);
   const auth = getAdminAuth(app);
-  const rtdb = getDatabase(app);
-  return { firestore, auth, rtdb };
+  return { firestore, auth };
 }
 
 
