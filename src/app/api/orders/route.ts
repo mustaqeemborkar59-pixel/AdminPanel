@@ -98,56 +98,38 @@ export async function GET(request: Request) {
     const api = getWooCommerceApi();
     const { searchParams } = new URL(request.url);
 
-    // Base parameters for WooCommerce API, page will be handled in the loop
-    const baseParams: any = {
-      per_page: 100, // Fetch 100 orders per page
+    // Parameters for WooCommerce API
+    const params: any = {
+      per_page: 100, // Fetch up to 100 orders
       orderby: 'date',
       order: 'desc',
     };
 
-    // Apply filters from the request to the base parameters
+    // Apply filters from the request to the parameters
     if (searchParams.get('status')) {
-      baseParams.status = searchParams.get('status');
+      params.status = searchParams.get('status');
     }
     if (searchParams.get('after')) {
-      baseParams.after = searchParams.get('after');
+      params.after = searchParams.get('after');
     }
     if (searchParams.get('before')) {
-      baseParams.before = searchParams.get('before');
+      params.before = searchParams.get('before');
     }
     if (searchParams.get('search')) {
-      baseParams.search = searchParams.get('search');
+      params.search = searchParams.get('search');
     }
 
-    let allOrders: any[] = [];
-    let page = 1;
-    let keepFetching = true;
+    const response = await api.get("orders", params);
 
-    // Loop through all pages until all orders are fetched
-    while (keepFetching) {
-      const params = { ...baseParams, page };
-      const response = await api.get("orders", params);
-
-      if (response.status !== 200) {
-        console.error(`WooCommerce API Error on page ${page}:`, response.data);
-        throw new Error(`WooCommerce API responded with status ${response.status} on page ${page}`);
-      }
-      
-      const fetchedOrders = response.data;
-      if (fetchedOrders.length > 0) {
-          allOrders = allOrders.concat(fetchedOrders);
-      }
-
-      // If the number of fetched orders is less than the number per page, it's the last page.
-      if (fetchedOrders.length < baseParams.per_page) {
-        keepFetching = false;
-      } else {
-        page++; // Go to the next page
-      }
+    if (response.status !== 200) {
+      console.error(`WooCommerce API Error:`, response.data);
+      throw new Error(`WooCommerce API responded with status ${response.status}`);
     }
     
-    // Map all the fetched raw data to our app's Order type, filtering out any that fail to map
-    const mappedOrders = allOrders
+    const fetchedOrders = response.data;
+    
+    // Map the fetched raw data to our app's Order type, filtering out any that fail to map
+    const mappedOrders = fetchedOrders
       .map((order: any) => mapWCOrderToAppOrder(order))
       .filter((order: Order | null): order is Order => order !== null);
 

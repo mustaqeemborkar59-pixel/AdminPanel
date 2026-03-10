@@ -270,36 +270,52 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ GET(request) {
     try {
         const api = getWooCommerceApi();
         const { searchParams } = new URL(request.url);
-        // Prepare parameters for WooCommerce API
-        const params = {
+        // Base parameters for WooCommerce API, page will be handled in the loop
+        const baseParams = {
             per_page: 100,
-            page: parseInt(searchParams.get('page') || '1'),
             orderby: 'date',
             order: 'desc'
         };
+        // Apply filters from the request to the base parameters
         if (searchParams.get('status')) {
-            params.status = searchParams.get('status');
+            baseParams.status = searchParams.get('status');
         }
         if (searchParams.get('after')) {
-            params.after = searchParams.get('after');
+            baseParams.after = searchParams.get('after');
         }
         if (searchParams.get('before')) {
-            params.before = searchParams.get('before');
+            baseParams.before = searchParams.get('before');
         }
         if (searchParams.get('search')) {
-            params.search = searchParams.get('search');
+            baseParams.search = searchParams.get('search');
         }
-        const response = await api.get("orders", params);
-        if (response.status !== 200) {
-            console.error("WooCommerce API Error:", response.data);
-            return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-                error: `WooCommerce API responded with status ${response.status}`
-            }, {
-                status: response.status
-            });
+        let allOrders = [];
+        let page = 1;
+        let keepFetching = true;
+        // Loop through all pages until all orders are fetched
+        while(keepFetching){
+            const params = {
+                ...baseParams,
+                page
+            };
+            const response = await api.get("orders", params);
+            if (response.status !== 200) {
+                console.error(`WooCommerce API Error on page ${page}:`, response.data);
+                throw new Error(`WooCommerce API responded with status ${response.status} on page ${page}`);
+            }
+            const fetchedOrders = response.data;
+            if (fetchedOrders.length > 0) {
+                allOrders = allOrders.concat(fetchedOrders);
+            }
+            // If the number of fetched orders is less than the number per page, it's the last page.
+            if (fetchedOrders.length < baseParams.per_page) {
+                keepFetching = false;
+            } else {
+                page++; // Go to the next page
+            }
         }
-        // Map raw data to our app's Order type, filtering out any that fail to map
-        const mappedOrders = response.data.map((order)=>mapWCOrderToAppOrder(order)).filter((order)=>order !== null);
+        // Map all the fetched raw data to our app's Order type, filtering out any that fail to map
+        const mappedOrders = allOrders.map((order)=>mapWCOrderToAppOrder(order)).filter((order)=>order !== null);
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json(mappedOrders);
     } catch (error) {
         console.error('Failed to fetch orders from custom API route:', error);
