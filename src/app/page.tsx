@@ -13,7 +13,7 @@ import { getVendorsFromFirestore, getAllUsers, getCompanyDetailsFromFirestore } 
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { format, eachDayOfInterval, startOfDay, endOfDay, startOfWeek, eachWeekOfInterval, startOfMonth, eachMonthOfInterval } from 'date-fns';
+import { format, eachDayOfInterval, startOfDay, endOfDay, startOfWeek, eachWeekOfInterval, startOfMonth, eachMonthOfInterval, endOfMonth } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import type { DateRange } from "react-day-picker";
 import { useAppContext } from '@/components/layout/app-content-wrapper';
@@ -62,10 +62,8 @@ function DashboardContent() {
 
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
-    const today = new Date();
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(today.getDate() - 29);
-    return { from: thirtyDaysAgo, to: today };
+    const now = new Date();
+    return { from: startOfMonth(now), to: endOfMonth(now) };
   });
 
   const isSuperAdmin = userProfile?.role === 'super-admin';
