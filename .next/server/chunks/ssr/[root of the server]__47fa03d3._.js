@@ -424,12 +424,14 @@ function DashboardContent() {
     const [vendors, setVendors] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
     const [allUsers, setAllUsers] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
     const [isLoading, setIsLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(true);
+    // Stats for the selected date range
     const [totalSales, setTotalSales] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(0);
     const [totalOrders, setTotalOrders] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(0);
     const [newCustomers, setNewCustomers] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(0);
+    // Data for charts
     const [weeklyOrderData, setWeeklyOrderData] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
     const [salesDetailsData, setSalesDetailsData] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
-    const [totalSalesForRange, setTotalSalesForRange] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(0);
+    // Precisely filtered orders for export
     const [ordersInDateRange, setOrdersInDateRange] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
     const [activityView, setActivityView] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('daily');
     const [dateRange, setDateRange] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(()=>{
@@ -561,137 +563,128 @@ function DashboardContent() {
         userProfile
     ]);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
-        if (vendorFilteredOrders.length > 0) {
-            // Define successful statuses for revenue calculation.
-            const successfulStatuses = [
-                'completed',
-                'processing',
-                'queue',
-                'dispatch',
-                'hold'
-            ];
-            // Calculate total sales only from paid and successful orders.
-            const validOrdersForRevenue = vendorFilteredOrders.filter((order)=>order.paymentDate && successfulStatuses.includes(order.status));
-            const currentTotalSales = validOrdersForRevenue.reduce((sum, order)=>sum + order.totalAmount, 0);
-            const currentTotalOrders = vendorFilteredOrders.length;
-            const uniqueEmails = new Set(vendorFilteredOrders.map((order)=>order.gmail).filter(Boolean));
-            setNewCustomers(uniqueEmails.size);
-            setTotalSales(currentTotalSales);
-            setTotalOrders(currentTotalOrders);
-            // --- Chart Data Processing ---
-            const fromDate = dateRange?.from;
-            const toDate = dateRange?.to;
-            if (fromDate && toDate) {
-                const timeZone = 'Asia/Kolkata';
-                const startDate = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$startOfDay$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["startOfDay"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2d$tz$2f$dist$2f$esm$2f$toZonedTime$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toZonedTime"])(fromDate, timeZone));
-                const endDate = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$endOfDay$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["endOfDay"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2d$tz$2f$dist$2f$esm$2f$toZonedTime$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toZonedTime"])(toDate, timeZone));
-                // Filter orders where the payment date is within the selected range.
-                const recentPaidSuccessfulOrders = vendorFilteredOrders.filter((order)=>{
-                    if (!order.paymentDate || !successfulStatuses.includes(order.status)) return false;
-                    try {
-                        // Convert payment date string to a date object in the correct timezone
-                        const paymentDateInIST = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2d$tz$2f$dist$2f$esm$2f$toZonedTime$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toZonedTime"])(order.paymentDate, timeZone);
-                        if (isNaN(paymentDateInIST.getTime())) return false; // Invalid date string
-                        // Now the comparison is between two Date objects.
-                        return paymentDateInIST >= startDate && paymentDateInIST <= endDate;
-                    } catch  {
-                        return false;
-                    }
-                });
-                setOrdersInDateRange(recentPaidSuccessfulOrders);
-                let rangeTotal = 0;
-                let activityData = [];
-                if (activityView === 'daily') {
-                    const intervalDays = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$eachDayOfInterval$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["eachDayOfInterval"])({
-                        start: startDate,
-                        end: endDate
-                    });
-                    activityData = intervalDays.map((day)=>({
-                            name: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$format$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["format"])(day, 'MMM d'),
-                            date: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$format$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["format"])(day, 'yyyy-MM-dd'),
-                            orders: 0,
-                            sales: 0
-                        }));
-                    recentPaidSuccessfulOrders.forEach((order)=>{
-                        if (!order.paymentDate) return;
-                        try {
-                            const paymentDayInIST = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$startOfDay$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["startOfDay"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2d$tz$2f$dist$2f$esm$2f$toZonedTime$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toZonedTime"])(order.paymentDate, timeZone));
-                            const paymentDateStr = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$format$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["format"])(paymentDayInIST, 'yyyy-MM-dd');
-                            const dayData = activityData.find((d)=>d.date === paymentDateStr);
-                            if (dayData) {
-                                dayData.orders += 1;
-                                dayData.sales += order.totalAmount;
-                                rangeTotal += order.totalAmount;
-                            }
-                        } catch  {}
-                    });
-                } else if (activityView === 'weekly') {
-                    const intervalWeeks = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$eachWeekOfInterval$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["eachWeekOfInterval"])({
-                        start: startDate,
-                        end: endDate
-                    }, {
-                        weekStartsOn: 1
-                    });
-                    activityData = intervalWeeks.map((weekStart)=>({
-                            name: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$format$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["format"])(weekStart, 'MMM d'),
-                            date: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$format$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["format"])(weekStart, 'yyyy-MM-dd'),
-                            orders: 0,
-                            sales: 0
-                        }));
-                    recentPaidSuccessfulOrders.forEach((order)=>{
-                        if (!order.paymentDate) return;
-                        try {
-                            const paymentDateInIST = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2d$tz$2f$dist$2f$esm$2f$toZonedTime$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toZonedTime"])(order.paymentDate, timeZone);
-                            const weekStart = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$startOfWeek$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["startOfWeek"])(paymentDateInIST, {
-                                weekStartsOn: 1
-                            });
-                            const weekKey = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$format$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["format"])(weekStart, 'yyyy-MM-dd');
-                            const weekData = activityData.find((w)=>w.date === weekKey);
-                            if (weekData) {
-                                weekData.orders += 1;
-                                weekData.sales += order.totalAmount;
-                                rangeTotal += order.totalAmount;
-                            }
-                        } catch  {}
-                    });
-                } else if (activityView === 'monthly') {
-                    const intervalMonths = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$eachMonthOfInterval$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["eachMonthOfInterval"])({
-                        start: startDate,
-                        end: endDate
-                    });
-                    activityData = intervalMonths.map((monthStart)=>({
-                            name: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$format$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["format"])(monthStart, 'MMM yyyy'),
-                            date: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$format$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["format"])(monthStart, 'yyyy-MM-dd'),
-                            orders: 0,
-                            sales: 0
-                        }));
-                    recentPaidSuccessfulOrders.forEach((order)=>{
-                        if (!order.paymentDate) return;
-                        try {
-                            const paymentDateInIST = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2d$tz$2f$dist$2f$esm$2f$toZonedTime$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toZonedTime"])(order.paymentDate, timeZone);
-                            const monthStart = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$startOfMonth$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["startOfMonth"])(paymentDateInIST);
-                            const monthKey = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$format$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["format"])(monthStart, 'yyyy-MM-dd');
-                            const monthData = activityData.find((m)=>m.date === monthKey);
-                            if (monthData) {
-                                monthData.orders += 1;
-                                monthData.sales += order.totalAmount;
-                                rangeTotal += order.totalAmount;
-                            }
-                        } catch  {}
-                    });
+        // --- Source of Truth for Calculations ---
+        const successfulStatuses = [
+            'completed',
+            'processing',
+            'queue',
+            'dispatch',
+            'hold'
+        ];
+        const fromDate = dateRange?.from;
+        const toDate = dateRange?.to;
+        // 1. ordersForAnalytics: Precisely filtered for FINANCIAL calculations (sales, charts)
+        let ordersForAnalytics = [];
+        if (fromDate && toDate) {
+            const timeZone = 'Asia/Kolkata';
+            const startDate = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$startOfDay$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["startOfDay"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2d$tz$2f$dist$2f$esm$2f$toZonedTime$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toZonedTime"])(fromDate, timeZone));
+            const endDate = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$endOfDay$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["endOfDay"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2d$tz$2f$dist$2f$esm$2f$toZonedTime$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toZonedTime"])(toDate, timeZone));
+            ordersForAnalytics = vendorFilteredOrders.filter((order)=>{
+                if (!order.paymentDate || !successfulStatuses.includes(order.status)) return false;
+                try {
+                    const paymentDateInIST = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2d$tz$2f$dist$2f$esm$2f$toZonedTime$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toZonedTime"])(order.paymentDate, timeZone);
+                    if (isNaN(paymentDateInIST.getTime())) return false;
+                    return paymentDateInIST >= startDate && paymentDateInIST <= endDate;
+                } catch  {
+                    return false;
                 }
-                setWeeklyOrderData(activityData);
-                setTotalSalesForRange(rangeTotal);
-            } else {
-                setWeeklyOrderData([]);
-                setTotalSalesForRange(0);
-                setOrdersInDateRange([]);
+            });
+        }
+        setOrdersInDateRange(ordersForAnalytics); // For PDF export
+        // --- Perform All Calculations ---
+        if (vendorFilteredOrders.length > 0) {
+            // 2. Calculate FINANCIAL stats from `ordersForAnalytics`
+            const salesForRange = ordersForAnalytics.reduce((sum, order)=>sum + order.totalAmount, 0);
+            setTotalSales(salesForRange);
+            // 3. Calculate GENERAL stats from `vendorFilteredOrders` (all orders in range)
+            const totalOrdersInRange = vendorFilteredOrders.length;
+            const uniqueEmailsInRange = new Set(vendorFilteredOrders.map((order)=>order.gmail).filter(Boolean));
+            setTotalOrders(totalOrdersInRange);
+            setNewCustomers(uniqueEmailsInRange.size);
+            // 4. Bar Chart Data (from financial data)
+            let activityData = [];
+            const timeZone = 'Asia/Kolkata';
+            if (activityView === 'daily' && fromDate && toDate) {
+                const intervalDays = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$eachDayOfInterval$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["eachDayOfInterval"])({
+                    start: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$startOfDay$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["startOfDay"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2d$tz$2f$dist$2f$esm$2f$toZonedTime$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toZonedTime"])(fromDate, timeZone)),
+                    end: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$endOfDay$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["endOfDay"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2d$tz$2f$dist$2f$esm$2f$toZonedTime$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toZonedTime"])(toDate, timeZone))
+                });
+                activityData = intervalDays.map((day)=>({
+                        name: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$format$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["format"])(day, 'MMM d'),
+                        date: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$format$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["format"])(day, 'yyyy-MM-dd'),
+                        orders: 0,
+                        sales: 0
+                    }));
+                ordersForAnalytics.forEach((order)=>{
+                    if (!order.paymentDate) return;
+                    try {
+                        const paymentDayInIST = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$startOfDay$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["startOfDay"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2d$tz$2f$dist$2f$esm$2f$toZonedTime$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toZonedTime"])(order.paymentDate, timeZone));
+                        const paymentDateStr = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$format$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["format"])(paymentDayInIST, 'yyyy-MM-dd');
+                        const dayData = activityData.find((d)=>d.date === paymentDateStr);
+                        if (dayData) {
+                            dayData.orders += 1;
+                            dayData.sales += order.totalAmount;
+                        }
+                    } catch  {}
+                });
+            } else if (activityView === 'weekly' && fromDate && toDate) {
+                const intervalWeeks = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$eachWeekOfInterval$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["eachWeekOfInterval"])({
+                    start: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$startOfDay$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["startOfDay"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2d$tz$2f$dist$2f$esm$2f$toZonedTime$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toZonedTime"])(fromDate, timeZone)),
+                    end: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$endOfDay$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["endOfDay"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2d$tz$2f$dist$2f$esm$2f$toZonedTime$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toZonedTime"])(toDate, timeZone))
+                }, {
+                    weekStartsOn: 1
+                });
+                activityData = intervalWeeks.map((weekStart)=>({
+                        name: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$format$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["format"])(weekStart, 'MMM d'),
+                        date: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$format$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["format"])(weekStart, 'yyyy-MM-dd'),
+                        orders: 0,
+                        sales: 0
+                    }));
+                ordersForAnalytics.forEach((order)=>{
+                    if (!order.paymentDate) return;
+                    try {
+                        const paymentDateInIST = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2d$tz$2f$dist$2f$esm$2f$toZonedTime$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toZonedTime"])(order.paymentDate, timeZone);
+                        const weekStart = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$startOfWeek$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["startOfWeek"])(paymentDateInIST, {
+                            weekStartsOn: 1
+                        });
+                        const weekKey = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$format$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["format"])(weekStart, 'yyyy-MM-dd');
+                        const weekData = activityData.find((w)=>w.date === weekKey);
+                        if (weekData) {
+                            weekData.orders += 1;
+                            weekData.sales += order.totalAmount;
+                        }
+                    } catch  {}
+                });
+            } else if (activityView === 'monthly' && fromDate && toDate) {
+                const intervalMonths = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$eachMonthOfInterval$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["eachMonthOfInterval"])({
+                    start: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$startOfDay$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["startOfDay"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2d$tz$2f$dist$2f$esm$2f$toZonedTime$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toZonedTime"])(fromDate, timeZone)),
+                    end: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$endOfDay$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["endOfDay"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2d$tz$2f$dist$2f$esm$2f$toZonedTime$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toZonedTime"])(toDate, timeZone))
+                });
+                activityData = intervalMonths.map((monthStart)=>({
+                        name: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$format$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["format"])(monthStart, 'MMM yyyy'),
+                        date: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$format$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["format"])(monthStart, 'yyyy-MM-dd'),
+                        orders: 0,
+                        sales: 0
+                    }));
+                ordersForAnalytics.forEach((order)=>{
+                    if (!order.paymentDate) return;
+                    try {
+                        const paymentDateInIST = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2d$tz$2f$dist$2f$esm$2f$toZonedTime$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toZonedTime"])(order.paymentDate, timeZone);
+                        const monthStart = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$startOfMonth$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["startOfMonth"])(paymentDateInIST);
+                        const monthKey = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$format$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["format"])(monthStart, 'yyyy-MM-dd');
+                        const monthData = activityData.find((m)=>m.date === monthKey);
+                        if (monthData) {
+                            monthData.orders += 1;
+                            monthData.sales += order.totalAmount;
+                        }
+                    } catch  {}
+                });
             }
-            // --- Sales Details List Data Processing ---
+            setWeeklyOrderData(activityData);
+            // 5. Pie Chart Data (from general data)
             const statusCounts = {};
             vendorFilteredOrders.forEach((order)=>{
-                const statusKey = order.status || 'unknown';
-                statusCounts[statusKey] = (statusCounts[statusKey] || 0) + 1;
+                statusCounts[order.status] = (statusCounts[order.status] || 0) + 1;
             });
             const salesData = Object.entries(statusCounts).map(([name, value])=>{
                 const statusKey = name;
@@ -707,21 +700,20 @@ function DashboardContent() {
                     icon: info.icon,
                     color: info.color
                 };
-            }).sort((a, b)=>b.value - a.value); // Sort for better visualization
+            }).sort((a, b)=>b.value - a.value);
             setSalesDetailsData(salesData);
         } else {
+            // Reset all stats if no orders are found
             setTotalSales(0);
             setTotalOrders(0);
             setNewCustomers(0);
             setWeeklyOrderData([]);
             setSalesDetailsData([]);
-            setTotalSalesForRange(0);
             setOrdersInDateRange([]);
         }
     }, [
         vendorFilteredOrders,
         dateRange,
-        isVendor,
         activityView
     ]);
     const generateDashboardPdf = async (ordersToExport)=>{
@@ -755,6 +747,7 @@ function DashboardContent() {
                     minimumFractionDigits: 2
                 })}`
             ]);
+        const totalSalesForPdf = ordersToExport.reduce((sum, order)=>sum + order.totalAmount, 0);
         const doc = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$jspdf$2f$dist$2f$jspdf$2e$es$2e$min$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"]();
         const dbDetailsResult = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$auth$2f$actions$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getCompanyDetailsFromFirestore"])();
         const companyDetails = dbDetailsResult.success && dbDetailsResult.data ? dbDetailsResult.data : {
@@ -794,7 +787,7 @@ function DashboardContent() {
             foot: [
                 [
                     'Total',
-                    `₹${totalSalesForRange.toLocaleString('en-IN', {
+                    `₹${totalSalesForPdf.toLocaleString('en-IN', {
                         maximumFractionDigits: 2,
                         minimumFractionDigits: 2
                     })}`
@@ -875,7 +868,7 @@ function DashboardContent() {
                 children: `₹${Math.round(value).toLocaleString('en-IN')}`
             }, void 0, false, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 462,
+                lineNumber: 412,
                 columnNumber: 9
             }, this);
         }
@@ -890,7 +883,7 @@ function DashboardContent() {
                     description: "Comprehensive overview of your online store's operations and performance."
                 }, void 0, false, {
                     fileName: "[project]/src/app/page.tsx",
-                    lineNumber: 474,
+                    lineNumber: 424,
                     columnNumber: 13
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -899,18 +892,18 @@ function DashboardContent() {
                         className: "h-8 w-8 animate-spin text-primary"
                     }, void 0, false, {
                         fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 476,
+                        lineNumber: 426,
                         columnNumber: 17
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/app/page.tsx",
-                    lineNumber: 475,
+                    lineNumber: 425,
                     columnNumber: 13
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/page.tsx",
-            lineNumber: 473,
+            lineNumber: 423,
             columnNumber: 9
         }, this);
     }
@@ -926,13 +919,13 @@ function DashboardContent() {
                     className: "h-5 w-5 text-white/70"
                 }, void 0, false, {
                     fileName: "[project]/src/app/page.tsx",
-                    lineNumber: 484,
+                    lineNumber: 434,
                     columnNumber: 160
                 }, void 0),
                 className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["cn"])(gradientStyles[0])
             }, "sales", false, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 484,
+                lineNumber: 434,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(StatsCard, {
@@ -942,13 +935,13 @@ function DashboardContent() {
                     className: "h-5 w-5 text-white/70"
                 }, void 0, false, {
                     fileName: "[project]/src/app/page.tsx",
-                    lineNumber: 485,
+                    lineNumber: 435,
                     columnNumber: 89
                 }, void 0),
                 className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["cn"])(gradientStyles[1])
             }, "orders", false, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 485,
+                lineNumber: 435,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(StatsCard, {
@@ -958,13 +951,13 @@ function DashboardContent() {
                     className: "h-5 w-5 text-white/70"
                 }, void 0, false, {
                     fileName: "[project]/src/app/page.tsx",
-                    lineNumber: 486,
+                    lineNumber: 436,
                     columnNumber: 100
                 }, void 0),
                 className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["cn"])(gradientStyles[2])
             }, "customers", false, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 486,
+                lineNumber: 436,
                 columnNumber: 7
             }, this)
         ];
@@ -976,13 +969,13 @@ function DashboardContent() {
                     className: "h-5 w-5 text-white/70"
                 }, void 0, false, {
                     fileName: "[project]/src/app/page.tsx",
-                    lineNumber: 491,
+                    lineNumber: 441,
                     columnNumber: 84
                 }, void 0),
                 className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["cn"])(gradientStyles[3])
             }, "admins", false, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 491,
+                lineNumber: 441,
                 columnNumber: 9
             }, this), /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(StatsCard, {
                 title: "Vendors",
@@ -991,13 +984,13 @@ function DashboardContent() {
                     className: "h-5 w-5 text-white/70"
                 }, void 0, false, {
                     fileName: "[project]/src/app/page.tsx",
-                    lineNumber: 492,
+                    lineNumber: 442,
                     columnNumber: 87
                 }, void 0),
                 className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["cn"])(gradientStyles[1])
             }, "vendors", false, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 492,
+                lineNumber: 442,
                 columnNumber: 9
             }, this), /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(StatsCard, {
                 title: "Super Admins",
@@ -1006,13 +999,13 @@ function DashboardContent() {
                     className: "h-5 w-5 text-white/70"
                 }, void 0, false, {
                     fileName: "[project]/src/app/page.tsx",
-                    lineNumber: 493,
+                    lineNumber: 443,
                     columnNumber: 101
                 }, void 0),
                 className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["cn"])(gradientStyles[0])
             }, "super-admins", false, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 493,
+                lineNumber: 443,
                 columnNumber: 9
             }, this));
         }
@@ -1021,7 +1014,7 @@ function DashboardContent() {
             children: cards
         }, void 0, false, {
             fileName: "[project]/src/app/page.tsx",
-            lineNumber: 498,
+            lineNumber: 448,
             columnNumber: 8
         }, this);
     };
@@ -1033,7 +1026,7 @@ function DashboardContent() {
                 description: "Comprehensive overview of your online store's operations and performance."
             }, void 0, false, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 507,
+                lineNumber: 457,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1041,7 +1034,7 @@ function DashboardContent() {
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(StatsCards, {}, void 0, false, {
                         fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 510,
+                        lineNumber: 460,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1057,21 +1050,21 @@ function DashboardContent() {
                                                 children: "Sales Details"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/page.tsx",
-                                                lineNumber: 515,
+                                                lineNumber: 465,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardDescription"], {
                                                 className: "text-xs text-muted-foreground mt-1",
-                                                children: "Breakdown by order status"
+                                                children: "Breakdown by order status for selected range"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/page.tsx",
-                                                lineNumber: 516,
+                                                lineNumber: 466,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/page.tsx",
-                                        lineNumber: 514,
+                                        lineNumber: 464,
                                         columnNumber: 14
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1098,7 +1091,7 @@ function DashboardContent() {
                                                                                 stopOpacity: 0.8
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                                lineNumber: 525,
+                                                                                lineNumber: 475,
                                                                                 columnNumber: 35
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("stop", {
@@ -1107,13 +1100,13 @@ function DashboardContent() {
                                                                                 stopOpacity: 0.4
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                                lineNumber: 526,
+                                                                                lineNumber: 476,
                                                                                 columnNumber: 35
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/app/page.tsx",
-                                                                        lineNumber: 524,
+                                                                        lineNumber: 474,
                                                                         columnNumber: 31
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("linearGradient", {
@@ -1129,7 +1122,7 @@ function DashboardContent() {
                                                                                 stopOpacity: 0.8
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                                lineNumber: 529,
+                                                                                lineNumber: 479,
                                                                                 columnNumber: 35
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("stop", {
@@ -1138,13 +1131,13 @@ function DashboardContent() {
                                                                                 stopOpacity: 0.4
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                                lineNumber: 530,
+                                                                                lineNumber: 480,
                                                                                 columnNumber: 35
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/app/page.tsx",
-                                                                        lineNumber: 528,
+                                                                        lineNumber: 478,
                                                                         columnNumber: 32
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("linearGradient", {
@@ -1160,7 +1153,7 @@ function DashboardContent() {
                                                                                 stopOpacity: 0.8
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                                lineNumber: 533,
+                                                                                lineNumber: 483,
                                                                                 columnNumber: 35
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("stop", {
@@ -1169,13 +1162,13 @@ function DashboardContent() {
                                                                                 stopOpacity: 0.4
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                                lineNumber: 534,
+                                                                                lineNumber: 484,
                                                                                 columnNumber: 35
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/app/page.tsx",
-                                                                        lineNumber: 532,
+                                                                        lineNumber: 482,
                                                                         columnNumber: 32
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("linearGradient", {
@@ -1191,7 +1184,7 @@ function DashboardContent() {
                                                                                 stopOpacity: 0.8
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                                lineNumber: 537,
+                                                                                lineNumber: 487,
                                                                                 columnNumber: 35
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("stop", {
@@ -1200,13 +1193,13 @@ function DashboardContent() {
                                                                                 stopOpacity: 0.4
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                                lineNumber: 538,
+                                                                                lineNumber: 488,
                                                                                 columnNumber: 35
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/app/page.tsx",
-                                                                        lineNumber: 536,
+                                                                        lineNumber: 486,
                                                                         columnNumber: 32
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("linearGradient", {
@@ -1222,7 +1215,7 @@ function DashboardContent() {
                                                                                 stopOpacity: 0.8
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                                lineNumber: 541,
+                                                                                lineNumber: 491,
                                                                                 columnNumber: 35
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("stop", {
@@ -1231,19 +1224,19 @@ function DashboardContent() {
                                                                                 stopOpacity: 0.4
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                                lineNumber: 542,
+                                                                                lineNumber: 492,
                                                                                 columnNumber: 35
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/app/page.tsx",
-                                                                        lineNumber: 540,
+                                                                        lineNumber: 490,
                                                                         columnNumber: 31
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                lineNumber: 523,
+                                                                lineNumber: 473,
                                                                 columnNumber: 27
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$polar$2f$Pie$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Pie"], {
@@ -1260,12 +1253,12 @@ function DashboardContent() {
                                                                         fill: GRADIENT_COLORS[index % GRADIENT_COLORS.length]
                                                                     }, `cell-${index}`, false, {
                                                                         fileName: "[project]/src/app/page.tsx",
-                                                                        lineNumber: 557,
+                                                                        lineNumber: 507,
                                                                         columnNumber: 35
                                                                     }, this))
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                lineNumber: 545,
+                                                                lineNumber: 495,
                                                                 columnNumber: 27
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Tooltip$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Tooltip"], {
@@ -1283,7 +1276,7 @@ function DashboardContent() {
                                                                 }
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                lineNumber: 560,
+                                                                lineNumber: 510,
                                                                 columnNumber: 28
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Label$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Label"], {
@@ -1294,7 +1287,7 @@ function DashboardContent() {
                                                                 dy: -5
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                lineNumber: 565,
+                                                                lineNumber: 515,
                                                                 columnNumber: 29
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Label$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Label"], {
@@ -1305,18 +1298,18 @@ function DashboardContent() {
                                                                 className: "text-sm"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                lineNumber: 572,
+                                                                lineNumber: 522,
                                                                 columnNumber: 31
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/page.tsx",
-                                                        lineNumber: 522,
+                                                        lineNumber: 472,
                                                         columnNumber: 23
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/page.tsx",
-                                                    lineNumber: 521,
+                                                    lineNumber: 471,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1331,7 +1324,7 @@ function DashboardContent() {
                                                                     }
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/page.tsx",
-                                                                    lineNumber: 584,
+                                                                    lineNumber: 534,
                                                                     columnNumber: 25
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1339,7 +1332,7 @@ function DashboardContent() {
                                                                     children: entry.label
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/page.tsx",
-                                                                    lineNumber: 585,
+                                                                    lineNumber: 535,
                                                                     columnNumber: 25
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1347,24 +1340,24 @@ function DashboardContent() {
                                                                     children: entry.value
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/page.tsx",
-                                                                    lineNumber: 586,
+                                                                    lineNumber: 536,
                                                                     columnNumber: 25
                                                                 }, this)
                                                             ]
                                                         }, entry.name, true, {
                                                             fileName: "[project]/src/app/page.tsx",
-                                                            lineNumber: 583,
+                                                            lineNumber: 533,
                                                             columnNumber: 23
                                                         }, this))
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/page.tsx",
-                                                    lineNumber: 581,
+                                                    lineNumber: 531,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/page.tsx",
-                                            lineNumber: 520,
+                                            lineNumber: 470,
                                             columnNumber: 17
                                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                             className: "flex items-center justify-center h-[250px] text-muted-foreground",
@@ -1372,23 +1365,23 @@ function DashboardContent() {
                                                 children: "No sales data available."
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/page.tsx",
-                                                lineNumber: 593,
+                                                lineNumber: 543,
                                                 columnNumber: 19
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/page.tsx",
-                                            lineNumber: 592,
+                                            lineNumber: 542,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/page.tsx",
-                                        lineNumber: 518,
+                                        lineNumber: 468,
                                         columnNumber: 14
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 513,
+                                lineNumber: 463,
                                 columnNumber: 12
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
@@ -1405,27 +1398,27 @@ function DashboardContent() {
                                                         children: "Order Activity"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/page.tsx",
-                                                        lineNumber: 602,
+                                                        lineNumber: 552,
                                                         columnNumber: 21
                                                     }, this),
                                                     dateRange?.from && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                         className: "text-sm text-primary font-bold pt-1",
                                                         children: [
                                                             "Sales in Range: ₹",
-                                                            totalSalesForRange.toLocaleString('en-IN', {
+                                                            totalSales.toLocaleString('en-IN', {
                                                                 maximumFractionDigits: 2,
                                                                 minimumFractionDigits: 2
                                                             })
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/page.tsx",
-                                                        lineNumber: 604,
+                                                        lineNumber: 554,
                                                         columnNumber: 24
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/page.tsx",
-                                                lineNumber: 601,
+                                                lineNumber: 551,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1442,7 +1435,7 @@ function DashboardContent() {
                                                                 children: "Daily"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                lineNumber: 611,
+                                                                lineNumber: 561,
                                                                 columnNumber: 25
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -1453,7 +1446,7 @@ function DashboardContent() {
                                                                 children: "Weekly"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                lineNumber: 616,
+                                                                lineNumber: 566,
                                                                 columnNumber: 25
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -1464,13 +1457,13 @@ function DashboardContent() {
                                                                 children: "Monthly"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                lineNumber: 621,
+                                                                lineNumber: 571,
                                                                 columnNumber: 25
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/page.tsx",
-                                                        lineNumber: 610,
+                                                        lineNumber: 560,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$popover$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Popover"], {
@@ -1487,7 +1480,7 @@ function DashboardContent() {
                                                                             className: "mr-2 h-4 w-4"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/app/page.tsx",
-                                                                            lineNumber: 638,
+                                                                            lineNumber: 588,
                                                                             columnNumber: 25
                                                                         }, this),
                                                                         dateRange?.from ? dateRange.to ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -1501,18 +1494,18 @@ function DashboardContent() {
                                                                             children: "Pick a date"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/app/page.tsx",
-                                                                            lineNumber: 649,
+                                                                            lineNumber: 599,
                                                                             columnNumber: 27
                                                                         }, this)
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/app/page.tsx",
-                                                                    lineNumber: 629,
+                                                                    lineNumber: 579,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                lineNumber: 628,
+                                                                lineNumber: 578,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$popover$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["PopoverContent"], {
@@ -1527,18 +1520,18 @@ function DashboardContent() {
                                                                     numberOfMonths: 2
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/page.tsx",
-                                                                    lineNumber: 654,
+                                                                    lineNumber: 604,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                lineNumber: 653,
+                                                                lineNumber: 603,
                                                                 columnNumber: 21
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/page.tsx",
-                                                        lineNumber: 627,
+                                                        lineNumber: 577,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -1552,26 +1545,26 @@ function DashboardContent() {
                                                                 className: "mr-2 h-4 w-4"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                lineNumber: 671,
+                                                                lineNumber: 621,
                                                                 columnNumber: 23
                                                             }, this),
                                                             "Download PDF"
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/page.tsx",
-                                                        lineNumber: 664,
+                                                        lineNumber: 614,
                                                         columnNumber: 19
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/page.tsx",
-                                                lineNumber: 609,
+                                                lineNumber: 559,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/page.tsx",
-                                        lineNumber: 600,
+                                        lineNumber: 550,
                                         columnNumber: 14
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1595,7 +1588,7 @@ function DashboardContent() {
                                                         vertical: false
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/page.tsx",
-                                                        lineNumber: 679,
+                                                        lineNumber: 629,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$XAxis$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["XAxis"], {
@@ -1606,7 +1599,7 @@ function DashboardContent() {
                                                         tickLine: false
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/page.tsx",
-                                                        lineNumber: 680,
+                                                        lineNumber: 630,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$YAxis$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["YAxis"], {
@@ -1619,7 +1612,7 @@ function DashboardContent() {
                                                         allowDecimals: false
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/page.tsx",
-                                                        lineNumber: 681,
+                                                        lineNumber: 631,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Tooltip$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Tooltip"], {
@@ -1652,7 +1645,7 @@ function DashboardContent() {
                                                         }
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/page.tsx",
-                                                        lineNumber: 682,
+                                                        lineNumber: 632,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$Bar$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Bar"], {
@@ -1671,25 +1664,25 @@ function DashboardContent() {
                                                                 dataKey: "sales",
                                                                 content: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(SalesLabel, {}, void 0, false, {
                                                                     fileName: "[project]/src/app/page.tsx",
-                                                                    lineNumber: 695,
+                                                                    lineNumber: 645,
                                                                     columnNumber: 57
                                                                 }, void 0)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/page.tsx",
-                                                                lineNumber: 695,
+                                                                lineNumber: 645,
                                                                 columnNumber: 21
                                                             }, this),
                                                             weeklyOrderData.map((entry, index)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Cell$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Cell"], {
                                                                     fill: COLORS[index % COLORS.length]
                                                                 }, `cell-${index}`, false, {
                                                                     fileName: "[project]/src/app/page.tsx",
-                                                                    lineNumber: 697,
+                                                                    lineNumber: 647,
                                                                     columnNumber: 25
                                                                 }, this))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/page.tsx",
-                                                        lineNumber: 694,
+                                                        lineNumber: 644,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$Bar$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Bar"], {
@@ -1699,47 +1692,47 @@ function DashboardContent() {
                                                         className: "hidden"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/page.tsx",
-                                                        lineNumber: 701,
+                                                        lineNumber: 651,
                                                         columnNumber: 20
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/page.tsx",
-                                                lineNumber: 678,
+                                                lineNumber: 628,
                                                 columnNumber: 17
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/page.tsx",
-                                            lineNumber: 677,
+                                            lineNumber: 627,
                                             columnNumber: 15
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/page.tsx",
-                                        lineNumber: 676,
+                                        lineNumber: 626,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/page.tsx",
-                                lineNumber: 599,
+                                lineNumber: 549,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 512,
+                        lineNumber: 462,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 508,
+                lineNumber: 458,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/page.tsx",
-        lineNumber: 506,
+        lineNumber: 456,
         columnNumber: 5
     }, this);
 }
@@ -1750,17 +1743,17 @@ function DashboardPage() {
             children: "Loading Dashboard..."
         }, void 0, false, {
             fileName: "[project]/src/app/page.tsx",
-            lineNumber: 714,
+            lineNumber: 664,
             columnNumber: 25
         }, void 0),
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(DashboardContent, {}, void 0, false, {
             fileName: "[project]/src/app/page.tsx",
-            lineNumber: 715,
+            lineNumber: 665,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/app/page.tsx",
-        lineNumber: 714,
+        lineNumber: 664,
         columnNumber: 5
     }, this);
 }
@@ -1776,14 +1769,14 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }) {
                         children: title
                     }, void 0, false, {
                         fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 734,
+                        lineNumber: 684,
                         columnNumber: 9
                     }, this),
                     icon
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 733,
+                lineNumber: 683,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1793,7 +1786,7 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }) {
                         children: value
                     }, void 0, false, {
                         fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 738,
+                        lineNumber: 688,
                         columnNumber: 9
                     }, this),
                     badgeText && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1801,19 +1794,19 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }) {
                         children: badgeText
                     }, void 0, false, {
                         fileName: "[project]/src/app/page.tsx",
-                        lineNumber: 739,
+                        lineNumber: 689,
                         columnNumber: 23
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/page.tsx",
-                lineNumber: 737,
+                lineNumber: 687,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/page.tsx",
-        lineNumber: 732,
+        lineNumber: 682,
         columnNumber: 5
     }, this);
 }

@@ -51,13 +51,18 @@ function DashboardContent() {
   const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Stats for the selected date range
   const [totalSales, setTotalSales] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
   const [newCustomers, setNewCustomers] = useState(0);
+  
+  // Data for charts
   const [weeklyOrderData, setWeeklyOrderData] = useState<{name: string, date: string, orders: number, sales: number}[]>([]);
   const [salesDetailsData, setSalesDetailsData] = useState<{name: string, value: number, label: string, icon: React.ElementType, color: string}[]>([]);
-  const [totalSalesForRange, setTotalSalesForRange] = useState(0);
+  
+  // Precisely filtered orders for export
   const [ordersInDateRange, setOrdersInDateRange] = useState<Order[]>([]);
+  
   const [activityView, setActivityView] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
 
@@ -179,167 +184,110 @@ function DashboardContent() {
   
 
   useEffect(() => {
-    if (vendorFilteredOrders.length > 0) {
-      // Define successful statuses for revenue calculation.
-      const successfulStatuses: OrderStatus[] = ['completed', 'processing', 'queue', 'dispatch', 'hold'];
+    // --- Source of Truth for Calculations ---
+    const successfulStatuses: OrderStatus[] = ['completed', 'processing', 'queue', 'dispatch', 'hold'];
+    const fromDate = dateRange?.from;
+    const toDate = dateRange?.to;
 
-      // Calculate total sales only from paid and successful orders.
-      const validOrdersForRevenue = vendorFilteredOrders.filter(order => 
-        order.paymentDate && successfulStatuses.includes(order.status)
-      );
-
-      const currentTotalSales = validOrdersForRevenue.reduce((sum, order) => sum + order.totalAmount, 0);
-      const currentTotalOrders = vendorFilteredOrders.length;
+    // 1. ordersForAnalytics: Precisely filtered for FINANCIAL calculations (sales, charts)
+    let ordersForAnalytics: Order[] = [];
+    if (fromDate && toDate) {
+      const timeZone = 'Asia/Kolkata';
+      const startDate = startOfDay(toZonedTime(fromDate, timeZone));
+      const endDate = endOfDay(toZonedTime(toDate, timeZone));
       
-      const uniqueEmails = new Set(vendorFilteredOrders.map(order => order.gmail).filter(Boolean));
-      setNewCustomers(uniqueEmails.size);
-
-      setTotalSales(currentTotalSales);
-      setTotalOrders(currentTotalOrders);
-      
-      // --- Chart Data Processing ---
-      const fromDate = dateRange?.from;
-      const toDate = dateRange?.to;
-
-      if(fromDate && toDate) {
-        const timeZone = 'Asia/Kolkata';
-        const startDate = startOfDay(toZonedTime(fromDate, timeZone));
-        const endDate = endOfDay(toZonedTime(toDate, timeZone));
-
-        // Filter orders where the payment date is within the selected range.
-        const recentPaidSuccessfulOrders = vendorFilteredOrders.filter(order => {
-            if (!order.paymentDate || !successfulStatuses.includes(order.status)) return false;
-            try {
-              // Convert payment date string to a date object in the correct timezone
-              const paymentDateInIST = toZonedTime(order.paymentDate, timeZone);
-              if (isNaN(paymentDateInIST.getTime())) return false; // Invalid date string
-              
-              // Now the comparison is between two Date objects.
-              return paymentDateInIST >= startDate && paymentDateInIST <= endDate;
-            } catch {
-              return false;
-            }
-        });
-        
-        setOrdersInDateRange(recentPaidSuccessfulOrders);
-        
-        let rangeTotal = 0;
-        let activityData: {name: string, date: string, orders: number, sales: number}[] = [];
-
-        if (activityView === 'daily') {
-            const intervalDays = eachDayOfInterval({ start: startDate, end: endDate });
-            activityData = intervalDays.map(day => ({
-              name: format(day, 'MMM d'),
-              date: format(day, 'yyyy-MM-dd'),
-              orders: 0,
-              sales: 0
-            }));
-
-            recentPaidSuccessfulOrders.forEach(order => {
-                if (!order.paymentDate) return;
-                try {
-                  const paymentDayInIST = startOfDay(toZonedTime(order.paymentDate, timeZone));
-                  const paymentDateStr = format(paymentDayInIST, 'yyyy-MM-dd');
-                  const dayData = activityData.find(d => d.date === paymentDateStr);
-                  if (dayData) {
-                      dayData.orders += 1;
-                      dayData.sales += order.totalAmount;
-                      rangeTotal += order.totalAmount;
-                  }
-                } catch {}
-            });
-        } else if (activityView === 'weekly') {
-            const intervalWeeks = eachWeekOfInterval({ start: startDate, end: endDate }, { weekStartsOn: 1 });
-            activityData = intervalWeeks.map(weekStart => ({
-              name: format(weekStart, 'MMM d'),
-              date: format(weekStart, 'yyyy-MM-dd'),
-              orders: 0,
-              sales: 0
-            }));
-            
-            recentPaidSuccessfulOrders.forEach(order => {
-                if (!order.paymentDate) return;
-                try {
-                  const paymentDateInIST = toZonedTime(order.paymentDate, timeZone);
-                  const weekStart = startOfWeek(paymentDateInIST, { weekStartsOn: 1 });
-                  const weekKey = format(weekStart, 'yyyy-MM-dd');
-                  const weekData = activityData.find(w => w.date === weekKey);
-                  if (weekData) {
-                    weekData.orders += 1;
-                    weekData.sales += order.totalAmount;
-                    rangeTotal += order.totalAmount;
-                  }
-                } catch {}
-            });
-        } else if (activityView === 'monthly') {
-            const intervalMonths = eachMonthOfInterval({ start: startDate, end: endDate });
-            activityData = intervalMonths.map(monthStart => ({
-              name: format(monthStart, 'MMM yyyy'),
-              date: format(monthStart, 'yyyy-MM-dd'),
-              orders: 0,
-              sales: 0
-            }));
-
-            recentPaidSuccessfulOrders.forEach(order => {
-                if (!order.paymentDate) return;
-                try {
-                  const paymentDateInIST = toZonedTime(order.paymentDate, timeZone);
-                  const monthStart = startOfMonth(paymentDateInIST);
-                  const monthKey = format(monthStart, 'yyyy-MM-dd');
-                  const monthData = activityData.find(m => m.date === monthKey);
-                  if (monthData) {
-                    monthData.orders += 1;
-                    monthData.sales += order.totalAmount;
-                    rangeTotal += order.totalAmount;
-                  }
-                } catch {}
-            });
+      ordersForAnalytics = vendorFilteredOrders.filter(order => {
+        if (!order.paymentDate || !successfulStatuses.includes(order.status)) return false;
+        try {
+          const paymentDateInIST = toZonedTime(order.paymentDate, timeZone);
+          if (isNaN(paymentDateInIST.getTime())) return false;
+          return paymentDateInIST >= startDate && paymentDateInIST <= endDate;
+        } catch {
+          return false;
         }
-        
-        setWeeklyOrderData(activityData);
-        setTotalSalesForRange(rangeTotal);
+      });
+    }
+    setOrdersInDateRange(ordersForAnalytics); // For PDF export
 
-      } else {
-        setWeeklyOrderData([]);
-        setTotalSalesForRange(0);
-        setOrdersInDateRange([]);
+    // --- Perform All Calculations ---
+    if (vendorFilteredOrders.length > 0) {
+      // 2. Calculate FINANCIAL stats from `ordersForAnalytics`
+      const salesForRange = ordersForAnalytics.reduce((sum, order) => sum + order.totalAmount, 0);
+      setTotalSales(salesForRange);
+
+      // 3. Calculate GENERAL stats from `vendorFilteredOrders` (all orders in range)
+      const totalOrdersInRange = vendorFilteredOrders.length;
+      const uniqueEmailsInRange = new Set(vendorFilteredOrders.map(order => order.gmail).filter(Boolean));
+      setTotalOrders(totalOrdersInRange);
+      setNewCustomers(uniqueEmailsInRange.size);
+      
+      // 4. Bar Chart Data (from financial data)
+      let activityData: {name: string, date: string, orders: number, sales: number}[] = [];
+      const timeZone = 'Asia/Kolkata';
+      if (activityView === 'daily' && fromDate && toDate) {
+          const intervalDays = eachDayOfInterval({ start: startOfDay(toZonedTime(fromDate, timeZone)), end: endOfDay(toZonedTime(toDate, timeZone)) });
+          activityData = intervalDays.map(day => ({ name: format(day, 'MMM d'), date: format(day, 'yyyy-MM-dd'), orders: 0, sales: 0 }));
+          ordersForAnalytics.forEach(order => {
+              if (!order.paymentDate) return;
+              try {
+                const paymentDayInIST = startOfDay(toZonedTime(order.paymentDate, timeZone));
+                const paymentDateStr = format(paymentDayInIST, 'yyyy-MM-dd');
+                const dayData = activityData.find(d => d.date === paymentDateStr);
+                if (dayData) { dayData.orders += 1; dayData.sales += order.totalAmount; }
+              } catch {}
+          });
+      } else if (activityView === 'weekly' && fromDate && toDate) {
+          const intervalWeeks = eachWeekOfInterval({ start: startOfDay(toZonedTime(fromDate, timeZone)), end: endOfDay(toZonedTime(toDate, timeZone)) }, { weekStartsOn: 1 });
+          activityData = intervalWeeks.map(weekStart => ({ name: format(weekStart, 'MMM d'), date: format(weekStart, 'yyyy-MM-dd'), orders: 0, sales: 0 }));
+          ordersForAnalytics.forEach(order => {
+              if (!order.paymentDate) return;
+              try {
+                const paymentDateInIST = toZonedTime(order.paymentDate, timeZone);
+                const weekStart = startOfWeek(paymentDateInIST, { weekStartsOn: 1 });
+                const weekKey = format(weekStart, 'yyyy-MM-dd');
+                const weekData = activityData.find(w => w.date === weekKey);
+                if (weekData) { weekData.orders += 1; weekData.sales += order.totalAmount; }
+              } catch {}
+          });
+      } else if (activityView === 'monthly' && fromDate && toDate) {
+          const intervalMonths = eachMonthOfInterval({ start: startOfDay(toZonedTime(fromDate, timeZone)), end: endOfDay(toZonedTime(toDate, timeZone)) });
+          activityData = intervalMonths.map(monthStart => ({ name: format(monthStart, 'MMM yyyy'), date: format(monthStart, 'yyyy-MM-dd'), orders: 0, sales: 0 }));
+          ordersForAnalytics.forEach(order => {
+              if (!order.paymentDate) return;
+              try {
+                const paymentDateInIST = toZonedTime(order.paymentDate, timeZone);
+                const monthStart = startOfMonth(paymentDateInIST);
+                const monthKey = format(monthStart, 'yyyy-MM-dd');
+                const monthData = activityData.find(m => m.date === monthKey);
+                if (monthData) { monthData.orders += 1; monthData.sales += order.totalAmount; }
+              } catch {}
+          });
       }
+      setWeeklyOrderData(activityData);
 
-
-      // --- Sales Details List Data Processing ---
+      // 5. Pie Chart Data (from general data)
       const statusCounts: {[key in OrderStatus]?: number} = {};
       vendorFilteredOrders.forEach(order => {
-        const statusKey = order.status || 'unknown';
-        statusCounts[statusKey] = (statusCounts[statusKey] || 0) + 1;
+        statusCounts[order.status] = (statusCounts[order.status] || 0) + 1;
       });
-      
       const salesData = Object.entries(statusCounts)
         .map(([name, value]) => {
             const statusKey = name as OrderStatus;
             const info = statusInfo[statusKey] || { icon: Activity, color: 'bg-gray-400', label: 'Unknown' };
-            return {
-                name: statusKey,
-                value,
-                label: info.label,
-                icon: info.icon,
-                color: info.color
-            };
+            return { name: statusKey, value, label: info.label, icon: info.icon, color: info.color };
         })
-        .sort((a, b) => b.value - a.value); // Sort for better visualization
-      
+        .sort((a, b) => b.value - a.value);
       setSalesDetailsData(salesData);
-
-
     } else {
+      // Reset all stats if no orders are found
       setTotalSales(0);
       setTotalOrders(0);
       setNewCustomers(0);
-       setWeeklyOrderData([]);
-       setSalesDetailsData([]);
-       setTotalSalesForRange(0);
-       setOrdersInDateRange([]);
+      setWeeklyOrderData([]);
+      setSalesDetailsData([]);
+      setOrdersInDateRange([]);
     }
-  }, [vendorFilteredOrders, dateRange, isVendor, activityView]);
+  }, [vendorFilteredOrders, dateRange, activityView]);
 
   const generateDashboardPdf = async (ordersToExport: Order[]) => {
     if (ordersToExport.length === 0) {
@@ -371,6 +319,8 @@ function DashboardContent() {
       month,
       `₹${sales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`
     ]);
+    
+    const totalSalesForPdf = ordersToExport.reduce((sum, order) => sum + order.totalAmount, 0);
 
     const doc = new jsPDF();
     const dbDetailsResult = await getCompanyDetailsFromFirestore();
@@ -407,7 +357,7 @@ function DashboardContent() {
       body: monthlySalesRows,
       foot: [[
           'Total',
-          `₹${totalSalesForRange.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`
+          `₹${totalSalesForPdf.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`
       ]],
       startY: yPos,
       theme: 'grid',
@@ -513,7 +463,7 @@ function DashboardContent() {
            <Card className="lg:col-span-2">
              <CardHeader>
                 <CardTitle className="font-headline text-xl">Sales Details</CardTitle>
-                <CardDescription className="text-xs text-muted-foreground mt-1">Breakdown by order status</CardDescription>
+                <CardDescription className="text-xs text-muted-foreground mt-1">Breakdown by order status for selected range</CardDescription>
             </CardHeader>
              <CardContent className="pt-2">
                {salesDetailsData.length > 0 ? (
@@ -602,7 +552,7 @@ function DashboardContent() {
                     <CardTitle className="font-headline text-xl">Order Activity</CardTitle>
                     {dateRange?.from && (
                        <p className="text-sm text-primary font-bold pt-1">
-                            Sales in Range: ₹{totalSalesForRange.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}
+                            Sales in Range: ₹{totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}
                         </p>
                     )}
                 </div>
