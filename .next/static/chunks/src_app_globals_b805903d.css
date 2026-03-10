@@ -1866,6 +1866,10 @@ input, button, textarea, select {
   padding-top: 2rem;
 }
 
+.pl-10 {
+  padding-left: 2.5rem;
+}
+
 .text-left {
   text-align: left;
 }
@@ -3380,12 +3384,28 @@ body {
     display: flex;
   }
 
+  .md\:w-\[180px\] {
+    width: 180px;
+  }
+
+  .md\:w-\[280px\] {
+    width: 280px;
+  }
+
+  .md\:w-auto {
+    width: auto;
+  }
+
   .md\:min-w-\[90px\] {
     min-width: 90px;
   }
 
   .md\:max-w-\[420px\] {
     max-width: 420px;
+  }
+
+  .md\:flex-grow {
+    flex-grow: 1;
   }
 
   .md\:grid-cols-1 {

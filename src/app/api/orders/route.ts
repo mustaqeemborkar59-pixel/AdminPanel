@@ -113,6 +113,9 @@ export async function GET(request: Request) {
     if (searchParams.get('before')) {
       params.before = searchParams.get('before');
     }
+    if (searchParams.get('search')) {
+      params.search = searchParams.get('search');
+    }
     
     const response = await api.get("orders", params);
 

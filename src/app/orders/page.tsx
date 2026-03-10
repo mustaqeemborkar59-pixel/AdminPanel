@@ -1,12 +1,21 @@
-
 "use client";
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { updateOrderStatusInWooCommerce } from './actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, AlertTriangle, FileDown } from 'lucide-react';
+import { Loader2, AlertTriangle, FileDown, Search, Calendar as CalendarIcon, X as XIcon, PackageSearch, Clock, Loader, Truck, CheckCircle, Archive, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,9 +30,23 @@ import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { useAppContext } from '@/components/layout/app-content-wrapper';
 import type { Order, OrderStatus } from '@/types';
+import type { DateRange } from "react-day-picker";
+import { cn } from '@/lib/utils';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+
+
+const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; label: string }> = {
+  pending: { icon: PackageSearch, color: 'bg-yellow-500', label: 'Pending' },
+  queue: { icon: Clock, color: 'bg-blue-500', label: 'In Queue' },
+  processing: { icon: Loader, color: 'bg-purple-500', label: 'Processing' },
+  dispatch: { icon: Truck, color: 'bg-indigo-500', label: 'Dispatched' },
+  completed: { icon: CheckCircle, color: 'bg-green-500', label: 'Completed' },
+  hold: { icon: Archive, color: 'bg-orange-500', label: 'On Hold' },
+  failed: { icon: XCircle, color: 'bg-red-500', label: 'Failed' },
+  cancelled: { icon: XCircle, color: 'bg-red-600', label: 'Cancelled' },
+};
 
 
 export default function OrdersPage() {
@@ -35,25 +58,53 @@ export default function OrdersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
 
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('any');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+
   const activePlanId = userProfile?.activePlanId;
   const trialUsed = userProfile?.trialUsed;
   const isPremiumActive = useMemo(() => {
-    // Premium if they have an active plan that isn't the trial, OR if they are on trial and haven't used it up.
     return activePlanId !== 'trial' || (activePlanId === 'trial' && !trialUsed);
   }, [activePlanId, trialUsed]);
   
   const canUpdateStatus = useMemo(() => {
-    // Only super-admins and users with the specific permission can update status.
     return userProfile?.role === 'super-admin' || userProfile?.canUpdateOrderStatus === true;
   }, [userProfile]);
+
+  // Debounce search term
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
 
 
   const fetchOrders = useCallback(async () => {
     setIsLoading(true);
     setError(null);
+    
+    const params = new URLSearchParams();
+    if (debouncedSearchTerm) {
+      params.append('search', debouncedSearchTerm);
+    }
+    if (statusFilter !== 'any') {
+      params.append('status', statusFilter);
+    }
+    if (dateRange?.from) {
+      params.append('after', dateRange.from.toISOString());
+    }
+    if (dateRange?.to) {
+      const toDate = new Date(dateRange.to);
+      toDate.setHours(23, 59, 59, 999); // Include the whole day
+      params.append('before', toDate.toISOString());
+    }
+
     try {
-      // NEW: Fetch from the internal API route
-      const response = await fetch('/api/orders');
+      const response = await fetch(`/api/orders?${params.toString()}`);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -74,7 +125,7 @@ export default function OrdersPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, debouncedSearchTerm, statusFilter, dateRange]);
 
   useEffect(() => {
     if (!authLoading) {
@@ -84,13 +135,10 @@ export default function OrdersPage() {
 
   const handleUpdateStatus = async (orderId: string, status: OrderStatus) => {
     const originalOrders = [...orders];
-    
-    // Optimistic UI update
     setOrders(prev => prev.map(o => o.id === orderId ? {...o, status} : o));
 
     const result = await updateOrderStatusInWooCommerce(orderId, status);
     if (!result.success) {
-      // Revert on failure
       setOrders(originalOrders);
       toast({
         variant: "destructive",
@@ -116,6 +164,12 @@ export default function OrdersPage() {
       return newSet;
     });
   };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('any');
+    setDateRange(undefined);
+  }
 
   const formatDateWithTimezone = (date: string | Date): string => {
     if (!date) return 'N/A';
@@ -200,11 +254,79 @@ export default function OrdersPage() {
           </div>
         }
       />
+      
+      {/* Filters Bar */}
+      <div className="p-4 md:px-6 border-b bg-muted/30">
+        <div className="flex flex-col md:flex-row items-center gap-4">
+          <div className="relative w-full md:w-auto md:flex-grow">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search by ID, name, email, phone..."
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full md:w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="any">All Statuses</SelectItem>
+              {Object.keys(statusInfo).map(s => (
+                <SelectItem key={s} value={s} className="capitalize">{statusInfo[s as OrderStatus].label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+           <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                id="date"
+                variant={"outline"}
+                className={cn(
+                  "w-full md:w-[280px] justify-start text-left font-normal",
+                  !dateRange && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateRange?.from ? (
+                  dateRange.to ? (
+                    <>
+                      {format(dateRange.from, "LLL dd, y")} -{" "}
+                      {format(dateRange.to, "LLL dd, y")}
+                    </>
+                  ) : (
+                    format(dateRange.from, "LLL dd, y")
+                  )
+                ) : (
+                  <span>Pick a date range</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={dateRange?.from}
+                selected={dateRange}
+                onSelect={setDateRange}
+                numberOfMonths={2}
+              />
+            </PopoverContent>
+          </Popover>
+          <Button variant="ghost" onClick={clearFilters} className="text-muted-foreground">
+             <XIcon className="mr-2 h-4 w-4" />
+             Clear
+          </Button>
+        </div>
+      </div>
+      
       <div className="flex-1 p-4 md:p-6 overflow-auto">
         {isLoading ? (
           <div className="flex justify-center items-center h-full">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="ml-4 text-muted-foreground">Fetching latest orders...</p>
+            <p className="ml-4 text-muted-foreground">Fetching orders...</p>
           </div>
         ) : error ? (
           <Card className="border-destructive bg-destructive/10">
@@ -223,6 +345,11 @@ export default function OrdersPage() {
               </pre>
             </CardContent>
           </Card>
+        ) : orders.length === 0 ? (
+          <div className="text-center py-10">
+            <p className="text-lg font-semibold">No Orders Found</p>
+            <p className="text-muted-foreground mt-2">Try adjusting your filters to find what you're looking for.</p>
+          </div>
         ) : (
           <Accordion type="multiple" className="space-y-4">
              {orders.map(order => (
