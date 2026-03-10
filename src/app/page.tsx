@@ -92,8 +92,18 @@ function DashboardContent() {
     const fetchDashboardData = async () => {
       setIsLoading(true);
 
+      const params = new URLSearchParams();
+      if (dateRange?.from) {
+          params.append('after', dateRange.from.toISOString());
+      }
+      if (dateRange?.to) {
+          const toDate = new Date(dateRange.to);
+          toDate.setHours(23, 59, 59, 999);
+          params.append('before', toDate.toISOString());
+      }
+
       const fetchOrders = async (): Promise<Order[]> => {
-        const response = await fetch('/api/orders');
+        const response = await fetch(`/api/orders?${params.toString()}`);
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || 'Failed to fetch orders from API.');
@@ -145,7 +155,7 @@ function DashboardContent() {
       }
     };
     fetchDashboardData();
-  }, [toast, isSuperAdmin]);
+  }, [dateRange, toast, isSuperAdmin]);
   
   const vendorFilteredOrders = useMemo(() => {
     // If the user is super admin, always return all orders.
