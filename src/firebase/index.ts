@@ -4,7 +4,6 @@ import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore'
-import { getDatabase, Database } from 'firebase/database';
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
@@ -15,13 +14,11 @@ export function initializeFirebase() {
 export function getSdks(firebaseApp: FirebaseApp) {
   const firestore = getFirestore(firebaseApp);
   const auth = getAuth(firebaseApp);
-  const rtdb = getDatabase(firebaseApp); // Get RTDB instance
 
   return {
     firebaseApp,
     auth,
     firestore,
-    rtdb, // Return RTDB instance
   };
 }
 

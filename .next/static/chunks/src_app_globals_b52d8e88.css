@@ -645,6 +645,10 @@ input, button, textarea, select {
   margin-left: .25rem;
 }
 
+.ml-4 {
+  margin-left: 1rem;
+}
+
 .ml-auto {
   margin-left: auto;
 }
@@ -683,10 +687,6 @@ input, button, textarea, select {
 
 .mt-auto {
   margin-top: auto;
-}
-
-.ml-4 {
-  margin-left: 1rem;
 }
 
 .block {
@@ -786,10 +786,6 @@ input, button, textarea, select {
   height: 2.25rem;
 }
 
-.h-96 {
-  height: 24rem;
-}
-
 .h-\[1px\] {
   height: 1px;
 }
@@ -826,10 +822,6 @@ input, button, textarea, select {
   height: 100svh;
 }
 
-.h-\[60vh\] {
-  height: 60vh;
-}
-
 .max-h-96 {
   max-height: 24rem;
 }
@@ -844,10 +836,6 @@ input, button, textarea, select {
 
 .max-h-screen {
   max-height: 100vh;
-}
-
-.max-h-\[60vh\] {
-  max-height: 60vh;
 }
 
 .min-h-0 {
@@ -950,16 +938,8 @@ input, button, textarea, select {
   width: 1.25rem;
 }
 
-.w-56 {
-  width: 14rem;
-}
-
 .w-6 {
   width: 1.5rem;
-}
-
-.w-64 {
-  width: 16rem;
 }
 
 .w-7 {
@@ -1152,10 +1132,6 @@ input, button, textarea, select {
   user-select: none;
 }
 
-.select-all {
-  user-select: all;
-}
-
 .grid-cols-1 {
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
@@ -1270,12 +1246,6 @@ input, button, textarea, select {
   margin-left: calc(.25rem * calc(1 - var(--tw-space-x-reverse)));
 }
 
-.space-x-2 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-x-reverse: 0;
-  margin-right: calc(.5rem * var(--tw-space-x-reverse));
-  margin-left: calc(.5rem * calc(1 - var(--tw-space-x-reverse)));
-}
-
 .space-x-3 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 0;
   margin-right: calc(.75rem * var(--tw-space-x-reverse));
@@ -1350,16 +1320,8 @@ input, button, textarea, select {
   white-space: nowrap;
 }
 
-.whitespace-pre-wrap {
-  white-space: pre-wrap;
-}
-
 .break-words {
   overflow-wrap: break-word;
-}
-
-.break-all {
-  word-break: break-all;
 }
 
 .rounded {
@@ -1446,6 +1408,10 @@ input, button, textarea, select {
   border-color: hsl(var(--destructive));
 }
 
+.border-destructive\/20 {
+  border-color: hsl(var(--destructive) / .2);
+}
+
 .border-destructive\/50 {
   border-color: hsl(var(--destructive) / .5);
 }
@@ -1463,20 +1429,12 @@ input, button, textarea, select {
   border-color: hsl(var(--primary));
 }
 
-.border-primary\/50 {
-  border-color: hsl(var(--primary) / .5);
-}
-
 .border-sidebar-border {
   border-color: hsl(var(--sidebar-border));
 }
 
 .border-transparent {
   border-color: #0000;
-}
-
-.border-destructive\/20 {
-  border-color: hsl(var(--destructive) / .2);
 }
 
 .border-l-transparent {
@@ -1860,10 +1818,6 @@ input, button, textarea, select {
   padding-bottom: 1.25rem;
 }
 
-.pl-10 {
-  padding-left: 2.5rem;
-}
-
 .pl-2 {
   padding-left: .5rem;
 }
@@ -2046,10 +2000,6 @@ input, button, textarea, select {
   letter-spacing: .1em;
 }
 
-.\!text-primary {
-  color: hsl(var(--primary)) !important;
-}
-
 .text-accent-foreground {
   color: hsl(var(--accent-foreground));
 }
@@ -2078,6 +2028,10 @@ input, button, textarea, select {
 
 .text-destructive-foreground {
   color: hsl(var(--destructive-foreground));
+}
+
+.text-destructive\/80 {
+  color: hsl(var(--destructive) / .8);
 }
 
 .text-foreground {
@@ -2128,10 +2082,6 @@ input, button, textarea, select {
   color: hsl(var(--primary-foreground));
 }
 
-.text-primary\/80 {
-  color: hsl(var(--primary) / .8);
-}
-
 .text-red-500 {
   --tw-text-opacity: 1;
   color: rgb(239 68 68 / var(--tw-text-opacity, 1));
@@ -2164,10 +2114,6 @@ input, button, textarea, select {
 
 .text-white\/80 {
   color: #fffc;
-}
-
-.text-destructive\/80 {
-  color: hsl(var(--destructive) / .8);
 }
 
 .line-through {
@@ -3332,10 +3278,6 @@ body {
 
   .sm\:w-\[240px\] {
     width: 240px;
-  }
-
-  .sm\:w-\[260px\] {
-    width: 260px;
   }
 
   .sm\:w-auto {

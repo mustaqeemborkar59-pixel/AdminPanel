@@ -706,9 +706,7 @@ __turbopack_context__.s({
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$woocommerce$2f$woocommerce$2d$rest$2d$api$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@woocommerce/woocommerce-rest-api/index.js [app-rsc] (ecmascript)");
 ;
 // This function will be called every time we need the API instance.
-// This makes it robust against server hot-reloads where process.env might not be available initially.
 const getWooCommerceApi = ()=>{
-    // CRITICAL FIX: Use server-side variables (without NEXT_PUBLIC_) for server-side code.
     const storeUrl = process.env.WOOCOMMERCE_STORE_URL;
     const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY;
     const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET;
@@ -717,8 +715,7 @@ const getWooCommerceApi = ()=>{
         throw new Error('WooCommerce API credentials are not configured on the server. Please check your .env file.');
     }
     try {
-        // Validate URL format before creating the instance
-        new URL(storeUrl);
+        new URL(storeUrl); // Validate URL format
         return new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$woocommerce$2f$woocommerce$2d$rest$2d$api$2f$index$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"]({
             url: storeUrl,
             consumerKey: consumerKey,
@@ -727,32 +724,123 @@ const getWooCommerceApi = ()=>{
             timeout: 60000
         });
     } catch (error) {
-        console.error("Failed to initialize WooCommerce API. Please check the store URL in your .env file.", error);
+        console.error("Failed to initialize WooCommerce API.", error);
         if (error instanceof TypeError) {
             throw new Error(`Invalid WooCommerce store URL format: ${storeUrl}`);
         }
-        throw error; // Re-throw other errors
+        throw error;
     }
+};
+const mapWCOrderToAppOrder = (order)=>{
+    const lineItems = (order.line_items || []).map((item)=>{
+        // Safely find vendor name from meta data
+        const vendorMeta = (item.meta_data || []).find((meta)=>meta.key === 'vendor');
+        const vendorName = vendorMeta ? vendorMeta.value : undefined;
+        return {
+            itemId: String(item.product_id),
+            name: item.name || 'Unknown Item',
+            sku: item.sku || undefined,
+            qty: item.quantity || 0,
+            price: parseFloat(item.price || '0'),
+            imageUrl: item.image?.src,
+            vendorName: vendorName
+        };
+    });
+    const getMetaValue = (key)=>{
+        const meta = (order.meta_data || []).find((m)=>m.key === key);
+        return meta ? meta.value : undefined;
+    };
+    const statusMap = {
+        'pending': 'pending',
+        'processing': 'processing',
+        'on-hold': 'hold',
+        'completed': 'completed',
+        'cancelled': 'cancelled',
+        'failed': 'failed',
+        'refunded': 'failed',
+        'queue': 'queue',
+        'dispatch': 'dispatch'
+    };
+    const appStatus = statusMap[order.status] || 'pending';
+    const formatAddress = (addr)=>{
+        if (!addr) return '';
+        const parts = [
+            addr.address_1,
+            addr.address_2,
+            addr.city,
+            addr.state,
+            addr.postcode,
+            addr.country
+        ];
+        return parts.filter(Boolean).join(', ');
+    };
+    const subTotal = lineItems.reduce((sum, item)=>sum + item.price * item.qty, 0);
+    return {
+        id: String(order.id),
+        customerName: `${order.billing?.first_name || ''} ${order.billing?.last_name || ''}`.trim() || 'N/A',
+        phone: order.billing?.phone || undefined,
+        altPhone: getMetaValue('_billing_alternate_phone'),
+        pincode: order.billing?.postcode || undefined,
+        gmail: order.billing?.email || undefined,
+        items: lineItems,
+        status: appStatus,
+        orderType: 'delivery',
+        billingAddress: formatAddress(order.billing),
+        billing_city: order.billing?.city,
+        billing_state: order.billing?.state,
+        billing_country: order.billing?.country,
+        shippingAddress: formatAddress(order.shipping),
+        trackingId: getMetaValue('_wc_shipment_tracking_items')?.[0]?.tracking_number,
+        totalAmount: parseFloat(order.total || '0'),
+        taxAmount: parseFloat(order.total_tax || '0'),
+        subTotal: subTotal,
+        timestamp: order.date_created_gmt ? `${order.date_created_gmt}Z` : new Date().toISOString(),
+        paymentMethod: 'card',
+        paymentDate: order.date_paid_gmt ? `${order.date_paid_gmt}Z` : null,
+        vendorName: lineItems.length > 0 ? lineItems[0].vendorName : undefined
+    };
 };
 const getOrders = async ()=>{
     const api = getWooCommerceApi();
-    try {
-        const response = await api.get("orders", {
-            per_page: 10,
-            page: 1,
-            orderby: 'date',
-            order: 'desc'
-        });
-        if (response.status !== 200) {
-            throw new Error(`Failed to fetch orders. Status: ${response.status} ${response.statusText}`);
+    let allOrders = [];
+    let page = 1;
+    const perPage = 100;
+    let keepFetching = true;
+    while(keepFetching){
+        try {
+            const response = await api.get("orders", {
+                per_page: perPage,
+                page: page,
+                orderby: 'date',
+                order: 'desc'
+            });
+            if (response.status !== 200) {
+                throw new Error(`Failed to fetch orders on page ${page}. Status: ${response.status} ${response.statusText}`);
+            }
+            const rawOrders = response.data;
+            const mappedOrders = rawOrders.map((order)=>{
+                try {
+                    // Map each order inside a try-catch to isolate errors
+                    return mapWCOrderToAppOrder(order);
+                } catch (mapError) {
+                    console.error(`Skipping order ${order.id} due to mapping error:`, mapError);
+                    return null; // Return null for failed mappings
+                }
+            }).filter((order)=>order !== null); // Filter out nulls
+            allOrders = allOrders.concat(mappedOrders);
+            if (rawOrders.length < perPage) {
+                keepFetching = false;
+            } else {
+                page++;
+            }
+        } catch (error) {
+            console.error(`Error fetching orders from WooCommerce on page ${page}:`, error.response?.data || error.message);
+            // Stop fetching on any API error to prevent infinite loops
+            keepFetching = false;
+            throw new Error(error.response?.data?.message || error.message || 'An unknown error occurred during API communication.');
         }
-        // Return the raw data directly
-        return response.data;
-    } catch (error) {
-        console.error("Error fetching raw data from WooCommerce:", error.response?.data || error.message);
-        // Re-throw a more informative error for the client
-        throw new Error(error.response?.data?.message || error.message || 'An unknown error occurred during API communication.');
     }
+    return allOrders;
 };
 const updateOrderStatus = async (orderId, status)=>{
     const api = getWooCommerceApi(); // Get a fresh API instance
@@ -872,11 +960,11 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist
 ;
 async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ getOrdersFromWooCommerce() {
     try {
-        // This will now return the raw, unmapped data from the server
-        const rawData = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$woocommerce$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getOrders"])();
+        // This will now return the mapped, validated data from the server
+        const mappedData = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$woocommerce$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getOrders"])();
         return {
             success: true,
-            data: rawData
+            data: mappedData
         };
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
