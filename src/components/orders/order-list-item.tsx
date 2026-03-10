@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { updateOrderAddressInWooCommerce } from '@/app/orders/actions';
 import { CheckCircle, Clock, Package, Truck, XCircle, PackageSearch, ChevronDown, Archive, Loader, Edit } from 'lucide-react';
+import { toZonedTime } from 'date-fns-tz';
+import { startOfDay } from 'date-fns';
 
 import {
   Select,
@@ -120,17 +122,20 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
   let showPaymentDate = false;
   if (order.paymentDate && order.timestamp) {
     try {
-      const orderDate = new Date(order.timestamp);
-      const paymentDate = new Date(order.paymentDate);
-      const differenceInSeconds = Math.abs(paymentDate.getTime() - orderDate.getTime()) / 1000;
-      
-      // Only show if the difference is 60 seconds or more.
-      if (differenceInSeconds >= 60) {
+      const timeZone = 'Asia/Kolkata'; // Assuming IST for consistency
+      const orderDay = startOfDay(toZonedTime(order.timestamp, timeZone));
+      const paymentDay = startOfDay(toZonedTime(order.paymentDate, timeZone));
+
+      // Show payment date only if it's on a different calendar day.
+      if (orderDay.getTime() !== paymentDay.getTime()) {
         showPaymentDate = true;
       }
     } catch (e) {
-      // Fallback for safety, though date strings should be valid ISO strings
-      showPaymentDate = !!(paymentDateFormatted && paymentDateFormatted !== orderDateFormatted);
+      console.error("Could not compare order dates", e);
+      // Fallback for safety in case of invalid date strings
+      if (paymentDateFormatted && orderDateFormatted) {
+        showPaymentDate = orderDateFormatted.split(',')[0] !== paymentDateFormatted.split(',')[0];
+      }
     }
   }
 
@@ -162,7 +167,7 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                         disabled={!isPremiumActive}
                     />
                     <div className="flex-grow">
-                        <CardTitle className="font-headline text-lg">{order.id} {order.parentId > 0 && <span className="text-sm font-normal text-muted-foreground">(Sub-Order of {order.parentId})</span>}</CardTitle>
+                        <CardTitle className="font-headline text-lg">{order.id} {order.parentId && order.parentId > 0 && <span className="text-sm font-normal text-muted-foreground">(Sub-Order of {order.parentId})</span>}</CardTitle>
                         <CardDescription className={cn("font-body text-sm mt-1 transition-all", !isPremiumActive && 'blur-sm select-none')}>
                           {order.customerName || 'N/A'} -{' '}
                           <span className="text-xs">
