@@ -104,8 +104,8 @@ export default function OrdersPage() {
     setIsLoading(true);
     setError(null);
     
-    // Fetch Vendors first (or in parallel)
-    if (userProfile?.role === 'admin' || userProfile?.role === 'super-admin') {
+    // Fetch Vendors first (or in parallel) - now also for vendors to get their name for export
+    if (userProfile?.role === 'admin' || userProfile?.role === 'super-admin' || userProfile?.role === 'vendor') {
       const vendorsResult = await getVendorsFromFirestore();
       if (vendorsResult.success && vendorsResult.data) {
         setVendors(vendorsResult.data);
@@ -362,6 +362,8 @@ export default function OrdersPage() {
       return;
     }
 
+    const vendorMap = new Map(vendors.map(v => [v.code, v.name]));
+
     const flattenedData = ordersToExport.flatMap(order => {
       if (order.items.length === 0) {
         return [{
@@ -396,7 +398,7 @@ export default function OrdersPage() {
         'Quantity': item.qty,
         'Unit Price': item.price,
         'Line Total': item.qty * item.price,
-        'Vendor': item.vendorName || 'N/A',
+        'Vendor': (item.vendorName ? vendorMap.get(item.vendorName) : undefined) || item.vendorName || 'N/A',
         'Order Total': order.totalAmount,
       }));
     });
