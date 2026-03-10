@@ -469,10 +469,10 @@ function DashboardContent() {
     const [dateRange, setDateRange] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])({
         "DashboardContent.useState": ()=>{
             const today = new Date();
-            const sixDaysAgo = new Date();
-            sixDaysAgo.setDate(today.getDate() - 6);
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(today.getDate() - 29);
             return {
-                from: sixDaysAgo,
+                from: thirtyDaysAgo,
                 to: today
             };
         }
@@ -1833,7 +1833,7 @@ function DashboardContent() {
         columnNumber: 5
     }, this);
 }
-_s(DashboardContent, "5BgDwjEbr/7PLNOImjrBuk25Ok4=", false, function() {
+_s(DashboardContent, "ln2Vzd9AB/7S8kDz2XCj5hBn5r0=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$toast$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useToast"],
         __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$layout$2f$app$2d$content$2d$wrapper$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useAppContext"]

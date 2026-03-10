@@ -88,7 +88,7 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
       const typedKey = key as keyof UpdateOrderAddressPayload;
       // Allow sending empty strings to clear a field in Woo
       if (billingAddress[typedKey] !== undefined) {
-        payload[typedKey] = billingAddress[typedKey];
+        (payload as any)[typedKey] = billingAddress[typedKey];
       }
     }
 
@@ -146,7 +146,7 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                         disabled={!isPremiumActive}
                     />
                     <div className="flex-grow">
-                        <CardTitle className="font-headline text-lg">{order.id} {order.parentId && order.parentId !== 0 && <span className="text-sm font-normal text-muted-foreground">(Sub-Order of {order.parentId})</span>}</CardTitle>
+                        <CardTitle className="font-headline text-lg">{order.id} {order.parentId > 0 && <span className="text-sm font-normal text-muted-foreground">(Sub-Order of {order.parentId})</span>}</CardTitle>
                         <CardDescription className={cn("font-body text-sm mt-1 transition-all", !isPremiumActive && 'blur-sm select-none')}>
                           {order.customerName || 'N/A'} -{' '}
                           <span className="text-xs">

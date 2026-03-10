@@ -63,9 +63,9 @@ function DashboardContent() {
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
     const today = new Date();
-    const sixDaysAgo = new Date();
-    sixDaysAgo.setDate(today.getDate() - 6);
-    return { from: sixDaysAgo, to: today };
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(today.getDate() - 29);
+    return { from: thirtyDaysAgo, to: today };
   });
 
   const isSuperAdmin = userProfile?.role === 'super-admin';
@@ -733,5 +733,3 @@ function StatsCard({ title, value, icon, badgeText, badgeVariant, className }: S
     </Card>
   );
 }
-
-    
