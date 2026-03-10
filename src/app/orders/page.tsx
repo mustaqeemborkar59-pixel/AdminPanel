@@ -235,18 +235,57 @@ export default function OrdersPage() {
   };
 
   const exportToExcel = (ordersToExport: Order[]) => {
-     if (ordersToExport.length === 0) {
-        toast({ variant: "destructive", title: "No Orders to Export", description: "There are no orders to export for the selected criteria." });
-        return;
+    if (ordersToExport.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "No Orders to Export",
+        description: "There are no orders to export for the selected criteria."
+      });
+      return;
     }
-    const worksheet = XLSX.utils.json_to_sheet(ordersToExport.map(o => ({
-      'Order ID': o.id,
-      'Customer Name': o.customerName,
-      'Date': formatDateWithTimezone(o.timestamp),
-      'Status': o.status,
-      'Total': o.totalAmount,
-      'Items': o.items.map(i => `${i.name} (x${i.qty})`).join(', ')
-    })));
+
+    // Flatten the data to have one row per line item
+    const flattenedData = ordersToExport.flatMap(order => {
+      if (order.items.length === 0) {
+        // Handle orders with no items, providing default values for item-specific fields
+        return [{
+          'Order ID': order.id,
+          'Status': order.status,
+          'Payment Date': order.paymentDate ? formatDateWithTimezone(order.paymentDate) : 'N/A',
+          'Customer Name': order.customerName,
+          'Email ID': order.gmail,
+          'Phone': order.phone,
+          'Alt Phone': order.altPhone,
+          'Pincode': order.pincode,
+          'Billing Address': order.billingAddress,
+          'Product Name': 'N/A',
+          'Quantity': 0,
+          'Unit Price': 0,
+          'Line Total': 0,
+          'Vendor': 'N/A',
+          'Order Total': order.totalAmount,
+        }];
+      }
+      return order.items.map(item => ({
+        'Order ID': order.id,
+        'Status': order.status,
+        'Payment Date': order.paymentDate ? formatDateWithTimezone(order.paymentDate) : 'N/A',
+        'Customer Name': order.customerName,
+        'Email ID': order.gmail,
+        'Phone': order.phone,
+        'Alt Phone': order.altPhone,
+        'Pincode': order.pincode,
+        'Billing Address': order.billingAddress,
+        'Product Name': item.name,
+        'Quantity': item.qty,
+        'Unit Price': item.price,
+        'Line Total': item.qty * item.price,
+        'Vendor': item.vendorName || 'N/A',
+        'Order Total': order.totalAmount,
+      }));
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(flattenedData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
     XLSX.writeFile(workbook, "orders_report.xlsx");
