@@ -32,7 +32,7 @@ import {
 import { OrderListItem } from '@/components/orders/order-list-item';
 import { Accordion } from '@/components/ui/accordion';
 import { format } from 'date-fns';
-import { toZonedTime, zonedTimeToUtc } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 import { startOfDay, endOfDay } from 'date-fns';
 import { useAppContext } from '@/components/layout/app-content-wrapper';
 import type { Order, OrderStatus, Vendor } from '@/types';
@@ -41,6 +41,7 @@ import { cn } from '@/lib/utils';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { Badge } from '@/components/ui/badge';
 
 
 const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; label: string }> = {
@@ -70,10 +71,13 @@ export default function OrdersPage() {
   const [appliedSearchTerm, setAppliedSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('any');
   const [vendorFilter, setVendorFilter] = useState('any');
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
+      const today = new Date();
+      return { from: startOfDay(today), to: endOfDay(today) };
+  });
   
   // States for date picker confirmation
-  const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>();
+  const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(dateRange);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   const activePlanId = userProfile?.activePlanId;
@@ -216,6 +220,17 @@ export default function OrdersPage() {
     
     return ordersToDisplay;
   }, [orders, userProfile, vendorFilter]);
+  
+  const vendorOrderCounts = useMemo(() => {
+    const counts: { [key: string]: number } = {};
+    orders.forEach(order => {
+        const orderVendors = new Set(order.items.map(i => i.vendorName).filter(Boolean));
+        orderVendors.forEach(vendorCode => {
+            counts[vendorCode as string] = (counts[vendorCode as string] || 0) + 1;
+        });
+    });
+    return counts;
+  }, [orders]);
 
 
   const handleUpdateStatus = async (orderId: string, status: OrderStatus) => {
@@ -256,6 +271,7 @@ export default function OrdersPage() {
     setStatusFilter('any');
     setVendorFilter('any');
     setDateRange(undefined);
+    setTempDateRange(undefined);
   }
 
   const handleDateApply = () => {
@@ -489,7 +505,14 @@ export default function OrdersPage() {
               <SelectContent>
                 <SelectItem value="any">All Vendors</SelectItem>
                 {vendors.map(v => (
-                  <SelectItem key={v.id} value={v.code}>{v.name}</SelectItem>
+                  <SelectItem key={v.id} value={v.code}>
+                     <div className="flex w-full justify-between items-center">
+                        <span>{v.name}</span>
+                        <Badge variant="secondary" className="ml-2 rounded-sm px-1.5 font-normal">
+                           {vendorOrderCounts[v.code] || 0}
+                        </Badge>
+                    </div>
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -536,7 +559,7 @@ export default function OrdersPage() {
           </Popover>
           <Button variant="ghost" onClick={clearFilters} className="text-muted-foreground lg:col-start-5">
              <XIcon className="mr-2 h-4 w-4" />
-             Clear
+             Clear Filters
           </Button>
         </div>
       </div>
