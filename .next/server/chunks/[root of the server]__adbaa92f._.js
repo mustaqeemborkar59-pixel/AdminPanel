@@ -194,8 +194,9 @@ const getWooCommerceApi = ()=>{
 const mapWCOrderToAppOrder = (order)=>{
     try {
         const lineItems = (order.line_items || []).map((item)=>{
-            // Per user request, the vendor code is stored in the SKU field of the line item.
-            const vendorCode = item.sku || undefined;
+            // The vendor code is the part of the SKU before the first hyphen.
+            const sku = item.sku || '';
+            const vendorCode = sku.split('-')[0] || undefined;
             return {
                 itemId: String(item.product_id),
                 name: item.name || 'Unknown Item',
