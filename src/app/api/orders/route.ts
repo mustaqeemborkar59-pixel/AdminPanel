@@ -100,15 +100,21 @@ export async function GET(request: Request) {
 
     // Parameters for WooCommerce API
     const params: any = {
-      per_page: 100, // Fetch up to 100 orders
+      per_page: 100,
       orderby: 'date',
       order: 'desc',
     };
 
     // Apply filters from the request to the parameters
-    if (searchParams.get('status')) {
-      params.status = searchParams.get('status');
+    const statusParam = searchParams.get('status');
+    if (statusParam && statusParam !== 'any') {
+      params.status = statusParam;
+    } else {
+      // To be robust against server default configs, if 'any' or no status is specified,
+      // explicitly request all main statuses.
+      params.status = ['pending', 'processing', 'on-hold', 'completed', 'cancelled', 'failed'].join(',');
     }
+    
     if (searchParams.get('after')) {
       params.after = searchParams.get('after');
     }
@@ -117,6 +123,10 @@ export async function GET(request: Request) {
     }
     if (searchParams.get('search')) {
       params.search = searchParams.get('search');
+    }
+    // FIX: Add page parameter handling for pagination
+    if (searchParams.get('page')) {
+      params.page = searchParams.get('page');
     }
 
     const response = await api.get("orders", params);

@@ -116,12 +116,10 @@ function DashboardContent() {
 
       const params = new URLSearchParams();
       if (dateRange?.from) {
-          params.append('after', dateRange.from.toISOString());
+          params.append('after', format(startOfDay(dateRange.from), "yyyy-MM-dd'T'HH:mm:ss"));
       }
       if (dateRange?.to) {
-          const toDate = new Date(dateRange.to);
-          toDate.setHours(23, 59, 59, 999);
-          params.append('before', toDate.toISOString());
+          params.append('before', format(endOfDay(dateRange.to), "yyyy-MM-dd'T'HH:mm:ss"));
       }
 
       const fetchOrders = async (): Promise<Order[]> => {
