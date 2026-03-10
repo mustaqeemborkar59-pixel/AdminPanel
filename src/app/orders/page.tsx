@@ -1,4 +1,3 @@
-
 "use client";
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
@@ -68,10 +67,14 @@ export default function OrdersPage() {
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [appliedSearchTerm, setAppliedSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('any');
   const [vendorFilter, setVendorFilter] = useState('any');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  
+  // States for date picker confirmation
+  const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>();
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   const activePlanId = userProfile?.activePlanId;
   const trialUsed = userProfile?.trialUsed;
@@ -83,14 +86,15 @@ export default function OrdersPage() {
     return userProfile?.role === 'super-admin' || userProfile?.canUpdateOrderStatus === true;
   }, [userProfile]);
 
-  // Debounce search term
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 500);
-    return () => clearTimeout(handler);
-  }, [searchTerm]);
-
+  const handleApplySearch = () => {
+    setAppliedSearchTerm(searchTerm);
+  };
+  
+  const handleSearchKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      handleApplySearch();
+    }
+  };
 
   const fetchAllData = useCallback(async () => {
     setIsLoading(true);
@@ -111,12 +115,11 @@ export default function OrdersPage() {
     }
 
     const params = new URLSearchParams();
-    if (debouncedSearchTerm) {
-      params.append('search', debouncedSearchTerm);
+    if (appliedSearchTerm) {
+      params.append('search', appliedSearchTerm);
     }
-    if (statusFilter !== 'any') {
-      params.append('status', statusFilter);
-    }
+    // Always include status to avoid WooCommerce default, using 'any' for all.
+    params.append('status', statusFilter === 'any' ? 'any' : statusFilter);
     if (dateRange?.from) {
       params.append('after', dateRange.from.toISOString());
     }
@@ -170,7 +173,7 @@ export default function OrdersPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [toast, debouncedSearchTerm, statusFilter, dateRange, userProfile?.role]);
+  }, [toast, appliedSearchTerm, statusFilter, dateRange, userProfile?.role]);
 
   useEffect(() => {
     if (!authLoading) {
@@ -181,39 +184,38 @@ export default function OrdersPage() {
   const displayedOrders = useMemo(() => {
     let ordersToDisplay: Order[] = [...orders];
 
-    // Role-based filtering for vendors
+    // If user is a vendor, filter their orders and recalculate totals
     if (userProfile?.role === 'vendor' && userProfile.vendorCode) {
-      ordersToDisplay = orders.filter(order =>
-        order.items.some(item => item.vendorName === userProfile.vendorCode)
-      );
+      ordersToDisplay = orders.map(order => {
+          const vendorItems = order.items.filter(item => item.vendorName === userProfile.vendorCode);
+          if (vendorItems.length === 0) return null; // This order has no items for this vendor
+
+          // Recalculate totals based on only this vendor's items
+          const subTotal = vendorItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+          const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
+          const taxAmount = subTotal * taxRatio;
+          const totalAmount = subTotal + taxAmount;
+          return { ...order, items: vendorItems, subTotal, taxAmount, totalAmount };
+      }).filter((order): order is Order => order !== null);
     }
     
-    // UI-based filtering for admins/super-admins
-    if (userProfile?.role !== 'vendor' && vendorFilter !== 'any') {
-      ordersToDisplay = ordersToDisplay.filter(order =>
-        order.items.some(item => item.vendorName === vendorFilter)
-      );
+    // If admin is filtering by vendor
+    if ((userProfile?.role === 'admin' || userProfile?.role === 'super-admin') && vendorFilter !== 'any') {
+      ordersToDisplay = ordersToDisplay.map(order => {
+          const vendorItems = order.items.filter(item => item.vendorName === vendorFilter);
+          if (vendorItems.length === 0) return null;
+          
+          // Recalculate totals for display
+          const subTotal = vendorItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+          const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
+          const taxAmount = subTotal * taxRatio;
+          const totalAmount = subTotal + taxAmount;
+          return { ...order, items: vendorItems, subTotal, taxAmount, totalAmount };
+      }).filter((order): order is Order => order !== null);
     }
-
-    // Client-side date filtering for precision
-    if (dateRange?.from && dateRange.to) {
-        const timeZone = 'Asia/Kolkata';
-        const startDate = startOfDay(toZonedTime(dateRange.from, timeZone));
-        const endDate = endOfDay(toZonedTime(dateRange.to, timeZone));
-        
-        ordersToDisplay = ordersToDisplay.filter(order => {
-          if (!order.paymentDate) return false;
-          try {
-            const paymentDateInIST = toZonedTime(order.paymentDate, timeZone);
-            return !isNaN(paymentDateInIST.getTime()) && paymentDateInIST >= startDate && paymentDateInIST <= endDate;
-          } catch {
-            return false;
-          }
-        });
-      }
     
     return ordersToDisplay;
-  }, [orders, userProfile, vendorFilter, dateRange]);
+  }, [orders, userProfile, vendorFilter]);
 
 
   const handleUpdateStatus = async (orderId: string, status: OrderStatus) => {
@@ -250,10 +252,30 @@ export default function OrdersPage() {
 
   const clearFilters = () => {
     setSearchTerm('');
+    setAppliedSearchTerm('');
     setStatusFilter('any');
     setVendorFilter('any');
     setDateRange(undefined);
   }
+
+  const handleDateApply = () => {
+    setDateRange(tempDateRange);
+    setIsDatePickerOpen(false);
+  };
+  
+  const handleDateCancel = () => {
+    // No need to reset tempDateRange, it will be synced on next open
+    setIsDatePickerOpen(false);
+  };
+
+  const handleDatePickerOpenChange = (open: boolean) => {
+    if (open) {
+      // When opening, sync temp state with the currently applied main state
+      setTempDateRange(dateRange);
+    }
+    setIsDatePickerOpen(open);
+  };
+
 
   const formatDateWithTimezone = (date: string | Date): string => {
     if (!date) return 'N/A';
@@ -264,6 +286,30 @@ export default function OrdersPage() {
       return 'Invalid Date';
     }
   };
+
+  const getFilename = () => {
+      const base = 'Orders-Report';
+      let vendorName = '';
+      if(userProfile?.role === 'vendor' && userProfile.vendorCode) {
+          vendorName = vendors.find(v => v.code === userProfile.vendorCode)?.name || userProfile.vendorCode;
+      } else if (vendorFilter !== 'any') {
+          vendorName = vendors.find(v => v.code === vendorFilter)?.name || vendorFilter;
+      }
+      
+      let dateString = '';
+      if(dateRange?.from && dateRange?.to) {
+          if (format(dateRange.from, 'yyyy-MM-dd') === format(dateRange.to, 'yyyy-MM-dd')) {
+              dateString = format(dateRange.from, 'dd-MM-yy');
+          } else {
+              dateString = `${format(dateRange.from, 'dd-MM-yy')}_to_${format(dateRange.to, 'dd-MM-yy')}`;
+          }
+      } else if (dateRange?.from) {
+          dateString = format(dateRange.from, 'dd-MM-yy');
+      }
+
+      return `${base}${vendorName ? `_${vendorName.replace(/ /g, '-')}` : ''}${dateString ? `_${dateString}`: ''}`;
+  }
+
 
   const exportToPDF = (ordersToExport: Order[]) => {
     if (ordersToExport.length === 0) {
@@ -285,7 +331,7 @@ export default function OrdersPage() {
       body: tableData,
       startY: 20
     });
-    doc.save('orders_report.pdf');
+    doc.save(`${getFilename()}.pdf`);
   };
 
   const exportToExcel = (ordersToExport: Order[]) => {
@@ -340,7 +386,7 @@ export default function OrdersPage() {
     const worksheet = XLSX.utils.json_to_sheet(flattenedData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
-    XLSX.writeFile(workbook, "orders_report.xlsx");
+    XLSX.writeFile(workbook, `${getFilename()}.xlsx`);
   };
 
   const selectedOrdersData = useMemo(() => {
@@ -410,17 +456,16 @@ export default function OrdersPage() {
       {/* Filters Bar */}
       <div className="p-4 md:px-6 border-b bg-muted/30">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div className="lg:col-span-2">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search by ID, name, email, phone..."
-                className="pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
+          <div className="lg:col-span-2 flex items-center gap-2">
+            <Input
+              type="search"
+              placeholder="Search by ID, name, email, phone..."
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+            />
+             <Button onClick={handleApplySearch}>Search</Button>
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full">
@@ -449,7 +494,7 @@ export default function OrdersPage() {
               </SelectContent>
             </Select>
           )}
-           <Popover>
+           <Popover open={isDatePickerOpen} onOpenChange={handleDatePickerOpenChange}>
             <PopoverTrigger asChild>
               <Button
                 id="date"
@@ -478,11 +523,15 @@ export default function OrdersPage() {
               <Calendar
                 initialFocus
                 mode="range"
-                defaultMonth={dateRange?.from}
-                selected={dateRange}
-                onSelect={setDateRange}
+                defaultMonth={tempDateRange?.from}
+                selected={tempDateRange}
+                onSelect={setTempDateRange}
                 numberOfMonths={2}
               />
+              <div className="flex justify-end gap-2 p-2 border-t">
+                  <Button variant="ghost" size="sm" onClick={handleDateCancel}>Cancel</Button>
+                  <Button size="sm" onClick={handleDateApply}>Apply</Button>
+              </div>
             </PopoverContent>
           </Popover>
           <Button variant="ghost" onClick={clearFilters} className="text-muted-foreground lg:col-start-5">

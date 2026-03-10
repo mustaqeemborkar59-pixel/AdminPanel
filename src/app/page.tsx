@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, ReactNode, Suspense, useMemo } from 'react';
@@ -65,11 +64,14 @@ function DashboardContent() {
   
   const [activityView, setActivityView] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
-
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
     const now = new Date();
     return { from: startOfMonth(now), to: endOfMonth(now) };
   });
+
+  // States for date picker confirmation
+  const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(dateRange);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   const isSuperAdmin = userProfile?.role === 'super-admin';
   const isVendor = userProfile?.role === 'vendor';
@@ -90,10 +92,27 @@ function DashboardContent() {
     return vendorDetails?.name || userProfile.vendorCode; // Fallback to code if name not found
   }, [isVendor, userProfile, vendors]);
 
+  const handleDateApply = () => {
+      setDateRange(tempDateRange);
+      setIsDatePickerOpen(false);
+  };
+  
+  const handleDateCancel = () => {
+      setIsDatePickerOpen(false);
+  };
+
+  const handleDatePickerOpenChange = (open: boolean) => {
+      if (open) {
+          setTempDateRange(dateRange);
+      }
+      setIsDatePickerOpen(open);
+  };
+
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       setIsLoading(true);
+      setOrders([]); // Reset orders to clear stats while fetching new data
 
       const params = new URLSearchParams();
       if (dateRange?.from) {
@@ -106,12 +125,29 @@ function DashboardContent() {
       }
 
       const fetchOrders = async (): Promise<Order[]> => {
-        const response = await fetch(`/api/orders?${params.toString()}`);
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to fetch orders from API.');
+        let allOrders: Order[] = [];
+        let page = 1;
+        let keepFetching = true;
+
+        while(keepFetching) {
+          const paginatedParams = new URLSearchParams(params);
+          paginatedParams.append('page', page.toString());
+          paginatedParams.append('per_page', '100'); // Fetch 100 per page
+          const response = await fetch(`/api/orders?${paginatedParams.toString()}`);
+          if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.error || 'Failed to fetch orders from API.');
+          }
+          const data = await response.json();
+          allOrders = allOrders.concat(data);
+
+          if (data.length < 100) {
+            keepFetching = false;
+          } else {
+            page++;
+          }
         }
-        return response.json();
+        return allOrders;
       };
       
       const promises: [Promise<Order[]>, Promise<any>, ...Promise<any>[]] = [
@@ -186,45 +222,30 @@ function DashboardContent() {
   useEffect(() => {
     // --- Source of Truth for Calculations ---
     const successfulStatuses: OrderStatus[] = ['completed', 'processing', 'queue', 'dispatch', 'hold'];
-    const fromDate = dateRange?.from;
-    const toDate = dateRange?.to;
-
-    // 1. ordersForAnalytics: Precisely filtered for FINANCIAL calculations (sales, charts)
-    let ordersForAnalytics: Order[] = [];
-    if (fromDate && toDate) {
-      const timeZone = 'Asia/Kolkata';
-      const startDate = startOfDay(toZonedTime(fromDate, timeZone));
-      const endDate = endOfDay(toZonedTime(toDate, timeZone));
-      
-      ordersForAnalytics = vendorFilteredOrders.filter(order => {
-        if (!order.paymentDate || !successfulStatuses.includes(order.status)) return false;
-        try {
-          const paymentDateInIST = toZonedTime(order.paymentDate, timeZone);
-          if (isNaN(paymentDateInIST.getTime())) return false;
-          return paymentDateInIST >= startDate && paymentDateInIST <= endDate;
-        } catch {
-          return false;
-        }
-      });
-    }
+    
+    // 1. ordersForAnalytics: Uses vendor-filtered data. No need for extra date filtering here as the API call is already date-filtered.
+    const ordersForAnalytics = vendorFilteredOrders.filter(order => successfulStatuses.includes(order.status));
     setOrdersInDateRange(ordersForAnalytics); // For PDF export
 
     // --- Perform All Calculations ---
-    if (vendorFilteredOrders.length > 0) {
-      // 2. Calculate FINANCIAL stats from `ordersForAnalytics`
-      const salesForRange = ordersForAnalytics.reduce((sum, order) => sum + order.totalAmount, 0);
-      setTotalSales(salesForRange);
+    // 2. Calculate FINANCIAL stats from `ordersForAnalytics`
+    const salesForRange = ordersForAnalytics.reduce((sum, order) => sum + order.totalAmount, 0);
+    setTotalSales(salesForRange);
 
-      // 3. Calculate GENERAL stats from `vendorFilteredOrders` (all orders in range)
-      const totalOrdersInRange = vendorFilteredOrders.length;
-      const uniqueEmailsInRange = new Set(vendorFilteredOrders.map(order => order.gmail).filter(Boolean));
-      setTotalOrders(totalOrdersInRange);
-      setNewCustomers(uniqueEmailsInRange.size);
-      
-      // 4. Bar Chart Data (from financial data)
-      let activityData: {name: string, date: string, orders: number, sales: number}[] = [];
-      const timeZone = 'Asia/Kolkata';
-      if (activityView === 'daily' && fromDate && toDate) {
+    // 3. Calculate GENERAL stats from `vendorFilteredOrders` (all orders in range)
+    const totalOrdersInRange = vendorFilteredOrders.length;
+    const uniqueEmailsInRange = new Set(vendorFilteredOrders.map(order => order.gmail).filter(Boolean));
+    setTotalOrders(totalOrdersInRange);
+    setNewCustomers(uniqueEmailsInRange.size);
+    
+    // 4. Bar Chart Data (from financial data)
+    let activityData: {name: string, date: string, orders: number, sales: number}[] = [];
+    const timeZone = 'Asia/Kolkata';
+    const fromDate = dateRange?.from;
+    const toDate = dateRange?.to;
+
+    if (ordersForAnalytics.length > 0 && fromDate && toDate) {
+      if (activityView === 'daily') {
           const intervalDays = eachDayOfInterval({ start: startOfDay(toZonedTime(fromDate, timeZone)), end: endOfDay(toZonedTime(toDate, timeZone)) });
           activityData = intervalDays.map(day => ({ name: format(day, 'MMM d'), date: format(day, 'yyyy-MM-dd'), orders: 0, sales: 0 }));
           ordersForAnalytics.forEach(order => {
@@ -236,7 +257,7 @@ function DashboardContent() {
                 if (dayData) { dayData.orders += 1; dayData.sales += order.totalAmount; }
               } catch {}
           });
-      } else if (activityView === 'weekly' && fromDate && toDate) {
+      } else if (activityView === 'weekly') {
           const intervalWeeks = eachWeekOfInterval({ start: startOfDay(toZonedTime(fromDate, timeZone)), end: endOfDay(toZonedTime(toDate, timeZone)) }, { weekStartsOn: 1 });
           activityData = intervalWeeks.map(weekStart => ({ name: format(weekStart, 'MMM d'), date: format(weekStart, 'yyyy-MM-dd'), orders: 0, sales: 0 }));
           ordersForAnalytics.forEach(order => {
@@ -249,7 +270,7 @@ function DashboardContent() {
                 if (weekData) { weekData.orders += 1; weekData.sales += order.totalAmount; }
               } catch {}
           });
-      } else if (activityView === 'monthly' && fromDate && toDate) {
+      } else if (activityView === 'monthly') {
           const intervalMonths = eachMonthOfInterval({ start: startOfDay(toZonedTime(fromDate, timeZone)), end: endOfDay(toZonedTime(toDate, timeZone)) });
           activityData = intervalMonths.map(monthStart => ({ name: format(monthStart, 'MMM yyyy'), date: format(monthStart, 'yyyy-MM-dd'), orders: 0, sales: 0 }));
           ordersForAnalytics.forEach(order => {
@@ -263,9 +284,11 @@ function DashboardContent() {
               } catch {}
           });
       }
-      setWeeklyOrderData(activityData);
+    }
+    setWeeklyOrderData(activityData);
 
-      // 5. Pie Chart Data (from general data)
+    // 5. Pie Chart Data (from general data - vendorFilteredOrders)
+    if (vendorFilteredOrders.length > 0) {
       const statusCounts: {[key in OrderStatus]?: number} = {};
       vendorFilteredOrders.forEach(order => {
         statusCounts[order.status] = (statusCounts[order.status] || 0) + 1;
@@ -279,15 +302,31 @@ function DashboardContent() {
         .sort((a, b) => b.value - a.value);
       setSalesDetailsData(salesData);
     } else {
-      // Reset all stats if no orders are found
-      setTotalSales(0);
-      setTotalOrders(0);
-      setNewCustomers(0);
-      setWeeklyOrderData([]);
-      setSalesDetailsData([]);
-      setOrdersInDateRange([]);
+        setSalesDetailsData([]);
     }
   }, [vendorFilteredOrders, dateRange, activityView]);
+
+  const getFilename = () => {
+      const base = 'Sales-Summary';
+      let vendorName = '';
+      if(userProfile?.role === 'vendor' && userProfile.vendorCode) {
+          vendorName = vendors.find(v => v.code === userProfile.vendorCode)?.name || userProfile.vendorCode;
+      }
+      
+      let dateString = '';
+      if(dateRange?.from && dateRange?.to) {
+          if (format(dateRange.from, 'yyyy-MM-dd') === format(dateRange.to, 'yyyy-MM-dd')) {
+              dateString = format(dateRange.from, 'dd-MM-yy');
+          } else {
+              dateString = `${format(dateRange.from, 'dd-MM-yy')}_to_${format(dateRange.to, 'dd-MM-yy')}`;
+          }
+      } else if (dateRange?.from) {
+          dateString = format(dateRange.from, 'dd-MM-yy');
+      }
+
+      return `${base}${vendorName ? `_${vendorName.replace(/ /g, '-')}` : ''}${dateString ? `_${dateString}`: ''}`;
+  }
+
 
   const generateDashboardPdf = async (ordersToExport: Order[]) => {
     if (ordersToExport.length === 0) {
@@ -387,9 +426,8 @@ function DashboardContent() {
       },
       margin: { left: margin, right: margin }
     });
-
-    const dateStr = new Date().toISOString().split('T')[0];
-    doc.save(`sales-summary-report-${dateStr}.pdf`);
+    
+    doc.save(`${getFilename()}.pdf`);
   };
 
   const handleBarClick = (data: any) => {
@@ -418,29 +456,18 @@ function DashboardContent() {
   };
 
 
-  if (isLoading) {
-    return (
-        <div className="flex flex-col h-full">
-            <PageHeader title="Shop Dashboard" description="Comprehensive overview of your online store's operations and performance." />
-            <div className="flex-1 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        </div>
-    );
-  }
-
   const StatsCards = () => {
     const cards = [
-      <StatsCard key="sales" title="Total Sale" value={`₹${totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[0])} />,
-      <StatsCard key="orders" title="Total Orders" value={totalOrders.toString()} icon={<ShoppingBag className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[1])} />,
-      <StatsCard key="customers" title="New Customers" value={newCustomers.toLocaleString()} icon={<Users className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[2])} />,
+      <StatsCard key="sales" title="Total Sale" value={isLoading ? '...' : `₹${totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[0])} />,
+      <StatsCard key="orders" title="Total Orders" value={isLoading ? '...' : totalOrders.toString()} icon={<ShoppingBag className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[1])} />,
+      <StatsCard key="customers" title="New Customers" value={isLoading ? '...' : newCustomers.toLocaleString()} icon={<Users className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[2])} />,
     ];
   
     if (isSuperAdmin) {
       cards.push(
-        <StatsCard key="admins" title="Admins" value={adminCount.toString()} icon={<ShieldCheck className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[3])} />,
-        <StatsCard key="vendors" title="Vendors" value={vendorCount.toString()} icon={<Store className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[1])} />,
-        <StatsCard key="super-admins" title="Super Admins" value={superAdminCount.toString()} icon={<Crown className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[0])} />
+        <StatsCard key="admins" title="Admins" value={isLoading ? '...' : adminCount.toString()} icon={<ShieldCheck className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[3])} />,
+        <StatsCard key="vendors" title="Vendors" value={isLoading ? '...' : vendorCount.toString()} icon={<Store className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[1])} />,
+        <StatsCard key="super-admins" title="Super Admins" value={isLoading ? '...' : superAdminCount.toString()} icon={<Crown className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[0])} />
       );
     }
   
@@ -454,7 +481,65 @@ function DashboardContent() {
 
   return (
     <div className="flex flex-col h-full">
-      <PageHeader title={isVendor ? `${vendorDisplayName} Dashboard` : "Shop Dashboard"} description="Comprehensive overview of your online store's operations and performance." />
+      <PageHeader 
+        title={isVendor ? `${vendorDisplayName} Dashboard` : "Shop Dashboard"}
+        description="Comprehensive overview of your online store's operations and performance." 
+        actions={
+          <div className="flex items-center gap-2 flex-wrap">
+            <Popover open={isDatePickerOpen} onOpenChange={handleDatePickerOpenChange}>
+              <PopoverTrigger asChild>
+                <Button
+                  id="date"
+                  variant={"outline"}
+                  size="sm"
+                  className={cn(
+                    "w-full sm:w-[240px] justify-start text-left font-normal h-9",
+                    !dateRange && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange?.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "LLL dd, y")} -{" "}
+                        {format(dateRange.to, "LLL dd, y")}
+                      </>
+                    ) : (
+                      format(dateRange.from, "LLL dd, y")
+                    )
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={tempDateRange?.from}
+                  selected={tempDateRange}
+                  onSelect={setTempDateRange}
+                  numberOfMonths={2}
+                />
+                <div className="p-2 border-t flex justify-end gap-2">
+                    <Button variant="ghost" size="sm" onClick={handleDateCancel}>Cancel</Button>
+                    <Button size="sm" onClick={handleDateApply}>Apply</Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Button
+                variant="outline"
+                size="sm"
+                className="h-9"
+                disabled={isLoading || ordersInDateRange.length === 0}
+                onClick={() => generateDashboardPdf(ordersInDateRange)}
+            >
+                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                Download PDF
+            </Button>
+          </div>
+        }
+      />
       <div className="flex-1 p-4 md:p-6 space-y-6 overflow-auto">
         
         <StatsCards />
@@ -466,7 +551,9 @@ function DashboardContent() {
                 <CardDescription className="text-xs text-muted-foreground mt-1">Breakdown by order status for selected range</CardDescription>
             </CardHeader>
              <CardContent className="pt-2">
-               {salesDetailsData.length > 0 ? (
+               {isLoading ? (
+                <div className="flex items-center justify-center h-[250px]"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>
+               ) : salesDetailsData.length > 0 ? (
                 <div>
                   <ResponsiveContainer width="100%" height={200}>
                       <PieChart>
@@ -574,53 +661,6 @@ function DashboardContent() {
                             size="sm" className="h-7 px-2 text-xs"
                         >Monthly</Button>
                     </div>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        id="date"
-                        variant={"outline"}
-                        size="sm"
-                        className={cn(
-                          "w-full sm:w-[240px] justify-start text-left font-normal h-8 text-xs",
-                          !dateRange && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dateRange?.from ? (
-                          dateRange.to ? (
-                            <>
-                              {format(dateRange.from, "LLL dd, y")} -{" "}
-                              {format(dateRange.to, "LLL dd, y")}
-                            </>
-                          ) : (
-                            format(dateRange.from, "LLL dd, y")
-                          )
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="end">
-                      <Calendar
-                        initialFocus
-                        mode="range"
-                        defaultMonth={dateRange?.from}
-                        selected={dateRange}
-                        onSelect={setDateRange}
-                        numberOfMonths={2}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-xs"
-                      disabled={ordersInDateRange.length === 0}
-                      onClick={() => generateDashboardPdf(ordersInDateRange)}
-                  >
-                      <Download className="mr-2 h-4 w-4" />
-                      Download PDF
-                  </Button>
                 </div>
             </CardHeader>
             <CardContent className="pt-4">
