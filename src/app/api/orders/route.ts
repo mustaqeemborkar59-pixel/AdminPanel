@@ -62,6 +62,7 @@ const mapWCOrderToAppOrder = (order: any): Order | null => {
 
     return {
       id: String(order.id),
+      parentId: order.parent_id || 0,
       customerName: `${order.billing?.first_name || ''} ${order.billing?.last_name || ''}`.trim() || 'N/A',
       phone: order.billing?.phone,
       altPhone: getMetaValue('_billing_alternate_phone'),

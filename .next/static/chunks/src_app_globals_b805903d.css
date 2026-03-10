@@ -689,6 +689,10 @@ input, button, textarea, select {
   margin-top: auto;
 }
 
+.mr-1\.5 {
+  margin-right: .375rem;
+}
+
 .block {
   display: block;
 }
@@ -3274,6 +3278,10 @@ body {
 
   .sm\:mt-0 {
     margin-top: 0;
+  }
+
+  .sm\:mb-0 {
+    margin-bottom: 0;
   }
 
   .sm\:flex {

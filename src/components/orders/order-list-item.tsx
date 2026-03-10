@@ -146,7 +146,7 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                         disabled={!isPremiumActive}
                     />
                     <div className="flex-grow">
-                        <CardTitle className="font-headline text-lg">{order.id}</CardTitle>
+                        <CardTitle className="font-headline text-lg">{order.id} {order.parentId && order.parentId !== 0 && <span className="text-sm font-normal text-muted-foreground">(Sub-Order of {order.parentId})</span>}</CardTitle>
                         <CardDescription className={cn("font-body text-sm mt-1 transition-all", !isPremiumActive && 'blur-sm select-none')}>
                           {order.customerName || 'N/A'} -{' '}
                           <span className="text-xs">
@@ -223,6 +223,36 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                             </div>
                         ))}
                     </div>
+
+                    {order.subOrders && order.subOrders.length > 0 && (
+                      <div className="mt-4 space-y-2">
+                        <h4 className="font-semibold text-sm text-foreground">Sub-Orders ({order.subOrders.length})</h4>
+                        <div className="p-2 bg-muted/50 rounded-md space-y-2 border">
+                          {order.subOrders.map(sub => {
+                              const subOrderStatusInfo = statusInfo[sub.status] || statusInfo.pending;
+                              const SubStatusIcon = subOrderStatusInfo.icon;
+                              return (
+                                <div key={sub.id} className="flex flex-col sm:flex-row justify-between sm:items-center text-sm p-2 bg-background rounded-md shadow-sm">
+                                  <div className="mb-2 sm:mb-0">
+                                    <span className="font-semibold text-foreground">ID: {sub.id}</span>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        {sub.items.map(i => `${i.name} (x${i.qty})`).join(', ')}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-4 self-end sm:self-center">
+                                     <Badge variant="outline" className={cn("capitalize text-xs font-semibold text-white", subOrderStatusInfo.color)}>
+                                        <SubStatusIcon className="h-3 w-3 mr-1.5"/>
+                                        {sub.status}
+                                     </Badge>
+                                     <span className="font-semibold w-20 text-right">₹{sub.totalAmount.toFixed(2)}</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      </div>
+                    )}
+
                      <div className="border-t pt-3 space-y-2 text-sm text-muted-foreground">
                         {isEditingAddress ? (
                             <div className="space-y-4 p-3 rounded-md border bg-background">

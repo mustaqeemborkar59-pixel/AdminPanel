@@ -117,7 +117,32 @@ export default function OrdersPage() {
       }
 
       const data: Order[] = await response.json();
-      setOrders(data);
+      
+      // Group sub-orders under their parents
+      const orderMap = new Map<string, Order>();
+      data.forEach(order => {
+        orderMap.set(order.id, { ...order, subOrders: [] });
+      });
+
+      const rootOrders: Order[] = [];
+      data.forEach(order => {
+        const orderIdStr = String(order.id);
+        if (order.parentId && order.parentId !== 0) {
+          const parentIdStr = String(order.parentId);
+          const parent = orderMap.get(parentIdStr);
+          if (parent && parent.subOrders) {
+            parent.subOrders.push(orderMap.get(orderIdStr)!);
+          } else {
+             // It's a sub-order whose parent is not in this batch, treat it as a root order.
+             rootOrders.push(orderMap.get(orderIdStr)!);
+          }
+        } else {
+          // It's a root order.
+          rootOrders.push(orderMap.get(orderIdStr)!);
+        }
+      });
+
+      setOrders(rootOrders);
 
     } catch (err: any) {
        const errorMessage = err.message || "An unknown error occurred.";

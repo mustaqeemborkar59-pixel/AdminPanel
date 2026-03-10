@@ -28,6 +28,8 @@ export type OrderType = 'delivery' | 'takeaway' | 'dine-in';
 
 export interface Order {
   id: string;
+  parentId?: number;
+  subOrders?: Order[];
   customerName?: string;
   phone?: string;
   altPhone?: string;
