@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useState } from 'react';
 import { type Order, type OrderStatus, type UpdateOrderAddressPayload, UserProfile } from '@/types';
@@ -117,7 +116,24 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
   
   const orderDateFormatted = formatDate(order.timestamp);
   const paymentDateFormatted = order.paymentDate ? formatDate(order.paymentDate) : null;
-  const showPaymentDate = paymentDateFormatted && paymentDateFormatted !== orderDateFormatted;
+  
+  let showPaymentDate = false;
+  if (order.paymentDate && order.timestamp) {
+    try {
+      const orderDate = new Date(order.timestamp);
+      const paymentDate = new Date(order.paymentDate);
+      const differenceInSeconds = Math.abs(paymentDate.getTime() - orderDate.getTime()) / 1000;
+      
+      // Only show if the difference is 60 seconds or more.
+      if (differenceInSeconds >= 60) {
+        showPaymentDate = true;
+      }
+    } catch (e) {
+      // Fallback for safety, though date strings should be valid ISO strings
+      showPaymentDate = !!(paymentDateFormatted && paymentDateFormatted !== orderDateFormatted);
+    }
+  }
+
 
   React.useEffect(() => {
     if(isEditingAddress){
@@ -151,7 +167,7 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                           {order.customerName || 'N/A'} -{' '}
                           <span className="text-xs">
                             {orderDateFormatted}
-                            {showPaymentDate && (
+                            {showPaymentDate && paymentDateFormatted && (
                               <span className="text-blue-600 dark:text-blue-400 font-semibold"> (Paid: {paymentDateFormatted})</span>
                             )}
                           </span>
