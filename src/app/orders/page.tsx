@@ -32,7 +32,8 @@ import {
 import { OrderListItem } from '@/components/orders/order-list-item';
 import { Accordion } from '@/components/ui/accordion';
 import { format } from 'date-fns';
-import { toZonedTime } from 'date-fns-tz';
+import { toZonedTime, zonedTimeToUtc } from 'date-fns-tz';
+import { startOfDay, endOfDay } from 'date-fns';
 import { useAppContext } from '@/components/layout/app-content-wrapper';
 import type { Order, OrderStatus } from '@/types';
 import type { DateRange } from "react-day-picker";
@@ -99,6 +100,8 @@ export default function OrdersPage() {
     if (statusFilter !== 'any') {
       params.append('status', statusFilter);
     }
+    // We still send the date range to the API to get a relevant batch of orders.
+    // This is a performance optimization. The precise filtering happens client-side below.
     if (dateRange?.from) {
       params.append('after', dateRange.from.toISOString());
     }
@@ -116,7 +119,30 @@ export default function OrdersPage() {
         throw new Error(errorData.error || `Request failed with status ${response.status}`);
       }
 
-      const data: Order[] = await response.json();
+      let data: Order[] = await response.json();
+
+      // After fetching, if a date range is specified, we filter again locally.
+      // This time, we use the correct `paymentDate` field for accuracy.
+      if (dateRange?.from && dateRange.to) {
+        const timeZone = 'Asia/Kolkata';
+        const startDate = startOfDay(toZonedTime(dateRange.from, timeZone));
+        const endDate = endOfDay(toZonedTime(dateRange.to, timeZone));
+        
+        data = data.filter(order => {
+          // Only include orders that have a payment date
+          if (!order.paymentDate) {
+            return false;
+          }
+          try {
+            const paymentDateInIST = toZonedTime(order.paymentDate, timeZone);
+            // Check if the payment date is valid and within the selected range
+            return !isNaN(paymentDateInIST.getTime()) && paymentDateInIST >= startDate && paymentDateInIST <= endDate;
+          } catch {
+            // If date parsing fails, exclude the order from the filtered results
+            return false;
+          }
+        });
+      }
       
       // Group sub-orders under their parents
       const orderMap = new Map<string, Order>();

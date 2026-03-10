@@ -198,7 +198,7 @@ function DashboardContent() {
         const startDate = startOfDay(toZonedTime(fromDate, timeZone));
         const endDate = endOfDay(toZonedTime(toDate, timeZone));
 
-        // Use the same filtering logic for chart data.
+        // Filter orders where the payment date is within the selected range.
         const recentPaidSuccessfulOrders = vendorFilteredOrders.filter(order => {
             if (!order.paymentDate || !successfulStatuses.includes(order.status)) return false;
             try {

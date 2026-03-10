@@ -576,7 +576,7 @@ function DashboardContent() {
                 const timeZone = 'Asia/Kolkata';
                 const startDate = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$startOfDay$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["startOfDay"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2d$tz$2f$dist$2f$esm$2f$toZonedTime$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toZonedTime"])(fromDate, timeZone));
                 const endDate = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2f$endOfDay$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["endOfDay"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$date$2d$fns$2d$tz$2f$dist$2f$esm$2f$toZonedTime$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toZonedTime"])(toDate, timeZone));
-                // Use the same filtering logic for chart data.
+                // Filter orders where the payment date is within the selected range.
                 const recentPaidSuccessfulOrders = vendorFilteredOrders.filter((order)=>{
                     if (!order.paymentDate || !successfulStatuses.includes(order.status)) return false;
                     try {
