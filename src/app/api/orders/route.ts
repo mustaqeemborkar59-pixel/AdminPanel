@@ -26,17 +26,18 @@ const getWooCommerceApi = (): WooCommerceRestApi => {
 const mapWCOrderToAppOrder = (order: any): Order | null => {
   try {
     const lineItems: OrderItem[] = (order.line_items || []).map((item: any): OrderItem => {
-      // Per user request, the vendor code is stored in the SKU field of the line item.
-      const vendorCode = item.sku || undefined;
+      // The vendor code is the part of the SKU before the first hyphen.
+      const sku = item.sku || '';
+      const vendorCode = sku.split('-')[0] || undefined;
 
       return {
         itemId: String(item.product_id),
         name: item.name || 'Unknown Item',
-        sku: item.sku || undefined, // Keep sku for other purposes if needed
+        sku: item.sku || undefined, // Keep original sku
         qty: item.quantity || 0,
         price: parseFloat(item.price || '0'),
         imageUrl: item.image?.src,
-        vendorName: vendorCode, // This now holds the vendor code.
+        vendorName: vendorCode, // This now holds the extracted vendor code.
       };
     });
 

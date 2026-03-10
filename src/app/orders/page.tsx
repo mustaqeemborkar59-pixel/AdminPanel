@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { updateOrderStatusInWooCommerce } from './actions';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, AlertTriangle, FileDown, Search, Calendar as CalendarIcon, X as XIcon, PackageSearch, Clock, Loader, Truck, CheckCircle, Archive, XCircle } from 'lucide-react';
+import { getVendorsFromFirestore } from '@/app/auth/actions';
+import { Loader2, AlertTriangle, FileDown, Search, Calendar as CalendarIcon, X as XIcon, PackageSearch, Clock, Loader, Truck, CheckCircle, Archive, XCircle, Store } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,7 +36,7 @@ import { format } from 'date-fns';
 import { toZonedTime, zonedTimeToUtc } from 'date-fns-tz';
 import { startOfDay, endOfDay } from 'date-fns';
 import { useAppContext } from '@/components/layout/app-content-wrapper';
-import type { Order, OrderStatus } from '@/types';
+import type { Order, OrderStatus, Vendor } from '@/types';
 import type { DateRange } from "react-day-picker";
 import { cn } from '@/lib/utils';
 import jsPDF from 'jspdf';
@@ -60,6 +61,7 @@ export default function OrdersPage() {
   const { user, userProfile, authLoading } = useAppContext();
   
   const [orders, setOrders] = useState<Order[]>([]);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
@@ -68,6 +70,7 @@ export default function OrdersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('any');
+  const [vendorFilter, setVendorFilter] = useState('any');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   const activePlanId = userProfile?.activePlanId;
@@ -89,10 +92,24 @@ export default function OrdersPage() {
   }, [searchTerm]);
 
 
-  const fetchOrders = useCallback(async () => {
+  const fetchAllData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     
+    // Fetch Vendors first (or in parallel)
+    if (userProfile?.role === 'admin' || userProfile?.role === 'super-admin') {
+      const vendorsResult = await getVendorsFromFirestore();
+      if (vendorsResult.success && vendorsResult.data) {
+        setVendors(vendorsResult.data);
+      } else {
+         toast({
+          variant: "destructive",
+          title: "Failed to load vendors",
+          description: vendorsResult.error || "Could not fetch vendors.",
+        });
+      }
+    }
+
     const params = new URLSearchParams();
     if (debouncedSearchTerm) {
       params.append('search', debouncedSearchTerm);
@@ -100,14 +117,12 @@ export default function OrdersPage() {
     if (statusFilter !== 'any') {
       params.append('status', statusFilter);
     }
-    // We still send the date range to the API to get a relevant batch of orders.
-    // This is a performance optimization. The precise filtering happens client-side below.
     if (dateRange?.from) {
       params.append('after', dateRange.from.toISOString());
     }
     if (dateRange?.to) {
       const toDate = new Date(dateRange.to);
-      toDate.setHours(23, 59, 59, 999); // Include the whole day
+      toDate.setHours(23, 59, 59, 999);
       params.append('before', toDate.toISOString());
     }
 
@@ -120,31 +135,7 @@ export default function OrdersPage() {
       }
 
       let data: Order[] = await response.json();
-
-      // After fetching, if a date range is specified, we filter again locally.
-      // This time, we use the correct `paymentDate` field for accuracy.
-      if (dateRange?.from && dateRange.to) {
-        const timeZone = 'Asia/Kolkata';
-        const startDate = startOfDay(toZonedTime(dateRange.from, timeZone));
-        const endDate = endOfDay(toZonedTime(dateRange.to, timeZone));
-        
-        data = data.filter(order => {
-          // Only include orders that have a payment date
-          if (!order.paymentDate) {
-            return false;
-          }
-          try {
-            const paymentDateInIST = toZonedTime(order.paymentDate, timeZone);
-            // Check if the payment date is valid and within the selected range
-            return !isNaN(paymentDateInIST.getTime()) && paymentDateInIST >= startDate && paymentDateInIST <= endDate;
-          } catch {
-            // If date parsing fails, exclude the order from the filtered results
-            return false;
-          }
-        });
-      }
       
-      // Group sub-orders under their parents
       const orderMap = new Map<string, Order>();
       data.forEach(order => {
         orderMap.set(order.id, { ...order, subOrders: [] });
@@ -159,11 +150,9 @@ export default function OrdersPage() {
           if (parent && parent.subOrders) {
             parent.subOrders.push(orderMap.get(orderIdStr)!);
           } else {
-             // It's a sub-order whose parent is not in this batch, treat it as a root order.
              rootOrders.push(orderMap.get(orderIdStr)!);
           }
         } else {
-          // It's a root order.
           rootOrders.push(orderMap.get(orderIdStr)!);
         }
       });
@@ -181,13 +170,51 @@ export default function OrdersPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [toast, debouncedSearchTerm, statusFilter, dateRange]);
+  }, [toast, debouncedSearchTerm, statusFilter, dateRange, userProfile?.role]);
 
   useEffect(() => {
     if (!authLoading) {
-      fetchOrders();
+      fetchAllData();
     }
-  }, [fetchOrders, authLoading]);
+  }, [fetchAllData, authLoading]);
+
+  const displayedOrders = useMemo(() => {
+    let ordersToDisplay: Order[] = [...orders];
+
+    // Role-based filtering for vendors
+    if (userProfile?.role === 'vendor' && userProfile.vendorCode) {
+      ordersToDisplay = orders.filter(order =>
+        order.items.some(item => item.vendorName === userProfile.vendorCode)
+      );
+    }
+    
+    // UI-based filtering for admins/super-admins
+    if (userProfile?.role !== 'vendor' && vendorFilter !== 'any') {
+      ordersToDisplay = ordersToDisplay.filter(order =>
+        order.items.some(item => item.vendorName === vendorFilter)
+      );
+    }
+
+    // Client-side date filtering for precision
+    if (dateRange?.from && dateRange.to) {
+        const timeZone = 'Asia/Kolkata';
+        const startDate = startOfDay(toZonedTime(dateRange.from, timeZone));
+        const endDate = endOfDay(toZonedTime(dateRange.to, timeZone));
+        
+        ordersToDisplay = ordersToDisplay.filter(order => {
+          if (!order.paymentDate) return false;
+          try {
+            const paymentDateInIST = toZonedTime(order.paymentDate, timeZone);
+            return !isNaN(paymentDateInIST.getTime()) && paymentDateInIST >= startDate && paymentDateInIST <= endDate;
+          } catch {
+            return false;
+          }
+        });
+      }
+    
+    return ordersToDisplay;
+  }, [orders, userProfile, vendorFilter, dateRange]);
+
 
   const handleUpdateStatus = async (orderId: string, status: OrderStatus) => {
     const originalOrders = [...orders];
@@ -224,6 +251,7 @@ export default function OrdersPage() {
   const clearFilters = () => {
     setSearchTerm('');
     setStatusFilter('any');
+    setVendorFilter('any');
     setDateRange(undefined);
   }
 
@@ -270,10 +298,8 @@ export default function OrdersPage() {
       return;
     }
 
-    // Flatten the data to have one row per line item
     const flattenedData = ordersToExport.flatMap(order => {
       if (order.items.length === 0) {
-        // Handle orders with no items, providing default values for item-specific fields
         return [{
           'Order ID': order.id,
           'Status': order.status,
@@ -318,18 +344,18 @@ export default function OrdersPage() {
   };
 
   const selectedOrdersData = useMemo(() => {
-    return orders.filter(o => selectedOrders.has(o.id));
-  }, [orders, selectedOrders]);
+    return displayedOrders.filter(o => selectedOrders.has(o.id));
+  }, [displayedOrders, selectedOrders]);
 
 
   return (
     <div className="flex flex-col h-full">
       <PageHeader
         title="Manage Orders"
-        description={`Viewing ${orders.length} filtered orders. ${selectedOrders.size} selected.`}
+        description={`Viewing ${displayedOrders.length} filtered orders. ${selectedOrders.size} selected.`}
         actions={
           <div className="flex items-center gap-2">
-            <Button onClick={fetchOrders} variant="outline" disabled={isLoading}>
+            <Button onClick={fetchAllData} variant="outline" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Refresh
             </Button>
@@ -360,15 +386,15 @@ export default function OrdersPage() {
                 </DropdownMenuSub>
 
                 <DropdownMenuSub>
-                  <DropdownMenuSubTrigger disabled={orders.length === 0}>
-                     Export Filtered ({orders.length})
+                  <DropdownMenuSubTrigger disabled={displayedOrders.length === 0}>
+                     Export Filtered ({displayedOrders.length})
                   </DropdownMenuSubTrigger>
                   <DropdownMenuPortal>
                     <DropdownMenuSubContent>
-                      <DropdownMenuItem onClick={() => exportToPDF(orders)}>
+                      <DropdownMenuItem onClick={() => exportToPDF(displayedOrders)}>
                         PDF
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => exportToExcel(orders)}>
+                      <DropdownMenuItem onClick={() => exportToExcel(displayedOrders)}>
                         Excel (XLSX)
                       </DropdownMenuItem>
                     </DropdownMenuSubContent>
@@ -383,19 +409,21 @@ export default function OrdersPage() {
       
       {/* Filters Bar */}
       <div className="p-4 md:px-6 border-b bg-muted/30">
-        <div className="flex flex-col md:flex-row items-center gap-4">
-          <div className="relative w-full md:w-auto md:flex-grow">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search by ID, name, email, phone..."
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="lg:col-span-2">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search by ID, name, email, phone..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full md:w-[180px]">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
@@ -405,13 +433,29 @@ export default function OrdersPage() {
               ))}
             </SelectContent>
           </Select>
+          {(userProfile?.role === 'admin' || userProfile?.role === 'super-admin') && (
+             <Select value={vendorFilter} onValueChange={setVendorFilter}>
+              <SelectTrigger className="w-full">
+                 <div className="flex items-center gap-2">
+                  <Store className="h-4 w-4 text-muted-foreground" />
+                  <SelectValue placeholder="Filter by vendor" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">All Vendors</SelectItem>
+                {vendors.map(v => (
+                  <SelectItem key={v.id} value={v.code}>{v.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
            <Popover>
             <PopoverTrigger asChild>
               <Button
                 id="date"
                 variant={"outline"}
                 className={cn(
-                  "w-full md:w-[280px] justify-start text-left font-normal",
+                  "w-full justify-start text-left font-normal",
                   !dateRange && "text-muted-foreground"
                 )}
               >
@@ -441,7 +485,7 @@ export default function OrdersPage() {
               />
             </PopoverContent>
           </Popover>
-          <Button variant="ghost" onClick={clearFilters} className="text-muted-foreground">
+          <Button variant="ghost" onClick={clearFilters} className="text-muted-foreground lg:col-start-5">
              <XIcon className="mr-2 h-4 w-4" />
              Clear
           </Button>
@@ -452,7 +496,7 @@ export default function OrdersPage() {
         {isLoading ? (
           <div className="flex justify-center items-center h-full">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="ml-4 text-muted-foreground">Fetching orders...</p>
+            <p className="ml-4 text-muted-foreground">Fetching data...</p>
           </div>
         ) : error ? (
           <Card className="border-destructive bg-destructive/10">
@@ -471,14 +515,14 @@ export default function OrdersPage() {
               </pre>
             </CardContent>
           </Card>
-        ) : orders.length === 0 ? (
+        ) : displayedOrders.length === 0 ? (
           <div className="text-center py-10">
             <p className="text-lg font-semibold">No Orders Found</p>
             <p className="text-muted-foreground mt-2">Try adjusting your filters to find what you're looking for.</p>
           </div>
         ) : (
           <Accordion type="multiple" className="space-y-4">
-             {orders.map(order => (
+             {displayedOrders.map(order => (
                 <OrderListItem
                     key={order.id}
                     value={order.id}

@@ -3509,6 +3509,10 @@ body {
     grid-column: span 3 / span 3;
   }
 
+  .lg\:col-start-5 {
+    grid-column-start: 5;
+  }
+
   .lg\:grid-cols-4 {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
