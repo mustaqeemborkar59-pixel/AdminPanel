@@ -3,14 +3,14 @@
 
 import { revalidatePath } from 'next/cache';
 import { getOrders, updateOrderStatus, updateOrderAddress } from '@/lib/woocommerce';
-import type { OrderStatus, UpdateOrderAddressPayload } from '@/types';
+import type { Order, OrderStatus, UpdateOrderAddressPayload } from '@/types';
 
-// Server action to get all orders from WooCommerce (now returns raw data)
-export async function getOrdersFromWooCommerce(): Promise<{ success: boolean; data?: any; error?: string }> {
+// Server action to get all orders from WooCommerce (now returns MAPPED data)
+export async function getOrdersFromWooCommerce(): Promise<{ success: boolean; data?: Order[]; error?: string }> {
   try {
-    // This will now return the raw, unmapped data from the server
-    const rawData = await getOrders();
-    return { success: true, data: rawData };
+    // This will now return the mapped, validated data from the server
+    const mappedData = await getOrders();
+    return { success: true, data: mappedData };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     console.error("Server Action Error (getOrdersFromWooCommerce):", errorMessage);

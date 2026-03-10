@@ -3,9 +3,7 @@ import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 import { Order, OrderItem, OrderStatus, type UpdateOrderAddressPayload, type MenuItem } from '@/types';
 
 // This function will be called every time we need the API instance.
-// This makes it robust against server hot-reloads where process.env might not be available initially.
 const getWooCommerceApi = (): WooCommerceRestApi => {
-  // CRITICAL FIX: Use server-side variables (without NEXT_PUBLIC_) for server-side code.
   const storeUrl = process.env.WOOCOMMERCE_STORE_URL;
   const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY;
   const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET;
@@ -16,8 +14,7 @@ const getWooCommerceApi = (): WooCommerceRestApi => {
   }
 
   try {
-    // Validate URL format before creating the instance
-    new URL(storeUrl);
+    new URL(storeUrl); // Validate URL format
     return new WooCommerceRestApi({
       url: storeUrl,
       consumerKey: consumerKey,
@@ -26,39 +23,132 @@ const getWooCommerceApi = (): WooCommerceRestApi => {
       timeout: 60000,
     });
   } catch (error) {
-    console.error("Failed to initialize WooCommerce API. Please check the store URL in your .env file.", error);
-    if (error instanceof TypeError) { // Catches invalid URL error
+    console.error("Failed to initialize WooCommerce API.", error);
+    if (error instanceof TypeError) {
       throw new Error(`Invalid WooCommerce store URL format: ${storeUrl}`);
     }
-    throw error; // Re-throw other errors
+    throw error;
   }
 };
 
+const mapWCOrderToAppOrder = (order: any): Order => {
+  const lineItems: OrderItem[] = (order.line_items || []).map((item: any): OrderItem => {
+    // Safely find vendor name from meta data
+    const vendorMeta = (item.meta_data || []).find((meta: any) => meta.key === 'vendor');
+    const vendorName = vendorMeta ? vendorMeta.value : undefined;
 
-// DEBUGGING VERSION: This function returns the raw data without mapping.
-export const getOrders = async (): Promise<any[]> => {
-  const api = getWooCommerceApi();
+    return {
+      itemId: String(item.product_id),
+      name: item.name || 'Unknown Item',
+      sku: item.sku || undefined,
+      qty: item.quantity || 0,
+      price: parseFloat(item.price || '0'),
+      imageUrl: item.image?.src,
+      vendorName: vendorName,
+    };
+  });
+
+  const getMetaValue = (key: string) => {
+    const meta = (order.meta_data || []).find((m: any) => m.key === key);
+    return meta ? meta.value : undefined;
+  };
+
+  const statusMap: { [key: string]: OrderStatus } = {
+    'pending': 'pending',
+    'processing': 'processing',
+    'on-hold': 'hold',
+    'completed': 'completed',
+    'cancelled': 'cancelled',
+    'failed': 'failed',
+    'refunded': 'failed', // map refunded to a known status
+    'queue': 'queue',
+    'dispatch': 'dispatch',
+  };
+  const appStatus = statusMap[order.status] || 'pending';
+
+  const formatAddress = (addr: any) => {
+    if (!addr) return '';
+    const parts = [addr.address_1, addr.address_2, addr.city, addr.state, addr.postcode, addr.country];
+    return parts.filter(Boolean).join(', ');
+  };
   
-  try {
-    const response = await api.get("orders", {
-      per_page: 10, // Fetch only 10 for a quick test
-      page: 1,
-      orderby: 'date',
-      order: 'desc',
-    });
+  const subTotal = lineItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
-    if (response.status !== 200) {
-      throw new Error(`Failed to fetch orders. Status: ${response.status} ${response.statusText}`);
+  return {
+    id: String(order.id),
+    customerName: `${order.billing?.first_name || ''} ${order.billing?.last_name || ''}`.trim() || 'N/A',
+    phone: order.billing?.phone || undefined,
+    altPhone: getMetaValue('_billing_alternate_phone'),
+    pincode: order.billing?.postcode || undefined,
+    gmail: order.billing?.email || undefined,
+    items: lineItems,
+    status: appStatus,
+    orderType: 'delivery', // Defaulting as WC doesn't have this concept out of box
+    billingAddress: formatAddress(order.billing),
+    billing_city: order.billing?.city,
+    billing_state: order.billing?.state,
+    billing_country: order.billing?.country,
+    shippingAddress: formatAddress(order.shipping),
+    trackingId: getMetaValue('_wc_shipment_tracking_items')?.[0]?.tracking_number,
+    totalAmount: parseFloat(order.total || '0'),
+    taxAmount: parseFloat(order.total_tax || '0'),
+    subTotal: subTotal,
+    timestamp: order.date_created_gmt ? `${order.date_created_gmt}Z` : new Date().toISOString(),
+    paymentMethod: 'card', // Placeholder
+    paymentDate: order.date_paid_gmt ? `${order.date_paid_gmt}Z` : null,
+    vendorName: lineItems.length > 0 ? lineItems[0].vendorName : undefined, // Top level vendor for simplicity
+  };
+};
+
+// This function now returns mapped and validated Order objects
+export const getOrders = async (): Promise<Order[]> => {
+  const api = getWooCommerceApi();
+  let allOrders: Order[] = [];
+  let page = 1;
+  const perPage = 100;
+  let keepFetching = true;
+
+  while (keepFetching) {
+    try {
+      const response = await api.get("orders", {
+        per_page: perPage,
+        page: page,
+        orderby: 'date',
+        order: 'desc',
+      });
+
+      if (response.status !== 200) {
+        throw new Error(`Failed to fetch orders on page ${page}. Status: ${response.status} ${response.statusText}`);
+      }
+
+      const rawOrders = response.data;
+      
+      const mappedOrders: Order[] = rawOrders.map((order: any) => {
+        try {
+          // Map each order inside a try-catch to isolate errors
+          return mapWCOrderToAppOrder(order);
+        } catch (mapError) {
+          console.error(`Skipping order ${order.id} due to mapping error:`, mapError);
+          return null; // Return null for failed mappings
+        }
+      }).filter((order: Order | null): order is Order => order !== null); // Filter out nulls
+      
+      allOrders = allOrders.concat(mappedOrders);
+
+      if (rawOrders.length < perPage) {
+        keepFetching = false;
+      } else {
+        page++;
+      }
+
+    } catch (error: any) {
+      console.error(`Error fetching orders from WooCommerce on page ${page}:`, error.response?.data || error.message);
+      // Stop fetching on any API error to prevent infinite loops
+      keepFetching = false; 
+      throw new Error(error.response?.data?.message || error.message || 'An unknown error occurred during API communication.');
     }
-    
-    // Return the raw data directly
-    return response.data;
-
-  } catch (error: any) {
-    console.error("Error fetching raw data from WooCommerce:", error.response?.data || error.message);
-    // Re-throw a more informative error for the client
-    throw new Error(error.response?.data?.message || error.message || 'An unknown error occurred during API communication.');
   }
+  return allOrders;
 };
 
 
