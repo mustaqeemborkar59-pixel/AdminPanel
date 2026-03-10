@@ -45,9 +45,9 @@ __turbopack_context__.s({
 const firebaseConfig = {
     apiKey: ("TURBOPACK compile-time value", "AIzaSyDrl4GEHOUjWt1Hr8L0KTjbIhZxRbu-i6Y"),
     authDomain: ("TURBOPACK compile-time value", "sheetmaster-woo4-3652307-f6517.firebaseapp.com"),
-    databaseURL: ("TURBOPACK compile-time value", "https://sheetmaster-woo4-3652307-f6517-default-rtdb.firebaseio.com/"),
+    databaseURL: ("TURBOPACK compile-time value", "https://sheetmaster-woo4-3652307-f6517-default-rtdb.firebaseio.com"),
     projectId: ("TURBOPACK compile-time value", "sheetmaster-woo4-3652307-f6517"),
-    storageBucket: ("TURBOPACK compile-time value", "sheetmaster-woo4-3652307-f6517.appspot.com"),
+    storageBucket: ("TURBOPACK compile-time value", "sheetmaster-woo4-3652307-f6517.firebasestorage.app"),
     messagingSenderId: ("TURBOPACK compile-time value", "1052692277102"),
     appId: ("TURBOPACK compile-time value", "1:1052692277102:web:22cc1f34943c206112037f"),
     measurementId: ("TURBOPACK compile-time value", "G-T8RPQ7Q3NW")

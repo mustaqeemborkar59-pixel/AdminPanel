@@ -19,26 +19,21 @@ function initializeAdminApp(): App {
     return apps[0];
   }
 
-  // Fallback to environment variables if service account JSON isn't directly available
-  // This is a common pattern for Vercel, Netlify, etc.
-  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
-    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
-    : {
-        "type": "service_account",
-        "project_id": "sheetmaster-woo4-3652307-f6517",
-        "private_key_id": "a0db644cb948706d89c40d6f98654459a2681c49",
-        "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDSavxwFm0FlZS1\nX133N6x1bxIGgSKj+xKs9z/CdApPxqR1lxNWxkM/r6za7XOsLADZ40+0p+KVAc6w\nSIAShJyZlxDNyEpFQNK7IUKgcg/hB+DPZrifyHXQ+32f22+v/7+Hy3HAkY9mKI1x\nTg3nZcVgKP9LnogV1EtD2b7rj6f9UbfOzOcpDGUJS4DhUMvoXEmCiczaq84pDjyL\nOJx3aNOfEtlexEISIuCU+FCOIp7s18C1Xcd81KqMh3V2WSaZ3gkcozCR5w95D4Gl\nN02OocXasmJsjEhGstV6bAkcmSLTdGF47OM2lGUcC1u7NMDj/1XYAXk3mVargL6r\njrcy+upJAgMBAAECggEAL86S8DyIJJ6pnNPAG60Qh9XmeIfagPtIcPf0CpAmz51I\nPFdI04xUNyII2ezdPR76Sob00wzZ1BUHCtJOFub+VX8XGEoLZdSmjFGwO5fut6f8\nkeK6y8LV0ddx4WIP7CLlN0sn2yK3O/S2vimHyy06PPDToDCyppMHTrEoSYjoGAuR\na+2AkePutu60iasWXQCkT4kj0PejSAMVmrrqRRwkmqRXfJ9M5XTgrDNEha5o6wgv\nxr3ZoQk6qQp+7OPGSXksk+zdg/P8MbnyYQsVNV5xz7Ls6UziBpUb2o5q5RbzYsmJ\nlZ6grNoIIX8wexCuuL2bUMdLjS5gCcvF/SnS1GOfqQKBgQDzaVM1pC/d4X3Yg51m\nSnZG2l7L6DMmJPQ3snXUSJImyJJ7kjIAmcCJHuVNQkhE2RpdWl+B8AGRDks81P+c\nqJWbM/hMjhvkH7Yv4aQ90kQrnJxPbSxWHWTZxNbyyrC7upXLI2zs/b/6DiRrOXjP\nC9s2bTDjnekYK6IwVu6e1l6pIwKBgQDdTNbnaVgq8/6QHimuuAOgyvDwD+FbGgiF\n96ocQUvmdFlWLu9G2xML5dQBmFg6EuVC6fl8WGgHQ59a7FUeBPXwCf8lDt/VHXs4\nv6nsagSyGoTakSw94yxP9aNMPrBhbZRXsrccbufup9uO6pcEso1XY+SOgj0iiog3\nu1aLckPzowKBgCTxuIJswCMiJXKmT06GQLtyS28ReCny8+o8OOwWc7BVQv5kaxhy\nPanSOaVnSQbCGOFQZSyYm/RDQiIihgVmBQcAdVBRRWRzd7h+u+nyLwybgZIAlPkh\nDvyKhsFlCDwGDtQ9NTwnK2stmFN57p8mQohZPFFf11Am10AVAbSz/rwXAoGANJbM\nAxYfo6Vz+x+P3DtScWWIuCOt9A5NtDhUrn494TgI+tgQeJAbCJrHNNHVNYfD/5DG\nfuwrXH6PYfYDjCy1nSNjBJVyT5y/6Y5yfQH8t65hn+cb0mEn6KCA+99x3tVBiU2p\nAhLA/w/Yty+8T5t2xyuv5sXAbXLqSAQ23tB6oW0CgYAtzTtjUCuy7k2uW/AdwVh4\nEKQHI11frMgCZrNBvKx/YLGkfP0uHhkykvUPY+GaaB1VWbDZjOK2raJ4V8pR9WAC\n3LJF5/tHZXfuq+Rd8w1YezPpEbC+aGUFV4z/W6SIaQLeUlB2HRFzG8h1t6Okn3m8\nsrWMg0vW515DTuUJfEr6AQ==\n-----END PRIVATE KEY-----\n",
-        "client_email": "firebase-adminsdk-fbsvc@sheetmaster-woo4-3652307-f6517.iam.gserviceaccount.com",
-        "client_id": "109409820100882232028",
-        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-        "token_uri": "https://oauth2.googleapis.com/token",
-        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-        "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40sheetmaster-woo4-3652307-f6517.iam.gserviceaccount.com"
-      };
+  // Construct the service account object from environment variables
+  const serviceAccount = {
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    // Replace the escaped newlines in the private key
+    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+  };
+
+  if (!serviceAccount.projectId || !serviceAccount.clientEmail || !serviceAccount.privateKey) {
+    throw new Error('Firebase Admin SDK environment variables are not set correctly.');
+  }
 
   return initializeApp({
     credential: cert(serviceAccount),
-    databaseURL: "https://sheetmaster-woo4-3652307-f6517-default-rtdb.firebaseio.com"
+    databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL
   });
 }
 

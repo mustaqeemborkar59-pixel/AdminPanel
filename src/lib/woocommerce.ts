@@ -6,9 +6,9 @@ import { Order, OrderItem, OrderStatus, type UpdateOrderAddressPayload, type Men
 // This function will be called every time we need the API instance.
 // This makes it robust against server hot-reloads where process.env might not be available initially.
 const getWooCommerceApi = (): WooCommerceRestApi => {
-  const storeUrl = process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL;
-  const consumerKey = process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_KEY;
-  const consumerSecret = process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_SECRET;
+  const storeUrl = process.env.WOOCOMMERCE_STORE_URL;
+  const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY;
+  const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET;
 
   if (!storeUrl || storeUrl === 'https://your-store-url.com' || !consumerKey || !consumerSecret) {
     throw new Error('WooCommerce environment variables are not set correctly. Please check your .env file.');
@@ -192,14 +192,7 @@ export const updateOrderAddress = async (orderId: string, payload: UpdateOrderAd
     
     fields.forEach(field => {
       if (payload[field] !== undefined) {
-        // Since Woo doesn't have a direct 'alternate_phone' in the billing root,
-        // we'll handle it via meta_data if needed, but for now we put it in the payload to Woo if it existed
-        // The correct way is to check if the key exists on the billing object of Woo API. Let's assume alternate_phone is not a standard field.
-        // The API might ignore it, or it might be handled by a plugin. For now, let's just pass what we have.
-        // A better approach would be to separate standard fields from meta fields.
-        // Let's assume 'alternate_phone' is a custom field and should be handled differently.
-        // The original code was trying to handle it as a standard field. Let's correct it by not treating it special.
-        data.billing[field] = payload[field];
+        (data.billing as any)[field] = payload[field];
       }
     });
 
