@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
@@ -42,6 +43,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { Badge } from '@/components/ui/badge';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 
 const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; label: string }> = {
@@ -79,6 +81,7 @@ export default function OrdersPage() {
   // States for date picker confirmation
   const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(dateRange);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const activePlanId = userProfile?.activePlanId;
   const trialUsed = userProfile?.trialUsed;
@@ -553,7 +556,7 @@ export default function OrdersPage() {
                 defaultMonth={tempDateRange?.from}
                 selected={tempDateRange}
                 onSelect={setTempDateRange}
-                numberOfMonths={2}
+                numberOfMonths={isMobile ? 1 : 2}
               />
               <div className="flex justify-end gap-2 p-2 border-t">
                   <Button variant="ghost" size="sm" onClick={handleDateCancel}>Cancel</Button>

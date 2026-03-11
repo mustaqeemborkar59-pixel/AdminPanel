@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, ReactNode, Suspense, useMemo } from 'react';
@@ -18,6 +19,7 @@ import type { DateRange } from "react-day-picker";
 import { useAppContext } from '@/components/layout/app-content-wrapper';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
@@ -72,6 +74,7 @@ function DashboardContent() {
   // States for date picker confirmation
   const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(dateRange);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const isSuperAdmin = userProfile?.role === 'super-admin';
   const isVendor = userProfile?.role === 'vendor';
@@ -517,7 +520,7 @@ function DashboardContent() {
                   defaultMonth={tempDateRange?.from}
                   selected={tempDateRange}
                   onSelect={setTempDateRange}
-                  numberOfMonths={2}
+                  numberOfMonths={isMobile ? 1 : 2}
                 />
                 <div className="p-2 border-t flex justify-end gap-2">
                     <Button variant="ghost" size="sm" onClick={handleDateCancel}>Cancel</Button>
