@@ -73,15 +73,21 @@ export default function OrdersPage() {
   const [appliedSearchTerm, setAppliedSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('any');
   const [vendorFilter, setVendorFilter] = useState('any');
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
-      const today = new Date();
-      return { from: startOfDay(today), to: endOfDay(today) };
-  });
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   
   // States for date picker confirmation
   const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(dateRange);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    // This effect runs once on component mount to set the initial date range safely on the client-side.
+    // It avoids hydration errors caused by server/client date mismatch.
+    const today = new Date();
+    const initialRange = { from: startOfDay(today), to: endOfDay(today) };
+    setDateRange(initialRange);
+    setTempDateRange(initialRange); // Also sync temp state
+  }, []);
 
   const activePlanId = userProfile?.activePlanId;
   const trialUsed = userProfile?.trialUsed;
@@ -104,10 +110,14 @@ export default function OrdersPage() {
   };
 
   const fetchAllData = useCallback(async () => {
+    // Do not fetch if date range is not set yet (during initial client-side hydration)
+    if (!dateRange) {
+        return;
+    }
     setIsLoading(true);
     setError(null);
     
-    // Fetch Vendors first (or in parallel) - now also for vendors to get their name for export
+    // Fetch Vendors first (or in parallel)
     if (userProfile?.role === 'admin' || userProfile?.role === 'super-admin' || userProfile?.role === 'vendor') {
       const vendorsResult = await getVendorsFromFirestore();
       if (vendorsResult.success && vendorsResult.data) {
@@ -121,40 +131,51 @@ export default function OrdersPage() {
       }
     }
 
-    const params = new URLSearchParams();
+    const baseParams = new URLSearchParams();
     if (appliedSearchTerm) {
-      params.append('search', appliedSearchTerm);
+      baseParams.append('search', appliedSearchTerm);
     }
-    // Always include status to avoid WooCommerce default, using 'any' for all.
-    params.append('status', statusFilter === 'any' ? 'any' : statusFilter);
-    
+    baseParams.append('status', statusFilter === 'any' ? 'any' : statusFilter);
     if (dateRange?.from) {
-      // Format the date to "YYYY-MM-DDTHH:mm:ss" in local time to avoid timezone shifts.
-      // This ensures the API fetches data from the start of the selected day in the site's timezone.
-      params.append('after', format(startOfDay(dateRange.from), "yyyy-MM-dd'T'HH:mm:ss"));
+      baseParams.append('after', format(startOfDay(dateRange.from), "yyyy-MM-dd'T'HH:mm:ss"));
     }
     if (dateRange?.to) {
-      // Format the date to the end of the day to include all orders on that day.
-      params.append('before', format(endOfDay(dateRange.to), "yyyy-MM-dd'T'HH:mm:ss"));
+      baseParams.append('before', format(endOfDay(dateRange.to), "yyyy-MM-dd'T'HH:mm:ss"));
     }
 
     try {
-      const response = await fetch(`/api/orders?${params.toString()}`);
+      let allOrders: Order[] = [];
+      let page = 1;
+      let keepFetching = true;
+      
+      while (keepFetching) {
+        const params = new URLSearchParams(baseParams);
+        params.append('page', page.toString());
+        
+        const response = await fetch(`/api/orders?${params.toString()}`);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Request failed with status ${response.status}`);
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `Request failed with status ${response.status}`);
+        }
+
+        const data: Order[] = await response.json();
+        allOrders = allOrders.concat(data);
+
+        if (data.length < 100) {
+          keepFetching = false; // Stop if we received less than 100 orders, meaning it's the last page
+        } else {
+          page++; // Go to the next page
+        }
       }
-
-      let data: Order[] = await response.json();
       
       const orderMap = new Map<string, Order>();
-      data.forEach(order => {
+      allOrders.forEach(order => {
         orderMap.set(order.id, { ...order, subOrders: [] });
       });
 
       const rootOrders: Order[] = [];
-      data.forEach(order => {
+      allOrders.forEach(order => {
         const orderIdStr = String(order.id);
         if (order.parentId && order.parentId !== 0) {
           const parentIdStr = String(order.parentId);
