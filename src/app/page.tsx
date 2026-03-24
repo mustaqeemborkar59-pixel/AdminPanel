@@ -71,12 +71,8 @@ export default function DashboardPage() {
   
   const [activityView, setActivityView] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
-    const now = new Date();
-    return { from: startOfMonth(now), to: endOfMonth(now) };
-  });
-
-  const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(dateRange);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(undefined);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const isMobile = useIsMobile();
 
@@ -115,28 +111,27 @@ export default function DashboardPage() {
       setIsDatePickerOpen(open);
   };
 
+  useEffect(() => {
+    // Safely set initial date range on the client to avoid hydration mismatch
+    const now = new Date();
+    const initialRange = { from: startOfMonth(now), to: endOfMonth(now) };
+    setDateRange(initialRange);
+    setTempDateRange(initialRange); // Also sync temp state
+  }, []);
+
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       if (!dateRange?.from) return;
       setIsLoading(true);
       
-      // --- NEW FETCHING LOGIC ---
-      // Fetch a wider range of data from the API based on creation date.
-      const fromDate = subDays(dateRange.from, 30);
-      const toDate = dateRange.to || dateRange.from;
-
-      const params = new URLSearchParams();
-      params.append('after', format(startOfDay(fromDate), "yyyy-MM-dd'T'HH:mm:ss"));
-      params.append('before', format(endOfDay(toDate), "yyyy-MM-dd'T'HH:mm:ss"));
-
       const fetchAllOrders = async (): Promise<Order[]> => {
         let orders: Order[] = [];
         let page = 1;
         let keepFetching = true;
 
         while(keepFetching) {
-          const paginatedParams = new URLSearchParams(params);
+          const paginatedParams = new URLSearchParams();
           paginatedParams.append('page', page.toString());
           paginatedParams.append('per_page', '100');
           const response = await fetch(`/api/orders?${paginatedParams.toString()}`);
