@@ -134,6 +134,12 @@ export default function DashboardPage() {
           const paginatedParams = new URLSearchParams();
           paginatedParams.append('page', page.toString());
           paginatedParams.append('per_page', '100');
+          // Fetch a wide range of data to allow client-side filtering by payment date
+          const fromDate = subDays(dateRange.from!, 30); // Fetch last 30 days of data prior to start
+          paginatedParams.append('after', format(startOfDay(fromDate), "yyyy-MM-dd'T'HH:mm:ss"));
+          paginatedParams.append('before', format(endOfDay(dateRange.to!), "yyyy-MM-dd'T'HH:mm:ss"));
+
+
           const response = await fetch(`/api/orders?${paginatedParams.toString()}`);
           if (!response.ok) {
               throw new Error('Failed to fetch orders from API.');
