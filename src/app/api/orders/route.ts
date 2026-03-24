@@ -115,16 +115,25 @@ export async function GET(request: Request) {
       params.status = ['pending', 'processing', 'on-hold', 'completed', 'cancelled', 'failed'].join(',');
     }
     
+    // For creation date filtering (used on Orders page)
     if (searchParams.get('after')) {
       params.after = searchParams.get('after');
     }
     if (searchParams.get('before')) {
       params.before = searchParams.get('before');
     }
+
+    // For modification date filtering (used on Dashboard page)
+    if (searchParams.get('modified_after')) {
+      params.modified_after = searchParams.get('modified_after');
+    }
+    if (searchParams.get('modified_before')) {
+      params.modified_before = searchParams.get('modified_before');
+    }
+
     if (searchParams.get('search')) {
       params.search = searchParams.get('search');
     }
-    // FIX: Add page parameter handling for pagination
     if (searchParams.get('page')) {
       params.page = searchParams.get('page');
     }

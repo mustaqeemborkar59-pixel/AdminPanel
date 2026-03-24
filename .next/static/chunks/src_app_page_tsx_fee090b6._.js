@@ -13,7 +13,7 @@
     "static/chunks/node_modules_react-day-picker_dist_index_esm_9fc30424.js",
     "static/chunks/node_modules_jspdf_dist_jspdf_es_min_c277e70f.js",
     "static/chunks/node_modules_jspdf-autotable_dist_jspdf_plugin_autotable_7f09d304.js",
-    "static/chunks/node_modules_d15ed07f._.js"
+    "static/chunks/node_modules_e21e7cd1._.js"
   ],
   "source": "dynamic"
 });

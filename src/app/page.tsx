@@ -1,13 +1,13 @@
 
 "use client";
 
-import { useState, useEffect, ReactNode, Suspense, useMemo } from 'react';
+import { useState, useEffect, ReactNode, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { DollarSign, Users, ShoppingBag, Activity, UsersRound, Package, ChevronDown, Loader2, Calendar as CalendarIcon, CheckCircle, Clock, PackageSearch, Truck, XCircle, Archive, Loader, ShieldCheck, Store, Crown, Download } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label, LabelList } from 'recharts';
-import type { Order, StaffMember, OrderStatus, OrderType, MenuItem, Vendor, UserProfile } from '@/types';
+import { DollarSign, Users, ShoppingBag, Activity, ShieldCheck, Store, Crown, Download, Loader2, Calendar as CalendarIcon, CheckCircle, Clock, PackageSearch, Truck, XCircle, Archive, Loader } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label } from 'recharts';
+import type { Order, OrderStatus, Vendor, UserProfile } from '@/types';
 import { cn } from '@/lib/utils';
 import { getVendorsFromFirestore, getAllUsers, getCompanyDetailsFromFirestore } from '@/app/auth/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -44,25 +44,30 @@ const gradientStyles = [
   "bg-gradient-to-br from-orange-400 to-red-500",
 ];
 
-function DashboardContent() {
+export default function DashboardPage() {
   const { toast } = useToast();
-  const { user, userProfile } = useAppContext(); // Get user and profile
-  const [orders, setOrders] = useState<Order[]>([]);
+  const { user, userProfile } = useAppContext();
+  const [allFetchedOrders, setAllFetchedOrders] = useState<Order[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Stats for the selected date range
-  const [totalSales, setTotalSales] = useState(0);
-  const [totalOrders, setTotalOrders] = useState(0);
-  const [newCustomers, setNewCustomers] = useState(0);
-  
-  // Data for charts
-  const [weeklyOrderData, setWeeklyOrderData] = useState<{name: string, date: string, orders: number, sales: number}[]>([]);
-  const [salesDetailsData, setSalesDetailsData] = useState<{name: string, value: number, label: string, icon: React.ElementType, color: string}[]>([]);
-  
-  // Precisely filtered orders for export
-  const [ordersInDateRange, setOrdersInDateRange] = useState<Order[]>([]);
+  // Final processed data for display
+  const [displayData, setDisplayData] = useState<{
+    totalSales: number;
+    totalOrders: number;
+    newCustomers: number;
+    activityData: { name: string; date: string; orders: number; sales: number }[];
+    salesDetailsData: { name: string; value: number; label: string; icon: React.ElementType; color: string }[];
+    ordersForExport: Order[];
+  }>({
+    totalSales: 0,
+    totalOrders: 0,
+    newCustomers: 0,
+    activityData: [],
+    salesDetailsData: [],
+    ordersForExport: [],
+  });
   
   const [activityView, setActivityView] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
@@ -71,7 +76,6 @@ function DashboardContent() {
     return { from: startOfMonth(now), to: endOfMonth(now) };
   });
 
-  // States for date picker confirmation
   const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(dateRange);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const isMobile = useIsMobile();
@@ -92,7 +96,7 @@ function DashboardContent() {
   const vendorDisplayName = useMemo(() => {
     if (!isVendor || !userProfile?.vendorCode) return 'Shop';
     const vendorDetails = vendors.find(v => v.code === userProfile.vendorCode);
-    return vendorDetails?.name || userProfile.vendorCode; // Fallback to code if name not found
+    return vendorDetails?.name || userProfile.vendorCode;
   }, [isVendor, userProfile, vendors]);
 
   const handleDateApply = () => {
@@ -115,32 +119,30 @@ function DashboardContent() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       setIsLoading(true);
-      setOrders([]); // Reset orders to clear stats while fetching new data
-
+      
       const params = new URLSearchParams();
       if (dateRange?.from) {
-          params.append('after', format(startOfDay(dateRange.from), "yyyy-MM-dd'T'HH:mm:ss"));
+          params.append('modified_after', format(startOfDay(dateRange.from), "yyyy-MM-dd'T'HH:mm:ss"));
       }
       if (dateRange?.to) {
-          params.append('before', format(endOfDay(dateRange.to), "yyyy-MM-dd'T'HH:mm:ss"));
+          params.append('modified_before', format(endOfDay(dateRange.to), "yyyy-MM-dd'T'HH:mm:ss"));
       }
 
-      const fetchOrders = async (): Promise<Order[]> => {
-        let allOrders: Order[] = [];
+      const fetchAllOrders = async (): Promise<Order[]> => {
+        let orders: Order[] = [];
         let page = 1;
         let keepFetching = true;
 
         while(keepFetching) {
           const paginatedParams = new URLSearchParams(params);
           paginatedParams.append('page', page.toString());
-          paginatedParams.append('per_page', '100'); // Fetch 100 per page
+          paginatedParams.append('per_page', '100');
           const response = await fetch(`/api/orders?${paginatedParams.toString()}`);
           if (!response.ok) {
-              const errorData = await response.json();
-              throw new Error(errorData.error || 'Failed to fetch orders from API.');
+              throw new Error('Failed to fetch orders from API.');
           }
           const data = await response.json();
-          allOrders = allOrders.concat(data);
+          orders = orders.concat(data);
 
           if (data.length < 100) {
             keepFetching = false;
@@ -148,48 +150,31 @@ function DashboardContent() {
             page++;
           }
         }
-        return allOrders;
+        return orders;
       };
       
-      const promises: [Promise<Order[]>, Promise<any>, ...Promise<any>[]] = [
-        fetchOrders(),
-        getVendorsFromFirestore(),
-      ];
-
-      if (isSuperAdmin) {
-        promises.push(getAllUsers());
-      }
-
       try {
-        const [ordersData, vendorsResult, usersResult] = await Promise.all(promises);
+        const [ordersData, vendorsResult, usersResult] = await Promise.all([
+          fetchAllOrders(),
+          getVendorsFromFirestore(),
+          isSuperAdmin ? getAllUsers() : Promise.resolve(undefined),
+        ]);
         
-        setOrders(ordersData);
+        setAllFetchedOrders(ordersData);
 
         if (vendorsResult.success && vendorsResult.data) {
           setVendors(vendorsResult.data);
         } else {
-          toast({
-            variant: "destructive",
-            title: "Failed to load vendor data",
-            description: vendorsResult.error || "Could not fetch vendors.",
-          });
+          toast({ variant: "destructive", title: "Failed to load vendor data", description: vendorsResult.error });
         }
 
         if (usersResult && usersResult.success && usersResult.data) {
           setAllUsers(usersResult.data);
         } else if (usersResult && !usersResult.success) {
-          toast({
-            variant: "destructive",
-            title: "Failed to load user data",
-            description: usersResult.message || "Could not fetch users.",
-          });
+           toast({ variant: "destructive", title: "Failed to load user data", description: usersResult.message });
         }
       } catch (error: any) {
-        toast({
-          variant: "destructive",
-          title: "Failed to load dashboard data",
-          description: error.message || "An unexpected error occurred.",
-        });
+        toast({ variant: "destructive", title: "Failed to load dashboard data", description: error.message });
       } finally {
         setIsLoading(false);
       }
@@ -197,115 +182,127 @@ function DashboardContent() {
     fetchDashboardData();
   }, [dateRange, toast, isSuperAdmin]);
   
-  const vendorFilteredOrders = useMemo(() => {
-    // If the user is super admin, always return all orders.
-    if (isSuperAdmin) {
-      return orders;
-    }
-    // If user is not a vendor (e.g., admin), also return all orders.
-    if (!isVendor || !userProfile?.vendorCode) {
-      return orders;
-    }
-    // If the user is a vendor, filter orders and recalculate totals.
-    return orders.map(order => {
-      const vendorItems = order.items.filter(item => item.vendorName === userProfile.vendorCode);
-      if (vendorItems.length === 0) return null;
-      
-      const subTotal = vendorItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
-      const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
-      const taxAmount = subTotal * taxRatio;
-      const totalAmount = subTotal + taxAmount;
-      return { ...order, items: vendorItems, subTotal, taxAmount, totalAmount };
-    }).filter((order): order is Order => order !== null);
-  }, [orders, isVendor, isSuperAdmin, userProfile]);
-  
 
   useEffect(() => {
-    // --- Source of Truth for Calculations ---
+    if (isLoading) return; // Don't process until data is fetched
+
+    // --- Start of Unified Processing ---
+
+    // 1. Filter by Vendor first
+    let vendorFilteredOrders: Order[] = allFetchedOrders;
+    if (isVendor && userProfile?.vendorCode) {
+        vendorFilteredOrders = allFetchedOrders.map(order => {
+            const vendorItems = order.items.filter(item => item.vendorName === userProfile.vendorCode);
+            if (vendorItems.length === 0) return null;
+            const subTotal = vendorItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
+            const taxAmount = subTotal * taxRatio;
+            const totalAmount = subTotal + taxAmount;
+            return { ...order, items: vendorItems, subTotal, taxAmount, totalAmount };
+        }).filter((order): order is Order => order !== null);
+    }
+
+    // 2. The Crucial Date Filtering Logic
+    const finalFilteredOrders = vendorFilteredOrders.filter(order => {
+        if (!dateRange?.from || !dateRange?.to) return false;
+        // Determine the effective date based on user's logic
+        const effectiveDate = order.paymentDate ? new Date(order.paymentDate) : new Date(order.timestamp);
+        // Check if this effective date is within the selected filter range
+        return effectiveDate >= startOfDay(dateRange.from) && effectiveDate <= endOfDay(dateRange.to);
+    });
+
+    // 3. Calculate All Stats from the final, correct list of orders
     const successfulStatuses: OrderStatus[] = ['completed', 'processing', 'queue', 'dispatch', 'hold'];
+    const ordersForSalesAnalytics = finalFilteredOrders.filter(order => successfulStatuses.includes(order.status));
     
-    // 1. ordersForAnalytics: Uses vendor-filtered data. No need for extra date filtering here as the API call is already date-filtered.
-    const ordersForAnalytics = vendorFilteredOrders.filter(order => successfulStatuses.includes(order.status));
-    setOrdersInDateRange(ordersForAnalytics); // For PDF export
+    const totalSales = ordersForSalesAnalytics.reduce((sum, order) => sum + order.totalAmount, 0);
+    const totalOrders = finalFilteredOrders.length;
+    const newCustomers = new Set(finalFilteredOrders.map(order => order.gmail).filter(Boolean)).size;
 
-    // --- Perform All Calculations ---
-    // 2. Calculate FINANCIAL stats from `ordersForAnalytics`
-    const salesForRange = ordersForAnalytics.reduce((sum, order) => sum + order.totalAmount, 0);
-    setTotalSales(salesForRange);
-
-    // 3. Calculate GENERAL stats from `vendorFilteredOrders` (all orders in range)
-    const totalOrdersInRange = vendorFilteredOrders.length;
-    const uniqueEmailsInRange = new Set(vendorFilteredOrders.map(order => order.gmail).filter(Boolean));
-    setTotalOrders(totalOrdersInRange);
-    setNewCustomers(uniqueEmailsInRange.size);
-    
-    // 4. Bar Chart Data (from financial data)
-    let activityData: {name: string, date: string, orders: number, sales: number}[] = [];
+    // 4. Generate Chart Data
+    // Bar Chart
+    let activityData: { name: string; date: string; orders: number; sales: number }[] = [];
     const timeZone = 'Asia/Kolkata';
-    const fromDate = dateRange?.from;
-    const toDate = dateRange?.to;
+    if (ordersForSalesAnalytics.length > 0 && dateRange?.from && dateRange?.to) {
+        const fromDate = dateRange.from;
+        const toDate = dateRange.to;
+        if (activityView === 'daily') {
+            const intervalDays = eachDayOfInterval({ start: startOfDay(toZonedTime(fromDate, timeZone)), end: endOfDay(toZonedTime(toDate, timeZone)) });
+            const dayMap = new Map<string, { orders: number; sales: number }>();
+            intervalDays.forEach(day => dayMap.set(format(day, 'yyyy-MM-dd'), { orders: 0, sales: 0 }));
 
-    if (ordersForAnalytics.length > 0 && fromDate && toDate) {
-      if (activityView === 'daily') {
-          const intervalDays = eachDayOfInterval({ start: startOfDay(toZonedTime(fromDate, timeZone)), end: endOfDay(toZonedTime(toDate, timeZone)) });
-          activityData = intervalDays.map(day => ({ name: format(day, 'MMM d'), date: format(day, 'yyyy-MM-dd'), orders: 0, sales: 0 }));
-          ordersForAnalytics.forEach(order => {
-              if (!order.paymentDate) return;
-              try {
-                const paymentDayInIST = startOfDay(toZonedTime(order.paymentDate, timeZone));
-                const paymentDateStr = format(paymentDayInIST, 'yyyy-MM-dd');
-                const dayData = activityData.find(d => d.date === paymentDateStr);
-                if (dayData) { dayData.orders += 1; dayData.sales += order.totalAmount; }
-              } catch {}
-          });
-      } else if (activityView === 'weekly') {
-          const intervalWeeks = eachWeekOfInterval({ start: startOfDay(toZonedTime(fromDate, timeZone)), end: endOfDay(toZonedTime(toDate, timeZone)) }, { weekStartsOn: 1 });
-          activityData = intervalWeeks.map(weekStart => ({ name: format(weekStart, 'MMM d'), date: format(weekStart, 'yyyy-MM-dd'), orders: 0, sales: 0 }));
-          ordersForAnalytics.forEach(order => {
-              if (!order.paymentDate) return;
-              try {
-                const paymentDateInIST = toZonedTime(order.paymentDate, timeZone);
-                const weekStart = startOfWeek(paymentDateInIST, { weekStartsOn: 1 });
+            ordersForSalesAnalytics.forEach(order => {
+                const effectiveDate = order.paymentDate ? new Date(order.paymentDate) : new Date(order.timestamp);
+                const paymentDayStr = format(startOfDay(toZonedTime(effectiveDate, timeZone)), 'yyyy-MM-dd');
+                const dayData = dayMap.get(paymentDayStr);
+                if (dayData) {
+                    dayData.orders += 1;
+                    dayData.sales += order.totalAmount;
+                }
+            });
+            activityData = Array.from(dayMap.entries()).map(([date, data]) => ({ name: format(new Date(date), 'MMM d'), date, ...data }));
+        } else if (activityView === 'weekly') {
+            const intervalWeeks = eachWeekOfInterval({ start: fromDate, end: toDate }, { weekStartsOn: 1 });
+            const weekMap = new Map<string, { orders: number, sales: number }>();
+            intervalWeeks.forEach(weekStart => weekMap.set(format(weekStart, 'yyyy-MM-dd'), { orders: 0, sales: 0 }));
+
+            ordersForSalesAnalytics.forEach(order => {
+                const effectiveDate = order.paymentDate ? new Date(order.paymentDate) : new Date(order.timestamp);
+                const weekStart = startOfWeek(toZonedTime(effectiveDate, timeZone), { weekStartsOn: 1 });
                 const weekKey = format(weekStart, 'yyyy-MM-dd');
-                const weekData = activityData.find(w => w.date === weekKey);
-                if (weekData) { weekData.orders += 1; weekData.sales += order.totalAmount; }
-              } catch {}
-          });
-      } else if (activityView === 'monthly') {
-          const intervalMonths = eachMonthOfInterval({ start: startOfDay(toZonedTime(fromDate, timeZone)), end: endOfDay(toZonedTime(toDate, timeZone)) });
-          activityData = intervalMonths.map(monthStart => ({ name: format(monthStart, 'MMM yyyy'), date: format(monthStart, 'yyyy-MM-dd'), orders: 0, sales: 0 }));
-          ordersForAnalytics.forEach(order => {
-              if (!order.paymentDate) return;
-              try {
-                const paymentDateInIST = toZonedTime(order.paymentDate, timeZone);
-                const monthStart = startOfMonth(paymentDateInIST);
-                const monthKey = format(monthStart, 'yyyy-MM-dd');
-                const monthData = activityData.find(m => m.date === monthKey);
-                if (monthData) { monthData.orders += 1; monthData.sales += order.totalAmount; }
-              } catch {}
-          });
-      }
+                const weekData = weekMap.get(weekKey);
+                if (weekData) {
+                    weekData.orders += 1;
+                    weekData.sales += order.totalAmount;
+                }
+            });
+            activityData = Array.from(weekMap.entries()).map(([date, data]) => ({ name: format(new Date(date), 'MMM d'), date, ...data }));
+        } else { // monthly
+             const intervalMonths = eachMonthOfInterval({ start: fromDate, end: toDate });
+             const monthMap = new Map<string, { orders: number, sales: number }>();
+             intervalMonths.forEach(monthStart => monthMap.set(format(monthStart, 'yyyy-MM'), { orders: 0, sales: 0 }));
+ 
+             ordersForSalesAnalytics.forEach(order => {
+                 const effectiveDate = order.paymentDate ? new Date(order.paymentDate) : new Date(order.timestamp);
+                 const monthKey = format(toZonedTime(effectiveDate, timeZone), 'yyyy-MM');
+                 const monthData = monthMap.get(monthKey);
+                 if (monthData) {
+                     monthData.orders += 1;
+                     monthData.sales += order.totalAmount;
+                 }
+             });
+             activityData = Array.from(monthMap.entries()).map(([date, data]) => ({ name: format(new Date(date), 'MMM yyyy'), date, ...data }));
+        }
     }
-    setWeeklyOrderData(activityData);
 
-    // 5. Pie Chart Data (from general data - vendorFilteredOrders)
-    if (vendorFilteredOrders.length > 0) {
-      const statusCounts: {[key in OrderStatus]?: number} = {};
-      vendorFilteredOrders.forEach(order => {
-        statusCounts[order.status] = (statusCounts[order.status] || 0) + 1;
-      });
-      const salesData = Object.entries(statusCounts)
-        .map(([name, value]) => {
-            const statusKey = name as OrderStatus;
-            const info = statusInfo[statusKey] || { icon: Activity, color: 'bg-gray-400', label: 'Unknown' };
-            return { name: statusKey, value, label: info.label, icon: info.icon, color: info.color };
-        })
-        .sort((a, b) => b.value - a.value);
-      setSalesDetailsData(salesData);
-    } else {
-        setSalesDetailsData([]);
+    // Pie Chart
+    let salesDetailsData: { name: string; value: number; label: string; icon: React.ElementType; color: string }[] = [];
+    if (finalFilteredOrders.length > 0) {
+        const statusCounts: { [key in OrderStatus]?: number } = {};
+        finalFilteredOrders.forEach(order => {
+            statusCounts[order.status] = (statusCounts[order.status] || 0) + 1;
+        });
+        salesDetailsData = Object.entries(statusCounts)
+            .map(([name, value]) => {
+                const statusKey = name as OrderStatus;
+                const info = statusInfo[statusKey] || { icon: Activity, color: 'bg-gray-400', label: 'Unknown' };
+                return { name: statusKey, value, label: info.label, icon: info.icon, color: info.color };
+            })
+            .sort((a, b) => b.value - a.value);
     }
-  }, [vendorFilteredOrders, dateRange, activityView]);
+    
+    // 5. Set the final display state
+    setDisplayData({
+        totalSales,
+        totalOrders,
+        newCustomers,
+        activityData,
+        salesDetailsData,
+        ordersForExport: ordersForSalesAnalytics, // PDF export should be based on sales
+    });
+
+  }, [allFetchedOrders, vendors, isVendor, userProfile, dateRange, activityView, isLoading]);
+
 
   const getFilename = () => {
       const base = 'Sales-Summary';
@@ -341,18 +338,17 @@ function DashboardContent() {
 
     const monthlySales: { [key: string]: number } = {};
     ordersToExport.forEach(order => {
-      if (order.paymentDate) {
+      const effectiveDate = order.paymentDate ? new Date(order.paymentDate) : new Date(order.timestamp);
         try {
-          const paymentDateInIST = toZonedTime(order.paymentDate, 'Asia/Kolkata');
+          const paymentDateInIST = toZonedTime(effectiveDate, 'Asia/Kolkata');
           const monthKey = format(paymentDateInIST, 'MMM yyyy');
           if (!monthlySales[monthKey]) {
             monthlySales[monthKey] = 0;
           }
           monthlySales[monthKey] += order.totalAmount;
         } catch (e) {
-          console.error("Could not parse date for monthly summary:", order.paymentDate, e);
+          console.error("Could not parse date for monthly summary:", effectiveDate, e);
         }
-      }
     });
 
     const monthlySalesRows = Object.entries(monthlySales).map(([month, sales]) => [
@@ -370,7 +366,6 @@ function DashboardContent() {
     const margin = 10;
     let yPos = 20;
 
-    // Header
     doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
     doc.text('Sales Activity Report', pageWidth / 2, yPos, { align: 'center' });
@@ -386,7 +381,6 @@ function DashboardContent() {
     doc.text(dateRangeString, pageWidth - margin, yPos, { align: 'right' });
     yPos += 15;
 
-    // Monthly Summary Table
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.text('Monthly Sales Summary', margin, yPos);
@@ -401,30 +395,13 @@ function DashboardContent() {
       ]],
       startY: yPos,
       theme: 'grid',
-      headStyles: {
-        fillColor: [52, 73, 94], // Dark blue-gray
-        textColor: [255, 255, 255],
-        fontStyle: 'bold',
-      },
-      footStyles: {
-        fillColor: [240, 240, 240], // A light gray
-        textColor: [0, 0, 0],
-        fontStyle: 'bold',
-      },
+      headStyles: { fillColor: [52, 73, 94], textColor: [255, 255, 255], fontStyle: 'bold' },
+      footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold' },
       didParseCell: function (data: any) {
-        // Right align the 'Total Sales' column for both body and footer
-        if (data.column.index === 1) {
-          data.cell.styles.halign = 'right';
-        }
-        // Right align the 'Total' label in the footer
-        if (data.row.section === 'foot' && data.column.index === 0) {
-          data.cell.styles.halign = 'right';
-        }
+        if (data.column.index === 1) { data.cell.styles.halign = 'right'; }
+        if (data.row.section === 'foot' && data.column.index === 0) { data.cell.styles.halign = 'right'; }
       },
-      styles: {
-        font: 'helvetica',
-        fontSize: 10,
-      },
+      styles: { font: 'helvetica', fontSize: 10 },
       margin: { left: margin, right: margin }
     });
     
@@ -433,10 +410,8 @@ function DashboardContent() {
 
   const handleBarClick = (data: any) => {
     if (!data || !data.activePayload || !data.activePayload[0]) return;
-    
     const payload = data.activePayload[0].payload;
     const { name, orders, sales } = payload;
-    
     if (orders > 0) {
       toast({
           title: `Activity for ${name}`,
@@ -456,12 +431,11 @@ function DashboardContent() {
     return null;
   };
 
-
   const StatsCards = () => {
     const cards = [
-      <StatsCard key="sales" title="Total Sale" value={isLoading ? '...' : `₹${totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[0])} />,
-      <StatsCard key="orders" title="Total Orders" value={isLoading ? '...' : totalOrders.toString()} icon={<ShoppingBag className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[1])} />,
-      <StatsCard key="customers" title="New Customers" value={isLoading ? '...' : newCustomers.toLocaleString()} icon={<Users className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[2])} />,
+      <StatsCard key="sales" title="Total Sale" value={isLoading ? '...' : `₹${displayData.totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`} icon={<DollarSign className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[0])} />,
+      <StatsCard key="orders" title="Total Orders" value={isLoading ? '...' : displayData.totalOrders.toString()} icon={<ShoppingBag className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[1])} />,
+      <StatsCard key="customers" title="New Customers" value={isLoading ? '...' : displayData.newCustomers.toLocaleString()} icon={<Users className="h-5 w-5 text-white/70" />} className={cn(gradientStyles[2])} />,
     ];
   
     if (isSuperAdmin) {
@@ -493,24 +467,10 @@ function DashboardContent() {
                   id="date"
                   variant={"outline"}
                   size="sm"
-                  className={cn(
-                    "w-full sm:w-[240px] justify-start text-left font-normal h-9",
-                    !dateRange && "text-muted-foreground"
-                  )}
+                  className={cn("w-full sm:w-[240px] justify-start text-left font-normal h-9", !dateRange && "text-muted-foreground")}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateRange?.from ? (
-                    dateRange.to ? (
-                      <>
-                        {format(dateRange.from, "LLL dd, y")} -{" "}
-                        {format(dateRange.to, "LLL dd, y")}
-                      </>
-                    ) : (
-                      format(dateRange.from, "LLL dd, y")
-                    )
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
+                  {dateRange?.from ? (dateRange.to ? (`${format(dateRange.from, "LLL dd, y")} - ${format(dateRange.to, "LLL dd, y")}`) : format(dateRange.from, "LLL dd, y")) : (<span>Pick a date</span>)}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
@@ -532,8 +492,8 @@ function DashboardContent() {
                 variant="outline"
                 size="sm"
                 className="h-9"
-                disabled={isLoading || ordersInDateRange.length === 0}
-                onClick={() => generateDashboardPdf(ordersInDateRange)}
+                disabled={isLoading || displayData.ordersForExport.length === 0}
+                onClick={() => generateDashboardPdf(displayData.ordersForExport)}
             >
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
                 Download PDF
@@ -554,70 +514,27 @@ function DashboardContent() {
              <CardContent className="pt-2">
                {isLoading ? (
                 <div className="flex items-center justify-center h-[250px]"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>
-               ) : salesDetailsData.length > 0 ? (
+               ) : displayData.salesDetailsData.length > 0 ? (
                 <div>
                   <ResponsiveContainer width="100%" height={200}>
                       <PieChart>
                           <defs>
-                              <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8}/>
-                                  <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.4}/>
-                              </linearGradient>
-                               <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.8}/>
-                                  <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0.4}/>
-                              </linearGradient>
-                               <linearGradient id="colorCustomers" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8}/>
-                                  <stop offset="95%" stopColor="hsl(var(--chart-3))" stopOpacity={0.4}/>
-                              </linearGradient>
-                               <linearGradient id="colorProcessing" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.8}/>
-                                  <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0.4}/>
-                              </linearGradient>
-                              <linearGradient id="colorCancelled" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor="hsl(var(--chart-5))" stopOpacity={0.8}/>
-                                  <stop offset="95%" stopColor="hsl(var(--chart-5))" stopOpacity={0.4}/>
-                              </linearGradient>
+                              <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.4}/></linearGradient>
+                               <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0.4}/></linearGradient>
+                               <linearGradient id="colorCustomers" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--chart-3))" stopOpacity={0.4}/></linearGradient>
+                               <linearGradient id="colorProcessing" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0.4}/></linearGradient>
+                              <linearGradient id="colorCancelled" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--chart-5))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--chart-5))" stopOpacity={0.4}/></linearGradient>
                           </defs>
-                          <Pie
-                              data={salesDetailsData}
-                              cx="50%"
-                              cy="50%"
-                              labelLine={false}
-                              innerRadius={50}
-                              outerRadius={90}
-                              paddingAngle={2}
-                              dataKey="value"
-                              nameKey="label"
-                          >
-                              {salesDetailsData.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={GRADIENT_COLORS[index % GRADIENT_COLORS.length]} />
-                              ))}
+                          <Pie data={displayData.salesDetailsData} cx="50%" cy="50%" labelLine={false} innerRadius={50} outerRadius={90} paddingAngle={2} dataKey="value" nameKey="label">
+                              {displayData.salesDetailsData.map((entry, index) => (<Cell key={`cell-${index}`} fill={GRADIENT_COLORS[index % GRADIENT_COLORS.length]} />))}
                           </Pie>
-                           <Tooltip
-                              contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }}
-                              labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
-                              itemStyle={{ color: 'hsl(var(--foreground))' }}
-                           />
-                            <Label
-                              value={totalOrders}
-                              position="center"
-                              fill="hsl(var(--foreground))"
-                              className="text-3xl font-bold"
-                              dy={-5}
-                              />
-                              <Label
-                              value="Total Orders"
-                              position="center"
-                              dy={15}
-                              fill="hsl(var(--muted-foreground))"
-                              className="text-sm"
-                              />
+                           <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }} labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }} itemStyle={{ color: 'hsl(var(--foreground))' }} />
+                            <Label value={displayData.totalOrders} position="center" fill="hsl(var(--foreground))" className="text-3xl font-bold" dy={-5} />
+                            <Label value="Total Orders" position="center" dy={15} fill="hsl(var(--muted-foreground))" className="text-sm" />
                       </PieChart>
                   </ResponsiveContainer>
                   <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2">
-                    {salesDetailsData.map((entry, index) => (
+                    {displayData.salesDetailsData.map((entry, index) => (
                       <div key={entry.name} className="flex items-center text-sm">
                         <span className="h-2.5 w-2.5 rounded-full mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
                         <span className="text-muted-foreground flex-1">{entry.label}</span>
@@ -638,57 +555,27 @@ function DashboardContent() {
              <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <div className='flex-1'>
                     <CardTitle className="font-headline text-xl">Order Activity</CardTitle>
-                    {dateRange?.from && (
-                       <p className="text-sm text-primary font-bold pt-1">
-                            Sales in Range: ₹{totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}
-                        </p>
-                    )}
+                    {dateRange?.from && (<p className="text-sm text-primary font-bold pt-1">Sales in Range: ₹{displayData.totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}</p>)}
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                     <div className="inline-flex items-center rounded-md bg-muted p-0.5">
-                        <Button
-                            variant={activityView === 'daily' ? "secondary" : "ghost"}
-                            onClick={() => setActivityView('daily')}
-                            size="sm" className="h-7 px-2 text-xs"
-                        >Daily</Button>
-                        <Button
-                            variant={activityView === 'weekly' ? "secondary" : "ghost"}
-                            onClick={() => setActivityView('weekly')}
-                            size="sm" className="h-7 px-2 text-xs"
-                        >Weekly</Button>
-                        <Button
-                            variant={activityView === 'monthly' ? "secondary" : "ghost"}
-                            onClick={() => setActivityView('monthly')}
-                            size="sm" className="h-7 px-2 text-xs"
-                        >Monthly</Button>
+                        <Button variant={activityView === 'daily' ? "secondary" : "ghost"} onClick={() => setActivityView('daily')} size="sm" className="h-7 px-2 text-xs">Daily</Button>
+                        <Button variant={activityView === 'weekly' ? "secondary" : "ghost"} onClick={() => setActivityView('weekly')} size="sm" className="h-7 px-2 text-xs">Weekly</Button>
+                        <Button variant={activityView === 'monthly' ? "secondary" : "ghost"} onClick={() => setActivityView('monthly')} size="sm" className="h-7 px-2 text-xs">Monthly</Button>
                     </div>
                 </div>
             </CardHeader>
             <CardContent className="pt-4">
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={weeklyOrderData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }} onClick={handleBarClick}>
+                <BarChart data={displayData.activityData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }} onClick={handleBarClick}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" vertical={false} />
                   <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} />
                   <YAxis yAxisId="left" dataKey="orders" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }}
-                    labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
-                    itemStyle={{ color: 'hsl(var(--foreground))' }}
-                    cursor={{fill: 'hsl(var(--muted)/0.3)'}}
-                    formatter={(value, name) => {
-                      if (name === 'sales') {
-                        return [`₹${Number(value).toLocaleString('en-IN')}`, 'Sales'];
-                      }
-                      return [value, 'Orders'];
-                    }}
-                  />
+                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }} labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }} itemStyle={{ color: 'hsl(var(--foreground))' }} cursor={{fill: 'hsl(var(--muted)/0.3)'}} formatter={(value, name) => { if (name === 'sales') { return [`₹${Number(value).toLocaleString('en-IN')}`, 'Sales']; } return [value, 'Orders']; }} />
                   <Bar yAxisId="left" dataKey="orders" name="Orders" radius={[4, 4, 0, 0]} className="cursor-pointer">
                     <LabelList dataKey="sales" content={<SalesLabel />} />
-                     {weeklyOrderData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
+                     {displayData.activityData.map((entry, index) => (<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />))}
                   </Bar>
-                  {/* The sales data is now handled by the tooltip formatter, but we need the data in the chart payload */}
                    <Bar yAxisId="left" dataKey="sales" name="sales" className="hidden" />
                 </BarChart>
               </ResponsiveContainer>
@@ -697,14 +584,6 @@ function DashboardContent() {
         </div>
       </div>
     </div>
-  );
-}
-
-export default function DashboardPage() {
-  return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading Dashboard...</div>}>
-      <DashboardContent />
-    </Suspense>
   );
 }
 
