@@ -6,14 +6,14 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DollarSign, Users, ShoppingBag, Activity, ShieldCheck, Store, Crown, Download, Loader2, Calendar as CalendarIcon, CheckCircle, Clock, PackageSearch, Truck, XCircle, Archive, Loader } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label, LabelList } from 'recharts';
 import type { Order, OrderStatus, Vendor, UserProfile } from '@/types';
 import { cn } from '@/lib/utils';
 import { getVendorsFromFirestore, getAllUsers, getCompanyDetailsFromFirestore } from '@/app/auth/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { format, eachDayOfInterval, startOfDay, endOfDay, startOfWeek, eachWeekOfInterval, startOfMonth, eachMonthOfInterval, endOfMonth } from 'date-fns';
+import { format, eachDayOfInterval, startOfDay, endOfDay, startOfWeek, eachWeekOfInterval, startOfMonth, eachMonthOfInterval, endOfMonth, subDays } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import type { DateRange } from "react-day-picker";
 import { useAppContext } from '@/components/layout/app-content-wrapper';
@@ -118,15 +118,17 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+      if (!dateRange?.from) return;
       setIsLoading(true);
       
+      // --- NEW FETCHING LOGIC ---
+      // Fetch a wider range of data from the API based on creation date.
+      const fromDate = subDays(dateRange.from, 30);
+      const toDate = dateRange.to || dateRange.from;
+
       const params = new URLSearchParams();
-      if (dateRange?.from) {
-          params.append('modified_after', format(startOfDay(dateRange.from), "yyyy-MM-dd'T'HH:mm:ss"));
-      }
-      if (dateRange?.to) {
-          params.append('modified_before', format(endOfDay(dateRange.to), "yyyy-MM-dd'T'HH:mm:ss"));
-      }
+      params.append('after', format(startOfDay(fromDate), "yyyy-MM-dd'T'HH:mm:ss"));
+      params.append('before', format(endOfDay(toDate), "yyyy-MM-dd'T'HH:mm:ss"));
 
       const fetchAllOrders = async (): Promise<Order[]> => {
         let orders: Order[] = [];
@@ -184,14 +186,15 @@ export default function DashboardPage() {
   
 
   useEffect(() => {
-    if (isLoading) return; // Don't process until data is fetched
+    if (isLoading || !dateRange?.from) return; // Don't process until data is fetched
 
     // --- Start of Unified Processing ---
 
+    let processedOrders: Order[] = allFetchedOrders;
+
     // 1. Filter by Vendor first
-    let vendorFilteredOrders: Order[] = allFetchedOrders;
     if (isVendor && userProfile?.vendorCode) {
-        vendorFilteredOrders = allFetchedOrders.map(order => {
+        processedOrders = allFetchedOrders.map(order => {
             const vendorItems = order.items.filter(item => item.vendorName === userProfile.vendorCode);
             if (vendorItems.length === 0) return null;
             const subTotal = vendorItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
@@ -202,13 +205,12 @@ export default function DashboardPage() {
         }).filter((order): order is Order => order !== null);
     }
 
-    // 2. The Crucial Date Filtering Logic
-    const finalFilteredOrders = vendorFilteredOrders.filter(order => {
-        if (!dateRange?.from || !dateRange?.to) return false;
-        // Determine the effective date based on user's logic
+    // 2. The Crucial & Final Date Filtering Logic
+    const toDate = dateRange.to || dateRange.from;
+    const finalFilteredOrders = processedOrders.filter(order => {
+        // Prioritize paymentDate for filtering. Fallback to timestamp if not available.
         const effectiveDate = order.paymentDate ? new Date(order.paymentDate) : new Date(order.timestamp);
-        // Check if this effective date is within the selected filter range
-        return effectiveDate >= startOfDay(dateRange.from) && effectiveDate <= endOfDay(dateRange.to);
+        return effectiveDate >= startOfDay(dateRange.from!) && effectiveDate <= endOfDay(toDate);
     });
 
     // 3. Calculate All Stats from the final, correct list of orders
@@ -223,52 +225,60 @@ export default function DashboardPage() {
     // Bar Chart
     let activityData: { name: string; date: string; orders: number; sales: number }[] = [];
     const timeZone = 'Asia/Kolkata';
-    if (ordersForSalesAnalytics.length > 0 && dateRange?.from && dateRange?.to) {
-        const fromDate = dateRange.from;
-        const toDate = dateRange.to;
+    
+    const fromChartDate = dateRange.from;
+    const toChartDate = toDate;
+
+    if (finalFilteredOrders.length > 0) {
         if (activityView === 'daily') {
-            const intervalDays = eachDayOfInterval({ start: startOfDay(toZonedTime(fromDate, timeZone)), end: endOfDay(toZonedTime(toDate, timeZone)) });
+            const intervalDays = eachDayOfInterval({ start: startOfDay(toZonedTime(fromChartDate, timeZone)), end: endOfDay(toZonedTime(toChartDate, timeZone)) });
             const dayMap = new Map<string, { orders: number; sales: number }>();
             intervalDays.forEach(day => dayMap.set(format(day, 'yyyy-MM-dd'), { orders: 0, sales: 0 }));
 
-            ordersForSalesAnalytics.forEach(order => {
+            finalFilteredOrders.forEach(order => {
                 const effectiveDate = order.paymentDate ? new Date(order.paymentDate) : new Date(order.timestamp);
                 const paymentDayStr = format(startOfDay(toZonedTime(effectiveDate, timeZone)), 'yyyy-MM-dd');
                 const dayData = dayMap.get(paymentDayStr);
                 if (dayData) {
                     dayData.orders += 1;
-                    dayData.sales += order.totalAmount;
+                    if(successfulStatuses.includes(order.status)) {
+                      dayData.sales += order.totalAmount;
+                    }
                 }
             });
             activityData = Array.from(dayMap.entries()).map(([date, data]) => ({ name: format(new Date(date), 'MMM d'), date, ...data }));
         } else if (activityView === 'weekly') {
-            const intervalWeeks = eachWeekOfInterval({ start: fromDate, end: toDate }, { weekStartsOn: 1 });
+            const intervalWeeks = eachWeekOfInterval({ start: fromChartDate, end: toChartDate }, { weekStartsOn: 1 });
             const weekMap = new Map<string, { orders: number, sales: number }>();
             intervalWeeks.forEach(weekStart => weekMap.set(format(weekStart, 'yyyy-MM-dd'), { orders: 0, sales: 0 }));
 
-            ordersForSalesAnalytics.forEach(order => {
+            finalFilteredOrders.forEach(order => {
                 const effectiveDate = order.paymentDate ? new Date(order.paymentDate) : new Date(order.timestamp);
                 const weekStart = startOfWeek(toZonedTime(effectiveDate, timeZone), { weekStartsOn: 1 });
                 const weekKey = format(weekStart, 'yyyy-MM-dd');
                 const weekData = weekMap.get(weekKey);
                 if (weekData) {
                     weekData.orders += 1;
-                    weekData.sales += order.totalAmount;
+                    if(successfulStatuses.includes(order.status)) {
+                      weekData.sales += order.totalAmount;
+                    }
                 }
             });
             activityData = Array.from(weekMap.entries()).map(([date, data]) => ({ name: format(new Date(date), 'MMM d'), date, ...data }));
         } else { // monthly
-             const intervalMonths = eachMonthOfInterval({ start: fromDate, end: toDate });
+             const intervalMonths = eachMonthOfInterval({ start: fromChartDate, end: toChartDate });
              const monthMap = new Map<string, { orders: number, sales: number }>();
              intervalMonths.forEach(monthStart => monthMap.set(format(monthStart, 'yyyy-MM'), { orders: 0, sales: 0 }));
  
-             ordersForSalesAnalytics.forEach(order => {
+             finalFilteredOrders.forEach(order => {
                  const effectiveDate = order.paymentDate ? new Date(order.paymentDate) : new Date(order.timestamp);
                  const monthKey = format(toZonedTime(effectiveDate, timeZone), 'yyyy-MM');
                  const monthData = monthMap.get(monthKey);
                  if (monthData) {
                      monthData.orders += 1;
-                     monthData.sales += order.totalAmount;
+                     if(successfulStatuses.includes(order.status)) {
+                        monthData.sales += order.totalAmount;
+                     }
                  }
              });
              activityData = Array.from(monthMap.entries()).map(([date, data]) => ({ name: format(new Date(date), 'MMM yyyy'), date, ...data }));
@@ -286,7 +296,7 @@ export default function DashboardPage() {
             .map(([name, value]) => {
                 const statusKey = name as OrderStatus;
                 const info = statusInfo[statusKey] || { icon: Activity, color: 'bg-gray-400', label: 'Unknown' };
-                return { name: statusKey, value, label: info.label, icon: info.icon, color: info.color };
+                return { name: statusKey, value: value!, label: info.label, icon: info.icon, color: info.color };
             })
             .sort((a, b) => b.value - a.value);
     }

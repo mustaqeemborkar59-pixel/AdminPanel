@@ -34,7 +34,7 @@ import { OrderListItem } from '@/components/orders/order-list-item';
 import { Accordion } from '@/components/ui/accordion';
 import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
-import { startOfDay, endOfDay } from 'date-fns';
+import { startOfDay, endOfDay, subDays } from 'date-fns';
 import { useAppContext } from '@/components/layout/app-content-wrapper';
 import type { Order, OrderStatus, Vendor } from '@/types';
 import type { DateRange } from "react-day-picker";
@@ -111,7 +111,7 @@ export default function OrdersPage() {
 
   const fetchAllData = useCallback(async () => {
     // Do not fetch if date range is not set yet (during initial client-side hydration)
-    if (!dateRange) {
+    if (!dateRange?.from) {
         return;
     }
     setIsLoading(true);
@@ -136,8 +136,13 @@ export default function OrdersPage() {
       baseParams.append('search', appliedSearchTerm);
     }
     baseParams.append('status', statusFilter === 'any' ? 'any' : statusFilter);
+    
+    // --- NEW FETCHING LOGIC ---
+    // Fetch a wider range of data from the API based on creation date.
+    // This ensures we get older orders that might have been paid within the selected range.
     if (dateRange?.from) {
-      baseParams.append('after', format(startOfDay(dateRange.from), "yyyy-MM-dd'T'HH:mm:ss"));
+      const fromDate = subDays(dateRange.from, 30); // Fetch last 30 days of data prior to start
+      baseParams.append('after', format(startOfDay(fromDate), "yyyy-MM-dd'T'HH:mm:ss"));
     }
     if (dateRange?.to) {
       baseParams.append('before', format(endOfDay(dateRange.to), "yyyy-MM-dd'T'HH:mm:ss"));
@@ -212,11 +217,23 @@ export default function OrdersPage() {
   }, [fetchAllData, authLoading]);
 
   const displayedOrders = useMemo(() => {
+    // Start with all fetched orders
     let ordersToDisplay: Order[] = [...orders];
+    
+    // --- NEW STRICT FILTERING LOGIC ---
+    // Apply the strict date filter on the client side.
+    if (dateRange?.from) {
+        const toDate = dateRange.to || dateRange.from;
+        ordersToDisplay = ordersToDisplay.filter(order => {
+            // Prioritize paymentDate for filtering. Fallback to timestamp if not available.
+            const effectiveDate = order.paymentDate ? new Date(order.paymentDate) : new Date(order.timestamp);
+            return effectiveDate >= startOfDay(dateRange.from!) && effectiveDate <= endOfDay(toDate);
+        });
+    }
 
     // If user is a vendor, filter their orders and recalculate totals
     if (userProfile?.role === 'vendor' && userProfile.vendorCode) {
-      ordersToDisplay = orders.map(order => {
+      ordersToDisplay = ordersToDisplay.map(order => {
           const vendorItems = order.items.filter(item => item.vendorName === userProfile.vendorCode);
           if (vendorItems.length === 0) return null; // This order has no items for this vendor
 
@@ -245,7 +262,7 @@ export default function OrdersPage() {
     }
     
     return ordersToDisplay;
-  }, [orders, userProfile, vendorFilter]);
+  }, [orders, userProfile, vendorFilter, dateRange]);
   
   const vendorOrderCounts = useMemo(() => {
     const counts: { [key: string]: number } = {};
