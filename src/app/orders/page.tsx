@@ -84,9 +84,8 @@ export default function OrdersPage() {
     // This effect runs once on component mount to set the initial date range safely on the client-side.
     // It avoids hydration errors caused by server/client date mismatch.
     const today = new Date();
-    const initialRange = { from: startOfDay(today), to: endOfDay(today) };
-    setDateRange(initialRange);
-    setTempDateRange(initialRange); // Also sync temp state
+    setDateRange({ from: startOfDay(today), to: endOfDay(today) });
+    setTempDateRange({ from: startOfDay(today), to: endOfDay(today) });
   }, []);
 
   const activePlanId = userProfile?.activePlanId;
@@ -211,33 +210,47 @@ export default function OrdersPage() {
   }, [toast, appliedSearchTerm, statusFilter, dateRange, userProfile?.role]);
 
   useEffect(() => {
-    if (!authLoading) {
+    if (!authLoading && dateRange) {
       fetchAllData();
     }
-  }, [fetchAllData, authLoading]);
+  }, [fetchAllData, authLoading, dateRange]);
 
-  const displayedOrders = useMemo(() => {
-    // Start with all fetched orders
-    let ordersToDisplay: Order[] = [...orders];
-    
-    // --- NEW STRICT FILTERING LOGIC ---
-    // Apply the strict date filter on the client side.
+  const ordersFilteredByDate = useMemo(() => {
+    let ordersToFilter: Order[] = [...orders];
+
     if (dateRange?.from) {
-        const toDate = dateRange.to || dateRange.from;
-        ordersToDisplay = ordersToDisplay.filter(order => {
-            // Prioritize paymentDate for filtering. Fallback to timestamp if not available.
-            const effectiveDate = order.paymentDate ? new Date(order.paymentDate) : new Date(order.timestamp);
-            return effectiveDate >= startOfDay(dateRange.from!) && effectiveDate <= endOfDay(toDate);
-        });
+      const toDate = dateRange.to || dateRange.from;
+      ordersToFilter = ordersToFilter.filter(order => {
+        const effectiveDate = order.paymentDate ? new Date(order.paymentDate) : new Date(order.timestamp);
+        return effectiveDate >= startOfDay(dateRange.from!) && effectiveDate <= endOfDay(toDate);
+      });
     }
 
-    // If user is a vendor, filter their orders and recalculate totals
-    if (userProfile?.role === 'vendor' && userProfile.vendorCode) {
-      ordersToDisplay = ordersToDisplay.map(order => {
-          const vendorItems = order.items.filter(item => item.vendorName === userProfile.vendorCode);
-          if (vendorItems.length === 0) return null; // This order has no items for this vendor
+    return ordersToFilter;
+  }, [orders, dateRange]);
 
-          // Recalculate totals based on only this vendor's items
+  const vendorOrderCounts = useMemo(() => {
+    const counts: { [key: string]: number } = {};
+    if (userProfile?.role === 'vendor') {
+        return {};
+    }
+    ordersFilteredByDate.forEach(order => {
+        const orderVendors = new Set(order.items.map(i => i.vendorName).filter(Boolean));
+        orderVendors.forEach(vendorCode => {
+            counts[vendorCode as string] = (counts[vendorCode as string] || 0) + 1;
+        });
+    });
+    return counts;
+  }, [ordersFilteredByDate, userProfile?.role]);
+
+  const displayedOrders = useMemo(() => {
+    let ordersToDisplay = [...ordersFilteredByDate];
+    
+    if (userProfile?.role === 'vendor' && userProfile.vendorCode) {
+      return ordersToDisplay.map(order => {
+          const vendorItems = order.items.filter(item => item.vendorName === userProfile.vendorCode);
+          if (vendorItems.length === 0) return null;
+
           const subTotal = vendorItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
           const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
           const taxAmount = subTotal * taxRatio;
@@ -246,13 +259,11 @@ export default function OrdersPage() {
       }).filter((order): order is Order => order !== null);
     }
     
-    // If admin is filtering by vendor
     if ((userProfile?.role === 'admin' || userProfile?.role === 'super-admin') && vendorFilter !== 'any') {
-      ordersToDisplay = ordersToDisplay.map(order => {
+      return ordersToDisplay.map(order => {
           const vendorItems = order.items.filter(item => item.vendorName === vendorFilter);
           if (vendorItems.length === 0) return null;
           
-          // Recalculate totals for display
           const subTotal = vendorItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
           const taxRatio = order.subTotal > 0 ? order.taxAmount / order.subTotal : 0;
           const taxAmount = subTotal * taxRatio;
@@ -262,18 +273,7 @@ export default function OrdersPage() {
     }
     
     return ordersToDisplay;
-  }, [orders, userProfile, vendorFilter, dateRange]);
-  
-  const vendorOrderCounts = useMemo(() => {
-    const counts: { [key: string]: number } = {};
-    orders.forEach(order => {
-        const orderVendors = new Set(order.items.map(i => i.vendorName).filter(Boolean));
-        orderVendors.forEach(vendorCode => {
-            counts[vendorCode as string] = (counts[vendorCode as string] || 0) + 1;
-        });
-    });
-    return counts;
-  }, [orders]);
+  }, [ordersFilteredByDate, userProfile, vendorFilter]);
 
 
   const handleUpdateStatus = async (orderId: string, status: OrderStatus) => {
@@ -313,8 +313,11 @@ export default function OrdersPage() {
     setAppliedSearchTerm('');
     setStatusFilter('any');
     setVendorFilter('any');
-    setDateRange(undefined);
-    setTempDateRange(undefined);
+    
+    const today = new Date();
+    const initialRange = { from: startOfDay(today), to: endOfDay(today) };
+    setDateRange(initialRange);
+    setTempDateRange(initialRange);
   }
 
   const handleDateApply = () => {
