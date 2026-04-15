@@ -51,6 +51,7 @@ const statusInfo: Record<OrderStatus, { icon: React.ElementType; color: string; 
   queue: { icon: Clock, color: 'bg-blue-500', label: 'In Queue' },
   processing: { icon: Loader, color: 'bg-purple-500', label: 'Processing' },
   dispatch: { icon: Truck, color: 'bg-indigo-500', label: 'Dispatched' },
+  'in-transit': { icon: Truck, color: 'bg-cyan-500', label: 'In Transit' },
   completed: { icon: CheckCircle, color: 'bg-green-500', label: 'Completed' },
   hold: { icon: Archive, color: 'bg-orange-500', label: 'On Hold' },
   failed: { icon: XCircle, color: 'bg-red-500', label: 'Failed' },

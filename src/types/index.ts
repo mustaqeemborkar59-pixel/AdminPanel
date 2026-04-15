@@ -23,7 +23,7 @@ export interface OrderItem {
   vendorName?: string;
 }
 
-export type OrderStatus = 'pending' | 'failed' | 'cancelled' | 'queue' | 'processing' | 'completed' | 'hold' | 'dispatch';
+export type OrderStatus = 'pending' | 'failed' | 'cancelled' | 'queue' | 'processing' | 'completed' | 'hold' | 'dispatch' | 'in-transit';
 export type OrderType = 'delivery' | 'takeaway' | 'dine-in';
 
 export interface Order {

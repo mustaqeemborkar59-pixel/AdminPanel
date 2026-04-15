@@ -50,6 +50,7 @@ const mapWCOrderToAppOrder = (order: any): Order | null => {
       'pending': 'pending', 'processing': 'processing', 'on-hold': 'hold',
       'completed': 'completed', 'cancelled': 'cancelled', 'failed': 'failed',
       'refunded': 'failed', 'queue': 'queue', 'dispatch': 'dispatch',
+      'wc-in-transit': 'in-transit',
     };
     const appStatus = statusMap[order.status] || 'pending';
 
@@ -112,7 +113,7 @@ export async function GET(request: Request) {
     } else {
       // To be robust against server default configs, if 'any' or no status is specified,
       // explicitly request all main statuses.
-      params.status = ['pending', 'processing', 'on-hold', 'completed', 'cancelled', 'failed'].join(',');
+      params.status = ['pending', 'processing', 'on-hold', 'completed', 'cancelled', 'failed', 'queue', 'dispatch', 'wc-in-transit'].join(',');
     }
     
     // For creation date filtering (used on Orders page)
