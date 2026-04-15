@@ -96,14 +96,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
   
-  // STEP 3: Manually construct the API call
+  // Use Basic Auth header instead of query parameters for better security and compatibility
+  const authHeader = `Basic ${Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64')}`;
+
   const { searchParams } = new URL(request.url);
   const apiParams = new URLSearchParams({
     per_page: '100',
     orderby: 'date',
     order: 'desc',
-    consumer_key: consumerKey,
-    consumer_secret: consumerSecret,
+    // DO NOT include consumer_key and consumer_secret here anymore
   });
 
   // Forward relevant params from the client to the WooCommerce API
@@ -125,7 +126,9 @@ export async function GET(request: Request) {
   let response;
   try {
     response = await fetch(requestUrl, {
-        // Prevent caching of API responses
+        headers: {
+            Authorization: authHeader,
+        },
         cache: 'no-store',
     });
   } catch (networkError: any) {
@@ -133,13 +136,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: `Network error while trying to connect to your store. Please check the server's internet connection and the store URL. Details: ${networkError.message}` }, { status: 500 });
   }
 
-  // STEP 3 & 5: Read response as text first to check for HTML
+  // Read response as text first to check for HTML
   const responseText = await response.text();
+
+  // Log raw response for debugging
+  console.log("Raw WooCommerce Response:", responseText.substring(0, 500) + (responseText.length > 500 ? '...' : ''));
 
   if (responseText.trim().startsWith('<')) {
     console.error("Received HTML response instead of JSON from WooCommerce. URL:", storeUrl);
-    console.error("Raw HTML Response:", responseText.substring(0, 500) + '...'); // Log first 500 chars
-    const errorMessage = `The WooCommerce API returned an HTML page instead of JSON data. This usually means the 'WOOCOMMERCE_STORE_URL' is incorrect, or a plugin/server issue is interfering. Please verify the URL is your base WordPress URL (e.g., https://yourstore.com).`;
+    const errorMessage = `The WooCommerce API returned an HTML page instead of JSON data. This usually means the 'WOOCOMMERCE_STORE_URL' in your .env file is incorrect, or a plugin/server issue is interfering. Please verify the URL is your base WordPress URL (e.g., https://yourstore.com) and that your Permalink settings are set to 'Post name'.`;
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 
@@ -148,7 +153,6 @@ export async function GET(request: Request) {
     fetchedOrders = JSON.parse(responseText);
   } catch (jsonError) {
     console.error("Failed to parse JSON response from WooCommerce.");
-    console.error("Raw Response Text:", responseText);
     const errorMessage = `The WooCommerce API returned a response that was not valid JSON. This could indicate a server error on your store's side. Please check your WooCommerce status logs.`;
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
@@ -158,12 +162,11 @@ export async function GET(request: Request) {
       console.error("WooCommerce API Error:", fetchedOrders);
       let detail = fetchedOrders.message;
       if (fetchedOrders.code === 'woocommerce_rest_authentication_error') {
-          detail = "Authentication failed. Please check your Consumer Key and Secret.";
+          detail = "Authentication failed. The Consumer Key or Secret is incorrect.";
       }
       return NextResponse.json({ error: `WooCommerce API Error: ${detail}` }, { status: 500 });
   }
 
-  // STEP 3: Map and return the data
   const mappedOrders = (fetchedOrders as any[])
     .map(order => mapWCOrderToAppOrder(order))
     .filter((order): order is Order => order !== null);

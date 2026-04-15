@@ -3301,6 +3301,106 @@ function OrdersPage() {
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "mt-4 p-4 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-500/50 rounded-md",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                                                className: "font-bold text-yellow-800 dark:text-yellow-300",
+                                                children: "Important: Check your Store URL"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/app/orders/page.tsx",
+                                                lineNumber: 643,
+                                                columnNumber: 21
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                className: "text-sm text-yellow-700 dark:text-yellow-400 mt-1",
+                                                children: [
+                                                    'The error "not valid JSON" or "Unexpected token" almost always means your ',
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                        children: "WOOCOMMERCE_STORE_URL"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/src/app/orders/page.tsx",
+                                                        lineNumber: 645,
+                                                        columnNumber: 99
+                                                    }, this),
+                                                    " in the ",
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("code", {
+                                                        children: ".env"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/src/app/orders/page.tsx",
+                                                        lineNumber: 645,
+                                                        columnNumber: 145
+                                                    }, this),
+                                                    " file is wrong. It's likely pointing to a webpage instead of the base site address."
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "[project]/src/app/orders/page.tsx",
+                                                lineNumber: 644,
+                                                columnNumber: 21
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
+                                                className: "text-xs mt-2 list-disc list-inside text-yellow-700 dark:text-yellow-400 space-y-1",
+                                                children: [
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                        children: [
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                                children: "Correct format:"
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/src/app/orders/page.tsx",
+                                                                lineNumber: 648,
+                                                                columnNumber: 29
+                                                            }, this),
+                                                            " https://yourstore.com"
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "[project]/src/app/orders/page.tsx",
+                                                        lineNumber: 648,
+                                                        columnNumber: 25
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                        children: [
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                                children: "Incorrect format:"
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/src/app/orders/page.tsx",
+                                                                lineNumber: 649,
+                                                                columnNumber: 29
+                                                            }, this),
+                                                            " https://yourstore.com/shop"
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "[project]/src/app/orders/page.tsx",
+                                                        lineNumber: 649,
+                                                        columnNumber: 25
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                        children: [
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("strong", {
+                                                                children: "Incorrect format:"
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/src/app/orders/page.tsx",
+                                                                lineNumber: 650,
+                                                                columnNumber: 29
+                                                            }, this),
+                                                            " https://yourstore.com/wp-admin"
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "[project]/src/app/orders/page.tsx",
+                                                        lineNumber: 650,
+                                                        columnNumber: 25
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "[project]/src/app/orders/page.tsx",
+                                                lineNumber: 647,
+                                                columnNumber: 21
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/src/app/orders/page.tsx",
+                                        lineNumber: 642,
+                                        columnNumber: 17
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "border-t pt-4",
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -3308,7 +3408,7 @@ function OrdersPage() {
                                                 children: "How to Fix This:"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/orders/page.tsx",
-                                                lineNumber: 642,
+                                                lineNumber: 655,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ol", {
@@ -3322,14 +3422,14 @@ function OrdersPage() {
                                                                 children: ".env"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/orders/page.tsx",
-                                                                lineNumber: 645,
+                                                                lineNumber: 658,
                                                                 columnNumber: 32
                                                             }, this),
                                                             " file from the file explorer on the left."
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/orders/page.tsx",
-                                                        lineNumber: 644,
+                                                        lineNumber: 657,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
@@ -3342,33 +3442,33 @@ function OrdersPage() {
                                                                         children: "WOOCOMMERCE_STORE_URL=..."
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/orders/page.tsx",
-                                                                        lineNumber: 650,
+                                                                        lineNumber: 663,
                                                                         columnNumber: 25
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
                                                                         children: "WOOCOMMERCE_CONSUMER_KEY=..."
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/orders/page.tsx",
-                                                                        lineNumber: 651,
+                                                                        lineNumber: 664,
                                                                         columnNumber: 25
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
                                                                         children: "WOOCOMMERCE_CONSUMER_SECRET=..."
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/orders/page.tsx",
-                                                                        lineNumber: 652,
+                                                                        lineNumber: 665,
                                                                         columnNumber: 25
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/app/orders/page.tsx",
-                                                                lineNumber: 649,
+                                                                lineNumber: 662,
                                                                 columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/orders/page.tsx",
-                                                        lineNumber: 647,
+                                                        lineNumber: 660,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
@@ -3379,26 +3479,26 @@ function OrdersPage() {
                                                                 children: ".env"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/orders/page.tsx",
-                                                                lineNumber: 655,
+                                                                lineNumber: 668,
                                                                 columnNumber: 42
                                                             }, this),
                                                             " file, click the button below to try again."
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/orders/page.tsx",
-                                                        lineNumber: 655,
+                                                        lineNumber: 668,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/app/orders/page.tsx",
-                                                lineNumber: 643,
+                                                lineNumber: 656,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/orders/page.tsx",
-                                        lineNumber: 641,
+                                        lineNumber: 654,
                                         columnNumber: 17
                                     }, this)
                                 ]
@@ -3416,19 +3516,19 @@ function OrdersPage() {
                                             className: "mr-2 h-4 w-4 animate-spin"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/orders/page.tsx",
-                                            lineNumber: 661,
+                                            lineNumber: 674,
                                             columnNumber: 36
                                         }, this) : null,
                                         "Retry Connection"
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/orders/page.tsx",
-                                    lineNumber: 660,
+                                    lineNumber: 673,
                                     columnNumber: 19
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/app/orders/page.tsx",
-                                lineNumber: 659,
+                                lineNumber: 672,
                                 columnNumber: 15
                             }, this)
                         ]
@@ -3449,7 +3549,7 @@ function OrdersPage() {
                             children: "No Orders Found"
                         }, void 0, false, {
                             fileName: "[project]/src/app/orders/page.tsx",
-                            lineNumber: 669,
+                            lineNumber: 682,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3457,13 +3557,13 @@ function OrdersPage() {
                             children: "Try adjusting your filters to find what you're looking for."
                         }, void 0, false, {
                             fileName: "[project]/src/app/orders/page.tsx",
-                            lineNumber: 670,
+                            lineNumber: 683,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/orders/page.tsx",
-                    lineNumber: 668,
+                    lineNumber: 681,
                     columnNumber: 11
                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$accordion$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Accordion"], {
                     type: "multiple",
@@ -3480,12 +3580,12 @@ function OrdersPage() {
                             canUpdateStatus: canUpdateStatus
                         }, order.id, false, {
                             fileName: "[project]/src/app/orders/page.tsx",
-                            lineNumber: 675,
+                            lineNumber: 688,
                             columnNumber: 17
                         }, this))
                 }, void 0, false, {
                     fileName: "[project]/src/app/orders/page.tsx",
-                    lineNumber: 673,
+                    lineNumber: 686,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
