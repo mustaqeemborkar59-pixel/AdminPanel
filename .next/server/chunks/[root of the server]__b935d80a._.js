@@ -100,7 +100,7 @@ const mapWCOrderToAppOrder = (order)=>{
             'refunded': 'failed',
             'queue': 'queue',
             'dispatch': 'dispatch',
-            'wc-in-transit': 'in-transit'
+            'in-transit': 'in-transit'
         };
         const appStatus = statusMap[order.status] || 'pending';
         const formatAddress = (addr)=>{

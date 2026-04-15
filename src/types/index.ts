@@ -48,7 +48,8 @@ export interface Order {
   subTotal: number;
   taxAmount: number;
   timestamp: string; // ISO string
-  paymentMethod?: 'cash' | 'card' | 'qr';
+  paymentMethod?: string;
+  paymentMethodTitle?: string;
   tableNumber?: string;
   paymentDate?: string | null;
   vendorName?: string;

@@ -1,3 +1,4 @@
+
 "use client";
 import React, { useState } from 'react';
 import { type Order, type OrderStatus, type UpdateOrderAddressPayload, UserProfile } from '@/types';
@@ -346,6 +347,13 @@ export function OrderListItem({ order, onUpdateStatus, value, isSelected, onTogg
                                     <Edit className="h-4 w-4" />
                                 </Button>
                             </div>
+                        )}
+                        
+                        {order.paymentMethodTitle && (
+                          <div className="flex justify-between">
+                              <span className="font-medium text-foreground">Payment Method:</span>
+                              <span className="text-right font-medium text-primary">{order.paymentMethodTitle}</span>
+                          </div>
                         )}
 
                         {order.trackingId && (

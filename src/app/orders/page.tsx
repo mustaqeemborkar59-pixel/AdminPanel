@@ -135,7 +135,8 @@ export default function OrdersPage() {
     if (appliedSearchTerm) {
       baseParams.append('search', appliedSearchTerm);
     }
-    baseParams.append('status', statusFilter === 'any' ? 'any' : statusFilter);
+    // Always fetch all statuses from the API; filtering will be done on the client
+    baseParams.append('status', 'any');
     
     // --- NEW FETCHING LOGIC ---
     // Fetch a wider range of data from the API based on creation date.
@@ -209,7 +210,7 @@ export default function OrdersPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [toast, appliedSearchTerm, statusFilter, dateRange, userProfile?.role]);
+  }, [toast, appliedSearchTerm, dateRange, userProfile?.role]);
 
   useEffect(() => {
     if (!authLoading && dateRange) {
@@ -248,6 +249,11 @@ export default function OrdersPage() {
   const displayedOrders = useMemo(() => {
     let ordersToDisplay = [...ordersFilteredByDate];
     
+    // Apply status filter on the client-side
+    if (statusFilter !== 'any') {
+      ordersToDisplay = ordersToDisplay.filter(order => order.status === statusFilter);
+    }
+    
     if (userProfile?.role === 'vendor' && userProfile.vendorCode) {
       return ordersToDisplay.map(order => {
           const vendorItems = order.items.filter(item => item.vendorName === userProfile.vendorCode);
@@ -275,7 +281,7 @@ export default function OrdersPage() {
     }
     
     return ordersToDisplay;
-  }, [ordersFilteredByDate, userProfile, vendorFilter]);
+  }, [ordersFilteredByDate, userProfile, vendorFilter, statusFilter]);
 
 
   const handleUpdateStatus = async (orderId: string, status: OrderStatus) => {
@@ -416,6 +422,7 @@ export default function OrdersPage() {
           'Order ID': order.id,
           'Status': order.status,
           'Payment Date': order.paymentDate ? formatDateWithTimezone(order.paymentDate) : 'N/A',
+          'Payment Method': order.paymentMethodTitle || 'N/A',
           'Customer Name': order.customerName,
           'Email ID': order.gmail,
           'Phone': order.phone,
@@ -434,6 +441,7 @@ export default function OrdersPage() {
         'Order ID': order.id,
         'Status': order.status,
         'Payment Date': order.paymentDate ? formatDateWithTimezone(order.paymentDate) : 'N/A',
+        'Payment Method': order.paymentMethodTitle || 'N/A',
         'Customer Name': order.customerName,
         'Email ID': order.gmail,
         'Phone': order.phone,

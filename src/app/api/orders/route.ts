@@ -65,7 +65,8 @@ const mapWCOrderToAppOrder = (order: any): Order | null => {
       taxAmount: parseFloat(order.total_tax || '0'),
       subTotal: subTotal,
       timestamp: order.date_created_gmt ? `${order.date_created_gmt}Z` : new Date().toISOString(),
-      paymentMethod: 'card',
+      paymentMethod: order.payment_method, // The slug e.g. "cod"
+      paymentMethodTitle: order.payment_method_title, // The title e.g. "Cash on Delivery"
       paymentDate: order.date_paid_gmt ? `${order.date_paid_gmt}Z` : null,
       vendorName: lineItems.length > 0 ? lineItems[0].vendorName : undefined,
     };
