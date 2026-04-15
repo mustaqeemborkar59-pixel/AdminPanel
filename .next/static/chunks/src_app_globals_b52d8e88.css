@@ -1046,6 +1046,10 @@ input, button, textarea, select {
   max-width: 24rem;
 }
 
+.max-w-2xl {
+  max-width: 42rem;
+}
+
 .flex-1 {
   flex: 1;
 }
@@ -1142,6 +1146,18 @@ input, button, textarea, select {
 
 .select-none {
   user-select: none;
+}
+
+.list-inside {
+  list-style-position: inside;
+}
+
+.list-decimal {
+  list-style-type: decimal;
+}
+
+.list-disc {
+  list-style-type: disc;
 }
 
 .grid-cols-1 {
@@ -1330,6 +1346,10 @@ input, button, textarea, select {
 
 .whitespace-nowrap {
   white-space: nowrap;
+}
+
+.whitespace-pre-wrap {
+  white-space: pre-wrap;
 }
 
 .break-words {
@@ -1652,6 +1672,10 @@ input, button, textarea, select {
 
 .bg-cyan-500\/80 {
   background-color: #06b6d4cc;
+}
+
+.bg-destructive\/5 {
+  background-color: hsl(var(--destructive) / .05);
 }
 
 .bg-gradient-to-br {
@@ -2144,6 +2168,10 @@ input, button, textarea, select {
 
 .text-white\/80 {
   color: #fffc;
+}
+
+.text-destructive\/90 {
+  color: hsl(var(--destructive) / .9);
 }
 
 .line-through {

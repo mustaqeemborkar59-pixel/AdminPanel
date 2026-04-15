@@ -6,7 +6,7 @@ import { updateOrderStatusInWooCommerce } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { getVendorsFromFirestore } from '@/app/auth/actions';
 import { Loader2, AlertTriangle, FileDown, Search, Calendar as CalendarIcon, X as XIcon, PackageSearch, Clock, Loader, Truck, CheckCircle, Archive, XCircle, Store } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -613,31 +613,59 @@ export default function OrdersPage() {
         </div>
       </div>
       
-      <div className="flex-1 p-4 md:p-6 overflow-auto">
+      <div className="flex-1 p-4 md:p-6 overflow-auto flex flex-col">
         {isLoading ? (
-          <div className="flex justify-center items-center h-full">
+          <div className="flex-1 flex justify-center items-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="ml-4 text-muted-foreground">Fetching data...</p>
           </div>
         ) : error ? (
-          <Card className="border-destructive bg-destructive/10">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-destructive">
-                <AlertTriangle /> Fetch Error
-              </CardTitle>
-              <CardDescription className="text-destructive/80">
-                There was a problem communicating with the server.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="font-semibold">Error Details:</p>
-              <pre className="mt-2 p-3 bg-destructive/10 border border-destructive/20 rounded-md text-sm text-destructive font-mono">
-                {error}
-              </pre>
-            </CardContent>
-          </Card>
+          <div className="flex-1 flex items-center justify-center">
+            <Card className="w-full max-w-2xl border-destructive bg-destructive/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3 text-destructive">
+                  <AlertTriangle className="h-8 w-8" />
+                  Connection Failed
+                </CardTitle>
+                <CardDescription className="text-destructive/90">
+                  The application could not connect to your WooCommerce store to fetch orders. This is usually due to missing or incorrect API settings.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="font-semibold text-foreground">Error Details:</p>
+                  <pre className="mt-2 p-3 bg-destructive/10 border border-destructive/20 rounded-md text-sm text-destructive font-mono whitespace-pre-wrap">
+                    {error}
+                  </pre>
+                </div>
+                <div className="border-t pt-4">
+                  <h3 className="font-semibold text-foreground mb-2">How to Fix This:</h3>
+                  <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+                    <li>
+                      Open the <code className="font-mono bg-muted px-1.5 py-0.5 rounded">.env</code> file from the file explorer on the left.
+                    </li>
+                    <li>
+                      Fill in the correct values for your WooCommerce store:
+                      <ul className="list-disc list-inside ml-4 mt-2 font-mono text-xs text-foreground bg-background p-3 rounded-md border">
+                        <li>WOOCOMMERCE_STORE_URL=...</li>
+                        <li>WOOCOMMERCE_CONSUMER_KEY=...</li>
+                        <li>WOOCOMMERCE_CONSUMER_SECRET=...</li>
+                      </ul>
+                    </li>
+                    <li>After saving the <code className="font-mono bg-muted px-1.5 py-0.5 rounded">.env</code> file, click the button below to try again.</li>
+                  </ol>
+                </div>
+              </CardContent>
+              <CardFooter>
+                  <Button onClick={fetchAllData} disabled={isLoading}>
+                      {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      Retry Connection
+                  </Button>
+              </CardFooter>
+            </Card>
+          </div>
         ) : displayedOrders.length === 0 ? (
-          <div className="text-center py-10">
+          <div className="flex-1 flex flex-col items-center justify-center text-center py-10">
             <p className="text-lg font-semibold">No Orders Found</p>
             <p className="text-muted-foreground mt-2">Try adjusting your filters to find what you're looking for.</p>
           </div>
@@ -663,3 +691,4 @@ export default function OrdersPage() {
     </div>
   );
 }
+

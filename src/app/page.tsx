@@ -1,12 +1,12 @@
 
 "use client";
 
-import { useState, useEffect, ReactNode, useMemo } from 'react';
+import { useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { PageHeader } from '@/components/page-header';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { DollarSign, Users, ShoppingBag, Activity, ShieldCheck, Store, Crown, Download, Loader2, Calendar as CalendarIcon, CheckCircle, Clock, PackageSearch, Truck, XCircle, Archive, Loader } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label, LabelList } from 'recharts';
+import { DollarSign, Users, ShoppingBag, Activity, ShieldCheck, Store, Crown, Download, Loader2, Calendar as CalendarIcon, CheckCircle, Clock, PackageSearch, Truck, XCircle, Archive, Loader, AlertTriangle } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label } from 'recharts';
 import type { Order, OrderStatus, Vendor, UserProfile } from '@/types';
 import { cn } from '@/lib/utils';
 import { getVendorsFromFirestore, getAllUsers, getCompanyDetailsFromFirestore } from '@/app/auth/actions';
@@ -52,6 +52,7 @@ export default function DashboardPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Final processed data for display
   const [displayData, setDisplayData] = useState<{
@@ -120,71 +121,76 @@ export default function DashboardPage() {
     setTempDateRange(initialRange); // Also sync temp state
   }, []);
 
+  const fetchDashboardData = useCallback(async () => {
+    if (!dateRange?.from) return;
+    setIsLoading(true);
+    setError(null);
+    
+    const fetchAllOrders = async (): Promise<Order[]> => {
+      let orders: Order[] = [];
+      let page = 1;
+      let keepFetching = true;
+
+      while(keepFetching) {
+        const paginatedParams = new URLSearchParams();
+        paginatedParams.append('page', page.toString());
+        paginatedParams.append('per_page', '100');
+        // Fetch a wide range of data to allow client-side filtering by payment date
+        const fromDate = subDays(dateRange.from!, 30); // Fetch last 30 days of data prior to start
+        paginatedParams.append('after', format(startOfDay(fromDate), "yyyy-MM-dd'T'HH:mm:ss"));
+        paginatedParams.append('before', format(endOfDay(dateRange.to!), "yyyy-MM-dd'T'HH:mm:ss"));
+
+
+        const response = await fetch(`/api/orders?${paginatedParams.toString()}`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `Request failed with status ${response.status}`);
+        }
+        const data = await response.json();
+        orders = orders.concat(data);
+
+        if (data.length < 100) {
+          keepFetching = false;
+        } else {
+          page++;
+        }
+      }
+      return orders;
+    };
+    
+    try {
+      const [ordersData, vendorsResult, usersResult] = await Promise.all([
+        fetchAllOrders(),
+        getVendorsFromFirestore(),
+        isSuperAdmin ? getAllUsers() : Promise.resolve(undefined),
+      ]);
+      
+      setAllFetchedOrders(ordersData);
+
+      if (vendorsResult.success && vendorsResult.data) {
+        setVendors(vendorsResult.data);
+      } else {
+        toast({ variant: "destructive", title: "Failed to load vendor data", description: vendorsResult.error });
+      }
+
+      if (usersResult && usersResult.success && usersResult.data) {
+        setAllUsers(usersResult.data);
+      } else if (usersResult && !usersResult.success) {
+         toast({ variant: "destructive", title: "Failed to load user data", description: usersResult.message });
+      }
+    } catch (error: any) {
+      const errorMessage = error.message || "An unknown error occurred.";
+      setError(errorMessage);
+      toast({ variant: "destructive", title: "Failed to load dashboard data", description: errorMessage });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [dateRange, toast, isSuperAdmin]);
+  
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      if (!dateRange?.from) return;
-      setIsLoading(true);
-      
-      const fetchAllOrders = async (): Promise<Order[]> => {
-        let orders: Order[] = [];
-        let page = 1;
-        let keepFetching = true;
-
-        while(keepFetching) {
-          const paginatedParams = new URLSearchParams();
-          paginatedParams.append('page', page.toString());
-          paginatedParams.append('per_page', '100');
-          // Fetch a wide range of data to allow client-side filtering by payment date
-          const fromDate = subDays(dateRange.from!, 30); // Fetch last 30 days of data prior to start
-          paginatedParams.append('after', format(startOfDay(fromDate), "yyyy-MM-dd'T'HH:mm:ss"));
-          paginatedParams.append('before', format(endOfDay(dateRange.to!), "yyyy-MM-dd'T'HH:mm:ss"));
-
-
-          const response = await fetch(`/api/orders?${paginatedParams.toString()}`);
-          if (!response.ok) {
-              throw new Error('Failed to fetch orders from API.');
-          }
-          const data = await response.json();
-          orders = orders.concat(data);
-
-          if (data.length < 100) {
-            keepFetching = false;
-          } else {
-            page++;
-          }
-        }
-        return orders;
-      };
-      
-      try {
-        const [ordersData, vendorsResult, usersResult] = await Promise.all([
-          fetchAllOrders(),
-          getVendorsFromFirestore(),
-          isSuperAdmin ? getAllUsers() : Promise.resolve(undefined),
-        ]);
-        
-        setAllFetchedOrders(ordersData);
-
-        if (vendorsResult.success && vendorsResult.data) {
-          setVendors(vendorsResult.data);
-        } else {
-          toast({ variant: "destructive", title: "Failed to load vendor data", description: vendorsResult.error });
-        }
-
-        if (usersResult && usersResult.success && usersResult.data) {
-          setAllUsers(usersResult.data);
-        } else if (usersResult && !usersResult.success) {
-           toast({ variant: "destructive", title: "Failed to load user data", description: usersResult.message });
-        }
-      } catch (error: any) {
-        toast({ variant: "destructive", title: "Failed to load dashboard data", description: error.message });
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchDashboardData();
-  }, [dateRange, toast, isSuperAdmin]);
+  }, [fetchDashboardData]);
   
 
   useEffect(() => {
@@ -514,86 +520,137 @@ export default function DashboardPage() {
         }
       />
       <div className="flex-1 p-4 md:p-6 space-y-6 overflow-auto">
-        
-        <StatsCards />
-
-        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-5">
-           <Card className="lg:col-span-2">
-             <CardHeader>
-                <CardTitle className="font-headline text-xl">Sales Details</CardTitle>
-                <CardDescription className="text-xs text-muted-foreground mt-1">Breakdown by order status for selected range</CardDescription>
-            </CardHeader>
-             <CardContent className="pt-2">
-               {isLoading ? (
-                <div className="flex items-center justify-center h-[250px]"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>
-               ) : displayData.salesDetailsData.length > 0 ? (
-                <div>
-                  <ResponsiveContainer width="100%" height={200}>
-                      <PieChart>
-                          <defs>
-                              <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.4}/></linearGradient>
-                               <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0.4}/></linearGradient>
-                               <linearGradient id="colorCustomers" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--chart-3))" stopOpacity={0.4}/></linearGradient>
-                               <linearGradient id="colorProcessing" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0.4}/></linearGradient>
-                              <linearGradient id="colorCancelled" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--chart-5))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--chart-5))" stopOpacity={0.4}/></linearGradient>
-                          </defs>
-                          <Pie data={displayData.salesDetailsData} cx="50%" cy="50%" labelLine={false} innerRadius={50} outerRadius={90} paddingAngle={2} dataKey="value" nameKey="label">
-                              {displayData.salesDetailsData.map((entry, index) => (<Cell key={`cell-${index}`} fill={GRADIENT_COLORS[index % GRADIENT_COLORS.length]} />))}
-                          </Pie>
-                           <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }} labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }} itemStyle={{ color: 'hsl(var(--foreground))' }} />
-                            <Label value={displayData.totalOrders} position="center" fill="hsl(var(--foreground))" className="text-3xl font-bold" dy={-5} />
-                            <Label value="Total Orders" position="center" dy={15} fill="hsl(var(--muted-foreground))" className="text-sm" />
-                      </PieChart>
-                  </ResponsiveContainer>
-                  <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2">
-                    {displayData.salesDetailsData.map((entry, index) => (
-                      <div key={entry.name} className="flex items-center text-sm">
-                        <span className="h-2.5 w-2.5 rounded-full mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                        <span className="text-muted-foreground flex-1">{entry.label}</span>
-                        <span className="font-medium text-foreground">{entry.value}</span>
-                      </div>
-                    ))}
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : error ? (
+          <div className="flex items-center justify-center h-full">
+              <Card className="w-full max-w-2xl border-destructive bg-destructive/5">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3 text-destructive">
+                    <AlertTriangle className="h-8 w-8" />
+                    Connection Failed
+                  </CardTitle>
+                  <CardDescription className="text-destructive/90">
+                    The application could not connect to your WooCommerce store to fetch data. This is usually due to missing or incorrect API settings.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="font-semibold text-foreground">Error Details:</p>
+                    <pre className="mt-2 p-3 bg-destructive/10 border border-destructive/20 rounded-md text-sm text-destructive font-mono whitespace-pre-wrap">
+                      {error}
+                    </pre>
                   </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center h-[250px] text-muted-foreground">
-                  <p>No sales data available.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  <div className="border-t pt-4">
+                    <h3 className="font-semibold text-foreground mb-2">How to Fix This:</h3>
+                    <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+                      <li>
+                        Open the <code className="font-mono bg-muted px-1.5 py-0.5 rounded">.env</code> file from the file explorer on the left.
+                      </li>
+                      <li>
+                        Fill in the correct values for your WooCommerce store:
+                        <ul className="list-disc list-inside ml-4 mt-2 font-mono text-xs text-foreground bg-background p-3 rounded-md border">
+                          <li>WOOCOMMERCE_STORE_URL=...</li>
+                          <li>WOOCOMMERCE_CONSUMER_KEY=...</li>
+                          <li>WOOCOMMERCE_CONSUMER_SECRET=...</li>
+                        </ul>
+                      </li>
+                      <li>After saving the <code className="font-mono bg-muted px-1.5 py-0.5 rounded">.env</code> file, click the button below to try again.</li>
+                    </ol>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                    <Button onClick={fetchDashboardData} disabled={isLoading}>
+                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        Retry Connection
+                    </Button>
+                </CardFooter>
+              </Card>
+          </div>
+        ) : (
+          <>
+            <StatsCards />
 
-          <Card className="lg:col-span-3">
-             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                <div className='flex-1'>
-                    <CardTitle className="font-headline text-xl">Order Activity</CardTitle>
-                    {dateRange?.from && (<p className="text-sm text-primary font-bold pt-1">Sales in Range: ₹{displayData.totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}</p>)}
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                    <div className="inline-flex items-center rounded-md bg-muted p-0.5">
-                        <Button variant={activityView === 'daily' ? "secondary" : "ghost"} onClick={() => setActivityView('daily')} size="sm" className="h-7 px-2 text-xs">Daily</Button>
-                        <Button variant={activityView === 'weekly' ? "secondary" : "ghost"} onClick={() => setActivityView('weekly')} size="sm" className="h-7 px-2 text-xs">Weekly</Button>
-                        <Button variant={activityView === 'monthly' ? "secondary" : "ghost"} onClick={() => setActivityView('monthly')} size="sm" className="h-7 px-2 text-xs">Monthly</Button>
+            <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-5">
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                    <CardTitle className="font-headline text-xl">Sales Details</CardTitle>
+                    <CardDescription className="text-xs text-muted-foreground mt-1">Breakdown by order status for selected range</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-2">
+                  {isLoading ? (
+                    <div className="flex items-center justify-center h-[250px]"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>
+                  ) : displayData.salesDetailsData.length > 0 ? (
+                    <div>
+                      <ResponsiveContainer width="100%" height={200}>
+                          <PieChart>
+                              <defs>
+                                  <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.4}/></linearGradient>
+                                  <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0.4}/></linearGradient>
+                                  <linearGradient id="colorCustomers" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--chart-3))" stopOpacity={0.4}/></linearGradient>
+                                  <linearGradient id="colorProcessing" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0.4}/></linearGradient>
+                                  <linearGradient id="colorCancelled" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--chart-5))" stopOpacity={0.8}/><stop offset="95%" stopColor="hsl(var(--chart-5))" stopOpacity={0.4}/></linearGradient>
+                              </defs>
+                              <Pie data={displayData.salesDetailsData} cx="50%" cy="50%" labelLine={false} innerRadius={50} outerRadius={90} paddingAngle={2} dataKey="value" nameKey="label">
+                                  {displayData.salesDetailsData.map((entry, index) => (<Cell key={`cell-${index}`} fill={GRADIENT_COLORS[index % GRADIENT_COLORS.length]} />))}
+                              </Pie>
+                              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }} labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }} itemStyle={{ color: 'hsl(var(--foreground))' }} />
+                                <Label value={displayData.totalOrders} position="center" fill="hsl(var(--foreground))" className="text-3xl font-bold" dy={-5} />
+                                <Label value="Total Orders" position="center" dy={15} fill="hsl(var(--muted-foreground))" className="text-sm" />
+                          </PieChart>
+                      </ResponsiveContainer>
+                      <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2">
+                        {displayData.salesDetailsData.map((entry, index) => (
+                          <div key={entry.name} className="flex items-center text-sm">
+                            <span className="h-2.5 w-2.5 rounded-full mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                            <span className="text-muted-foreground flex-1">{entry.label}</span>
+                            <span className="font-medium text-foreground">{entry.value}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                </div>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={displayData.activityData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }} onClick={handleBarClick}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" vertical={false} />
-                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} />
-                  <YAxis yAxisId="left" dataKey="orders" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }} labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }} itemStyle={{ color: 'hsl(var(--foreground))' }} cursor={{fill: 'hsl(var(--muted)/0.3)'}} formatter={(value, name) => { if (name === 'sales') { return [`₹${Number(value).toLocaleString('en-IN')}`, 'Sales']; } return [value, 'Orders']; }} />
-                  <Bar yAxisId="left" dataKey="orders" name="Orders" radius={[4, 4, 0, 0]} className="cursor-pointer">
-                    <LabelList dataKey="sales" content={<SalesLabel />} />
-                     {displayData.activityData.map((entry, index) => (<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />))}
-                  </Bar>
-                   <Bar yAxisId="left" dataKey="sales" name="sales" className="hidden" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-[250px] text-muted-foreground">
+                      <p>No sales data available.</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="lg:col-span-3">
+                <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                    <div className='flex-1'>
+                        <CardTitle className="font-headline text-xl">Order Activity</CardTitle>
+                        {dateRange?.from && (<p className="text-sm text-primary font-bold pt-1">Sales in Range: ₹{displayData.totalSales.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}</p>)}
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <div className="inline-flex items-center rounded-md bg-muted p-0.5">
+                            <Button variant={activityView === 'daily' ? "secondary" : "ghost"} onClick={() => setActivityView('daily')} size="sm" className="h-7 px-2 text-xs">Daily</Button>
+                            <Button variant={activityView === 'weekly' ? "secondary" : "ghost"} onClick={() => setActivityView('weekly')} size="sm" className="h-7 px-2 text-xs">Weekly</Button>
+                            <Button variant={activityView === 'monthly' ? "secondary" : "ghost"} onClick={() => setActivityView('monthly')} size="sm" className="h-7 px-2 text-xs">Monthly</Button>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={displayData.activityData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }} onClick={handleBarClick}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" vertical={false} />
+                      <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} />
+                      <YAxis yAxisId="left" dataKey="orders" stroke="hsl(var(--muted-foreground))" fontSize={12} axisLine={false} tickLine={false} allowDecimals={false} />
+                      <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }} labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }} itemStyle={{ color: 'hsl(var(--foreground))' }} cursor={{fill: 'hsl(var(--muted)/0.3)'}} formatter={(value, name) => { if (name === 'sales') { return [`₹${Number(value).toLocaleString('en-IN')}`, 'Sales']; } return [value, 'Orders']; }} />
+                      <Bar yAxisId="left" dataKey="orders" name="Orders" radius={[4, 4, 0, 0]} className="cursor-pointer">
+                        {displayData.activityData.map((entry, index) => (<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />))}
+                      </Bar>
+                      <Bar yAxisId="left" dataKey="sales" name="sales" className="hidden" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
