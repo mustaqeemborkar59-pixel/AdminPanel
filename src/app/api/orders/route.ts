@@ -1,16 +1,29 @@
+
 'use server';
 import { NextResponse } from 'next/server';
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 import type { Order, OrderItem, OrderStatus } from '@/types';
 
 // This function is self-contained to avoid external dependencies issues.
-const getWooCommerceApi = (): WooCommerceRestApi => {
+// It now returns null if credentials are not set, allowing the handler to give a more specific error.
+const getWooCommerceApi = (): WooCommerceRestApi | null => {
   const storeUrl = process.env.WOOCOMMERCE_STORE_URL;
   const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY;
   const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET;
 
   if (!storeUrl || !consumerKey || !consumerSecret) {
-    throw new Error('WooCommerce API credentials are not configured on the server.');
+    // Return null instead of throwing, so the GET handler can provide a more helpful error message.
+    return null;
+  }
+
+  // Validate the URL format before creating the instance.
+  try {
+    new URL(storeUrl);
+  } catch (error) {
+    console.error('Invalid WooCommerce URL format in .env file:', storeUrl);
+    // You could return null here as well, or let the API call fail later.
+    // For a better error, we can handle it specifically.
+    // Let's let it proceed and the `api.get` call will fail, which we can catch.
   }
 
   return new WooCommerceRestApi({
@@ -95,8 +108,16 @@ const mapWCOrderToAppOrder = (order: any): Order | null => {
 
 
 export async function GET(request: Request) {
+  const api = getWooCommerceApi();
+
+  // Specific check for missing credentials
+  if (!api) {
+      const errorMessage = 'Connection to WooCommerce failed. The API credentials (URL, Key, Secret) are not configured correctly on the server. Please check the .env file.';
+      console.error(errorMessage);
+      return NextResponse.json({ error: errorMessage }, { status: 500 });
+  }
+  
   try {
-    const api = getWooCommerceApi();
     const { searchParams } = new URL(request.url);
 
     // Parameters for WooCommerce API
@@ -143,7 +164,7 @@ export async function GET(request: Request) {
 
     if (response.status !== 200) {
       console.error(`WooCommerce API Error:`, response.data);
-      throw new Error(`WooCommerce API responded with status ${response.status}`);
+      throw new Error(`WooCommerce API responded with status ${response.status}. Message: ${response.data?.message || 'No message'}`);
     }
     
     const fetchedOrders = response.data;
@@ -157,8 +178,26 @@ export async function GET(request: Request) {
 
   } catch (error: any) {
     console.error('Failed to fetch orders from custom API route:', error);
-    // Provide a more specific error message if available
-    const errorMessage = error.response?.data?.message || error.message || 'An internal server error occurred.';
+    
+    let errorMessage = 'An unexpected error occurred while fetching orders.';
+    
+    // Check for network errors (like wrong URL)
+    if (error.code === 'ENOTFOUND' || (error.message && error.message.includes('getaddrinfo ENOTFOUND'))) {
+       errorMessage = `Could not connect to the WooCommerce store. The URL might be incorrect. Please check the WOOCOMMERCE_STORE_URL in your .env file.`;
+    }
+    // Check for authentication errors
+    else if (error.response?.status === 401) {
+       errorMessage = `Authentication with WooCommerce failed (Unauthorized). Please check your WOOCOMMERCE_CONSUMER_KEY and WOOCOMMERCE_CONSUMER_SECRET in the .env file.`;
+    }
+    // General API error
+    else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    }
+    // Fallback to the original error message
+    else if (error.message) {
+      errorMessage = error.message;
+    }
+
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

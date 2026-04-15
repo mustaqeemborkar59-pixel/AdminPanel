@@ -220,7 +220,8 @@ const mapWCOrderToAppOrder = (order)=>{
             'failed': 'failed',
             'refunded': 'failed',
             'queue': 'queue',
-            'dispatch': 'dispatch'
+            'dispatch': 'dispatch',
+            'wc-in-transit': 'in-transit'
         };
         const appStatus = statusMap[order.status] || 'pending';
         const formatAddress = (addr)=>{
@@ -289,7 +290,10 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ GET(request) {
                 'on-hold',
                 'completed',
                 'cancelled',
-                'failed'
+                'failed',
+                'queue',
+                'dispatch',
+                'wc-in-transit'
             ].join(',');
         }
         // For creation date filtering (used on Orders page)
