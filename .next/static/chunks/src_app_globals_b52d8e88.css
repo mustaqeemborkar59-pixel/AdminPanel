@@ -1469,6 +1469,10 @@ input, button, textarea, select {
   border-color: #0000;
 }
 
+.border-yellow-500\/50 {
+  border-color: #eab30880;
+}
+
 .border-l-transparent {
   border-left-color: #0000;
 }
@@ -1676,6 +1680,11 @@ input, button, textarea, select {
 
 .bg-destructive\/5 {
   background-color: hsl(var(--destructive) / .05);
+}
+
+.bg-yellow-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(254 249 195 / var(--tw-bg-opacity, 1));
 }
 
 .bg-gradient-to-br {
@@ -2172,6 +2181,21 @@ input, button, textarea, select {
 
 .text-destructive\/90 {
   color: hsl(var(--destructive) / .9);
+}
+
+.text-yellow-300 {
+  --tw-text-opacity: 1;
+  color: rgb(253 224 71 / var(--tw-text-opacity, 1));
+}
+
+.text-yellow-700 {
+  --tw-text-opacity: 1;
+  color: rgb(161 98 7 / var(--tw-text-opacity, 1));
+}
+
+.text-yellow-800 {
+  --tw-text-opacity: 1;
+  color: rgb(133 77 14 / var(--tw-text-opacity, 1));
 }
 
 .line-through {
@@ -3280,6 +3304,10 @@ body {
   background-color: hsl(var(--primary) / .1);
 }
 
+.dark\:bg-yellow-900\/30:is(.dark *) {
+  background-color: #713f124d;
+}
+
 .dark\:text-amber-400:is(.dark *) {
   --tw-text-opacity: 1;
   color: rgb(251 191 36 / var(--tw-text-opacity, 1));
@@ -3298,6 +3326,16 @@ body {
 .dark\:text-green-400:is(.dark *) {
   --tw-text-opacity: 1;
   color: rgb(74 222 128 / var(--tw-text-opacity, 1));
+}
+
+.dark\:text-yellow-300:is(.dark *) {
+  --tw-text-opacity: 1;
+  color: rgb(253 224 71 / var(--tw-text-opacity, 1));
+}
+
+.dark\:text-yellow-400:is(.dark *) {
+  --tw-text-opacity: 1;
+  color: rgb(250 204 21 / var(--tw-text-opacity, 1));
 }
 
 .dark\:hover\:bg-green-800:hover:is(.dark *) {

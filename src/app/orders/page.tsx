@@ -638,6 +638,19 @@ export default function OrdersPage() {
                     {error}
                   </pre>
                 </div>
+
+                <div className="mt-4 p-4 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-500/50 rounded-md">
+                    <h3 className="font-bold text-yellow-800 dark:text-yellow-300">Important: Check your Store URL</h3>
+                    <p className="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
+                        The error "not valid JSON" or "Unexpected token" almost always means your <strong>WOOCOMMERCE_STORE_URL</strong> in the <code>.env</code> file is wrong. It's likely pointing to a webpage instead of the base site address.
+                    </p>
+                    <ul className="text-xs mt-2 list-disc list-inside text-yellow-700 dark:text-yellow-400 space-y-1">
+                        <li><strong>Correct format:</strong> https://yourstore.com</li>
+                        <li><strong>Incorrect format:</strong> https://yourstore.com/shop</li>
+                        <li><strong>Incorrect format:</strong> https://yourstore.com/wp-admin</li>
+                    </ul>
+                </div>
+
                 <div className="border-t pt-4">
                   <h3 className="font-semibold text-foreground mb-2">How to Fix This:</h3>
                   <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
@@ -691,4 +704,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
 
