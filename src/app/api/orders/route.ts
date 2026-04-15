@@ -181,9 +181,10 @@ export async function GET(request: Request) {
     
     let errorMessage = 'An unexpected error occurred while fetching orders.';
     
+    // **IMPROVED ERROR HANDLING**
     // Check for "Unexpected token '<'" which indicates an HTML response instead of JSON
     if (error.message && (error.message.toLowerCase().includes("unexpected token '<'") || error.message.toLowerCase().includes("is not valid json"))) {
-       errorMessage = `The store URL returned an HTML page instead of valid data. This usually means the WOOCOMMERCE_STORE_URL is incorrect. Please ensure it points to the base URL of your WordPress site (e.g., https://yourstore.com) and not a specific page.`;
+       errorMessage = `The store URL returned an HTML page instead of valid data. This usually means the WOOCOMMERCE_STORE_URL is incorrect. Please ensure it points to the base URL of your WordPress site (e.g., https://yourstore.com) and not a specific page like /shop or /wp-admin.`;
     }
     // Check for network errors (like wrong URL)
     else if (error.code === 'ENOTFOUND' || (error.message && error.message.includes('getaddrinfo ENOTFOUND'))) {
