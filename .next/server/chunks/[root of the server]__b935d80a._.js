@@ -250,15 +250,24 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ GET(request) {
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json(mappedOrders);
     } catch (error) {
         // Catch-all for other errors like invalid URL format or network issues
-        let errorMessage = 'An unknown server error occurred while fetching orders.';
-        if (error.message.includes('Invalid URL')) {
-            errorMessage = `Could not connect to the WooCommerce store. The URL might be incorrect. Please check the WOOCOMMERCE_STORE_URL in your .env file.`;
+        console.error("!!! WooCommerce API Route Error !!!");
+        console.error("Underlying Error:", error);
+        let errorMessage;
+        const errorStoreUrl = process.env.WOOCOMMERCE_STORE_URL || '[URL not set]';
+        if (error.message?.includes('Invalid URL')) {
+            errorMessage = `The URL provided (${errorStoreUrl}) is invalid. Please check the WOOCOMMERCE_STORE_URL in your .env file.`;
         } else if (error.code === 'ENOTFOUND') {
-            errorMessage = `Could not find the host specified in WOOCOMMERCE_STORE_URL. Please ensure the domain name is correct.`;
+            errorMessage = `Could not find the host (${errorStoreUrl}). Please ensure the domain name is correct and the server is running.`;
+        } else if (error.code === 'ECONNREFUSED') {
+            errorMessage = `Connection was refused by the server at ${errorStoreUrl}. Please check if your store is online and not blocked by a firewall.`;
+        } else {
+            // For any other fetch-related error, return the underlying error message.
+            // This is much more informative than a generic message.
+            // It could reveal issues like SSL errors, timeouts, etc.
+            errorMessage = error.message || 'An unknown network error occurred during the API request.';
         }
-        console.error("General Fetch Error in API route:", error);
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-            error: errorMessage
+            error: `WooCommerce Connection Error: ${errorMessage}`
         }, {
             status: 500
         });
