@@ -200,6 +200,7 @@ export default function OrdersPage() {
     } catch (err: any) {
        const errorMessage = err.message || "An unknown error occurred.";
        setError(errorMessage);
+       console.error("Order Fetch Error:", err);
        toast({
         variant: "destructive",
         title: "Failed to Fetch Orders",
@@ -619,68 +620,12 @@ export default function OrdersPage() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="ml-4 text-muted-foreground">Fetching data...</p>
           </div>
-        ) : error ? (
-          <div className="flex-1 flex items-center justify-center">
-            <Card className="w-full max-w-2xl border-destructive bg-destructive/5">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-destructive">
-                  <AlertTriangle className="h-8 w-8" />
-                  Connection Failed
-                </CardTitle>
-                <CardDescription className="text-destructive/90">
-                  The application could not connect to your WooCommerce store to fetch orders. This is usually due to missing or incorrect API settings.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="font-semibold text-foreground">Error Details:</p>
-                  <pre className="mt-2 p-3 bg-destructive/10 border border-destructive/20 rounded-md text-sm text-destructive font-mono whitespace-pre-wrap">
-                    {error}
-                  </pre>
-                </div>
-
-                <div className="mt-4 p-4 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-500/50 rounded-md">
-                    <h3 className="font-bold text-yellow-800 dark:text-yellow-300">Important: Check your Store URL</h3>
-                    <p className="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
-                        The error "not valid JSON" or "Unexpected token" almost always means your <strong>WOOCOMMERCE_STORE_URL</strong> in the <code>.env</code> file is wrong. It's likely pointing to a webpage instead of the base site address.
-                    </p>
-                    <ul className="text-xs mt-2 list-disc list-inside text-yellow-700 dark:text-yellow-400 space-y-1">
-                        <li><strong>Correct format:</strong> https://yourstore.com</li>
-                        <li><strong>Incorrect format:</strong> https://yourstore.com/shop</li>
-                        <li><strong>Incorrect format:</strong> https://yourstore.com/wp-admin</li>
-                    </ul>
-                </div>
-
-                <div className="border-t pt-4">
-                  <h3 className="font-semibold text-foreground mb-2">How to Fix This:</h3>
-                  <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-                    <li>
-                      Open the <code className="font-mono bg-muted px-1.5 py-0.5 rounded">.env</code> file from the file explorer on the left.
-                    </li>
-                    <li>
-                      Fill in the correct values for your WooCommerce store:
-                      <ul className="list-disc list-inside ml-4 mt-2 font-mono text-xs text-foreground bg-background p-3 rounded-md border">
-                        <li>WOOCOMMERCE_STORE_URL=...</li>
-                        <li>WOOCOMMERCE_CONSUMER_KEY=...</li>
-                        <li>WOOCOMMERCE_CONSUMER_SECRET=...</li>
-                      </ul>
-                    </li>
-                    <li>After saving the <code className="font-mono bg-muted px-1.5 py-0.5 rounded">.env</code> file, click the button below to try again.</li>
-                  </ol>
-                </div>
-              </CardContent>
-              <CardFooter>
-                  <Button onClick={fetchAllData} disabled={isLoading}>
-                      {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                      Retry Connection
-                  </Button>
-              </CardFooter>
-            </Card>
-          </div>
         ) : displayedOrders.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center py-10">
-            <p className="text-lg font-semibold">No Orders Found</p>
-            <p className="text-muted-foreground mt-2">Try adjusting your filters to find what you're looking for.</p>
+            <p className="text-lg font-semibold">{error ? "Failed to Load Orders" : "No Orders Found"}</p>
+            <p className="text-muted-foreground mt-2">
+              {error ? "Check the browser console for more details." : "Try adjusting your filters to find what you're looking for."}
+            </p>
           </div>
         ) : (
           <Accordion type="multiple" className="space-y-4">
@@ -704,5 +649,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-

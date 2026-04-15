@@ -5,7 +5,7 @@
 (globalThis.TURBOPACK_CHUNK_LISTS = globalThis.TURBOPACK_CHUNK_LISTS || []).push({
   "path": "static/chunks/src_app_page_tsx_fee090b6._.js",
   "chunks": [
-    "static/chunks/node_modules_c6055d0a._.js",
+    "static/chunks/node_modules_c9a3f4a3._.js",
     "static/chunks/src_4062742f._.js",
     "static/chunks/node_modules_lodash_90f72504._.js",
     "static/chunks/node_modules_recharts_es6_3fa6f35d._.js",
@@ -13,7 +13,7 @@
     "static/chunks/node_modules_react-day-picker_dist_index_esm_9fc30424.js",
     "static/chunks/node_modules_jspdf_dist_jspdf_es_min_c277e70f.js",
     "static/chunks/node_modules_jspdf-autotable_dist_jspdf_plugin_autotable_7f09d304.js",
-    "static/chunks/node_modules_9b077bd3._.js"
+    "static/chunks/node_modules_e21e7cd1._.js"
   ],
   "source": "dynamic"
 });
