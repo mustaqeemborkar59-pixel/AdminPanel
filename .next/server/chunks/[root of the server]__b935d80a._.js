@@ -171,14 +171,13 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ GET(request) {
             status: 500
         });
     }
-    // STEP 3: Manually construct the API call
+    // Use Basic Auth header instead of query parameters for better security and compatibility
+    const authHeader = `Basic ${Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64')}`;
     const { searchParams } = new URL(request.url);
     const apiParams = new URLSearchParams({
         per_page: '100',
         orderby: 'date',
-        order: 'desc',
-        consumer_key: consumerKey,
-        consumer_secret: consumerSecret
+        order: 'desc'
     });
     // Forward relevant params from the client to the WooCommerce API
     if (searchParams.get('status') && searchParams.get('status') !== 'any') {
@@ -207,7 +206,9 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ GET(request) {
     let response;
     try {
         response = await fetch(requestUrl, {
-            // Prevent caching of API responses
+            headers: {
+                Authorization: authHeader
+            },
             cache: 'no-store'
         });
     } catch (networkError) {
@@ -218,12 +219,13 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ GET(request) {
             status: 500
         });
     }
-    // STEP 3 & 5: Read response as text first to check for HTML
+    // Read response as text first to check for HTML
     const responseText = await response.text();
+    // Log raw response for debugging
+    console.log("Raw WooCommerce Response:", responseText.substring(0, 500) + (responseText.length > 500 ? '...' : ''));
     if (responseText.trim().startsWith('<')) {
         console.error("Received HTML response instead of JSON from WooCommerce. URL:", storeUrl);
-        console.error("Raw HTML Response:", responseText.substring(0, 500) + '...'); // Log first 500 chars
-        const errorMessage = `The WooCommerce API returned an HTML page instead of JSON data. This usually means the 'WOOCOMMERCE_STORE_URL' is incorrect, or a plugin/server issue is interfering. Please verify the URL is your base WordPress URL (e.g., https://yourstore.com).`;
+        const errorMessage = `The WooCommerce API returned an HTML page instead of JSON data. This usually means the 'WOOCOMMERCE_STORE_URL' in your .env file is incorrect, or a plugin/server issue is interfering. Please verify the URL is your base WordPress URL (e.g., https://yourstore.com) and that your Permalink settings are set to 'Post name'.`;
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
             error: errorMessage
         }, {
@@ -235,7 +237,6 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ GET(request) {
         fetchedOrders = JSON.parse(responseText);
     } catch (jsonError) {
         console.error("Failed to parse JSON response from WooCommerce.");
-        console.error("Raw Response Text:", responseText);
         const errorMessage = `The WooCommerce API returned a response that was not valid JSON. This could indicate a server error on your store's side. Please check your WooCommerce status logs.`;
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
             error: errorMessage
@@ -248,7 +249,7 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ GET(request) {
         console.error("WooCommerce API Error:", fetchedOrders);
         let detail = fetchedOrders.message;
         if (fetchedOrders.code === 'woocommerce_rest_authentication_error') {
-            detail = "Authentication failed. Please check your Consumer Key and Secret.";
+            detail = "Authentication failed. The Consumer Key or Secret is incorrect.";
         }
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
             error: `WooCommerce API Error: ${detail}`
@@ -256,7 +257,6 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ GET(request) {
             status: 500
         });
     }
-    // STEP 3: Map and return the data
     const mappedOrders = fetchedOrders.map((order)=>mapWCOrderToAppOrder(order)).filter((order)=>order !== null);
     return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json(mappedOrders);
 }

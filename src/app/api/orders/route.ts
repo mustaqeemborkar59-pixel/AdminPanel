@@ -77,99 +77,108 @@ const mapWCOrderToAppOrder = (order: any): Order | null => {
 
 
 export async function GET(request: Request) {
-  // STEP 1 & 3: Read server-side credentials
+  // STEP 1: Validate server-side credentials
   const storeUrl = process.env.WOOCOMMERCE_STORE_URL;
   const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY;
   const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET;
 
   if (!storeUrl || !consumerKey || !consumerSecret) {
-    const errorMessage = 'WooCommerce API credentials are not configured on the server. Please check the WOOCOMMERCE_STORE_URL, WOOCOMMERCE_CONSUMER_KEY, and WOOCOMMERCE_CONSUMER_SECRET in your .env file.';
-    console.error("Connection Error:", errorMessage);
+    const errorMessage = 'Connection to WooCommerce failed. The API credentials (URL, Key, Secret) are not configured correctly on the server. Please check the .env file.';
+    console.error("Authentication Error:", errorMessage);
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 
+  // STEP 2: Build a secure and robust request
   try {
-    new URL(storeUrl);
-  } catch (e) {
-    const errorMessage = `Invalid WooCommerce URL format in .env file: ${storeUrl}. It should be the base URL of your WordPress site (e.g., https://yourstore.com).`;
-    console.error("Configuration Error:", errorMessage);
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
-  }
-  
-  // Use Basic Auth header instead of query parameters for better security and compatibility
-  const authHeader = `Basic ${Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64')}`;
+    // Validate and clean the store URL
+    const cleanedStoreUrl = storeUrl.replace(/\/+$/, '');
+    new URL(cleanedStoreUrl); // Throws an error if URL is invalid
 
-  const { searchParams } = new URL(request.url);
-  const apiParams = new URLSearchParams({
-    per_page: '100',
-    orderby: 'date',
-    order: 'desc',
-    // DO NOT include consumer_key and consumer_secret here anymore
-  });
+    // Create a secure Basic Auth header. This is safer than query parameters.
+    const authHeader = `Basic ${Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64')}`;
 
-  // Forward relevant params from the client to the WooCommerce API
-  if (searchParams.get('status') && searchParams.get('status') !== 'any') {
-    apiParams.set('status', searchParams.get('status')!);
-  } else {
-    apiParams.set('status', ['pending', 'processing', 'on-hold', 'completed', 'cancelled', 'failed', 'queue', 'dispatch', 'wc-in-transit'].join(','));
-  }
-  if (searchParams.get('after')) apiParams.set('after', searchParams.get('after')!);
-  if (searchParams.get('before')) apiParams.set('before', searchParams.get('before')!);
-  if (searchParams.get('modified_after')) apiParams.set('modified_after', searchParams.get('modified_after')!);
-  if (searchParams.get('modified_before')) apiParams.set('modified_before', searchParams.get('modified_before')!);
-  if (searchParams.get('search')) apiParams.set('search', searchParams.get('search')!);
-  if (searchParams.get('page')) apiParams.set('page', searchParams.get('page')!);
-
-  const apiEndpoint = `${storeUrl.replace(/\/+$/, '')}/wp-json/wc/v3/orders`;
-  const requestUrl = `${apiEndpoint}?${apiParams.toString()}`;
-
-  let response;
-  try {
-    response = await fetch(requestUrl, {
-        headers: {
-            Authorization: authHeader,
-        },
-        cache: 'no-store',
+    // Forward relevant query parameters from the client to the WooCommerce API
+    const { searchParams } = new URL(request.url);
+    const apiParams = new URLSearchParams({
+      per_page: '100',
+      orderby: 'date',
+      order: 'desc',
     });
-  } catch (networkError: any) {
-    console.error("Network Error connecting to WooCommerce:", networkError);
-    return NextResponse.json({ error: `Network error while trying to connect to your store. Please check the server's internet connection and the store URL. Details: ${networkError.message}` }, { status: 500 });
-  }
+    
+    if (searchParams.get('status') && searchParams.get('status') !== 'any') {
+      apiParams.set('status', searchParams.get('status')!);
+    } else {
+      // Fetch all relevant statuses by default
+      apiParams.set('status', ['pending', 'processing', 'on-hold', 'completed', 'cancelled', 'failed', 'queue', 'dispatch', 'wc-in-transit'].join(','));
+    }
+    if (searchParams.get('after')) apiParams.set('after', searchParams.get('after')!);
+    if (searchParams.get('before')) apiParams.set('before', searchParams.get('before')!);
+    if (searchParams.get('modified_after')) apiParams.set('modified_after', searchParams.get('modified_after')!);
+    if (searchParams.get('modified_before')) apiParams.set('modified_before', searchParams.get('modified_before')!);
+    if (searchParams.get('search')) apiParams.set('search', searchParams.get('search')!);
+    if (searchParams.get('page')) apiParams.set('page', searchParams.get('page')!);
 
-  // Read response as text first to check for HTML
-  const responseText = await response.text();
+    const requestUrl = `${cleanedStoreUrl}/wp-json/wc/v3/orders?${apiParams.toString()}`;
+    
+    console.log("Requesting data from WooCommerce URL:", requestUrl);
 
-  // Log raw response for debugging
-  console.log("Raw WooCommerce Response:", responseText.substring(0, 500) + (responseText.length > 500 ? '...' : ''));
+    // STEP 3: Fetch data and handle response carefully
+    const response = await fetch(requestUrl, {
+        headers: {
+            'Authorization': authHeader,
+        },
+        cache: 'no-store', // Always get fresh data
+    });
 
-  if (responseText.trim().startsWith('<')) {
-    console.error("Received HTML response instead of JSON from WooCommerce. URL:", storeUrl);
-    const errorMessage = `The WooCommerce API returned an HTML page instead of JSON data. This usually means the 'WOOCOMMERCE_STORE_URL' in your .env file is incorrect, or a plugin/server issue is interfering. Please verify the URL is your base WordPress URL (e.g., https://yourstore.com) and that your Permalink settings are set to 'Post name'.`;
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
-  }
+    // First, get the response as raw text to check for HTML
+    const responseText = await response.text();
 
-  let fetchedOrders;
-  try {
-    fetchedOrders = JSON.parse(responseText);
-  } catch (jsonError) {
-    console.error("Failed to parse JSON response from WooCommerce.");
-    const errorMessage = `The WooCommerce API returned a response that was not valid JSON. This could indicate a server error on your store's side. Please check your WooCommerce status logs.`;
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
-  }
+    // Log the beginning of the raw response for debugging
+    console.log("Raw WooCommerce Response (first 500 chars):", responseText.substring(0, 500));
 
-  // Handle cases where the API returns an error object instead of an order list
-  if (fetchedOrders.code && fetchedOrders.message) {
-      console.error("WooCommerce API Error:", fetchedOrders);
-      let detail = fetchedOrders.message;
-      if (fetchedOrders.code === 'woocommerce_rest_authentication_error') {
-          detail = "Authentication failed. The Consumer Key or Secret is incorrect.";
+    // CRITICAL: Check if the response is HTML, which indicates a configuration error.
+    if (responseText.trim().startsWith('<')) {
+        const htmlError = "The WooCommerce API returned an HTML page instead of JSON data. This usually means the 'WOOCOMMERCE_STORE_URL' in your .env file is incorrect, or a plugin/server issue is interfering. Please verify the URL is your base WordPress URL (e.g., https://yourstore.com) and that your Permalink settings are set to 'Post name'.";
+        console.error("WooCommerce Connection Error:", htmlError);
+        return NextResponse.json({ error: htmlError }, { status: 500 });
+    }
+
+    // Now that we know it's not HTML, try to parse it as JSON
+    let fetchedData;
+    try {
+        fetchedData = JSON.parse(responseText);
+    } catch (jsonError) {
+        const parseError = `The WooCommerce API returned a response that was not valid JSON. This could indicate a server error on your store's side. Please check your WooCommerce status logs.`;
+        console.error("JSON Parsing Error:", parseError);
+        return NextResponse.json({ error: parseError }, { status: 500 });
+    }
+    
+    // Check for API errors returned in a valid JSON format
+    if (fetchedData.code && fetchedData.message) {
+      let detail = fetchedData.message;
+      if (fetchedData.code === 'woocommerce_rest_authentication_error') {
+          detail = "Authentication with WooCommerce failed (Unauthorized). Please check your WOOCOMMERCE_CONSUMER_KEY and WOOCOMMERCE_CONSUMER_SECRET in the .env file.";
       }
+      console.error("WooCommerce API Error:", detail);
       return NextResponse.json({ error: `WooCommerce API Error: ${detail}` }, { status: 500 });
+    }
+
+    // STEP 4: Map and return the clean data
+    const mappedOrders = (fetchedData as any[])
+      .map(order => mapWCOrderToAppOrder(order))
+      .filter((order): order is Order => order !== null);
+
+    return NextResponse.json(mappedOrders);
+
+  } catch (error: any) {
+    // Catch-all for other errors like invalid URL format or network issues
+    let errorMessage = 'An unknown server error occurred while fetching orders.';
+    if (error.message.includes('Invalid URL')) {
+        errorMessage = `Could not connect to the WooCommerce store. The URL might be incorrect. Please check the WOOCOMMERCE_STORE_URL in your .env file.`;
+    } else if (error.code === 'ENOTFOUND') {
+        errorMessage = `Could not find the host specified in WOOCOMMERCE_STORE_URL. Please ensure the domain name is correct.`;
+    }
+    console.error("General Fetch Error in API route:", error);
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
-
-  const mappedOrders = (fetchedOrders as any[])
-    .map(order => mapWCOrderToAppOrder(order))
-    .filter((order): order is Order => order !== null);
-
-  return NextResponse.json(mappedOrders);
 }
