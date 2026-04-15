@@ -32,7 +32,7 @@ const mapWCOrderToAppOrder = (order: any): Order | null => {
       'pending': 'pending', 'processing': 'processing', 'on-hold': 'hold',
       'completed': 'completed', 'cancelled': 'cancelled', 'failed': 'failed',
       'refunded': 'failed', 'queue': 'queue', 'dispatch': 'dispatch',
-      'wc-in-transit': 'in-transit',
+      'in-transit': 'in-transit',
     };
     const appStatus = statusMap[order.status] || 'pending';
 

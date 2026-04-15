@@ -174,21 +174,11 @@ async function /*#__TURBOPACK_DISABLE_EXPORT_MERGING__*/ GET(request) {
             orderby: 'date',
             order: 'desc'
         });
-        if (searchParams.get('status') && searchParams.get('status') !== 'any') {
-            apiParams.set('status', searchParams.get('status'));
-        } else {
-            // Fetch all relevant statuses by default
-            apiParams.set('status', [
-                'pending',
-                'processing',
-                'on-hold',
-                'completed',
-                'cancelled',
-                'failed',
-                'queue',
-                'dispatch',
-                'wc-in-transit'
-            ].join(','));
+        // **FIXED LOGIC**: Only set the 'status' parameter if a specific status is provided.
+        // If 'any' is passed or the parameter is missing, we omit it, and WooCommerce defaults to 'any'.
+        const clientStatus = searchParams.get('status');
+        if (clientStatus && clientStatus !== 'any') {
+            apiParams.set('status', clientStatus);
         }
         if (searchParams.get('after')) apiParams.set('after', searchParams.get('after'));
         if (searchParams.get('before')) apiParams.set('before', searchParams.get('before'));
